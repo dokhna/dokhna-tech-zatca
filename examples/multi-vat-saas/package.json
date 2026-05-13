@@ -1,0 +1,12 @@
+{
+  "name": "@dokhna-tach-examples/multi-vat-saas",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Example: @dokhna-tach/zatca multi-tenant SaaS (placeholder).",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'placeholder'",
+    "typecheck": "echo 'placeholder'",
+    "test": "echo 'placeholder'"
+  }
+}

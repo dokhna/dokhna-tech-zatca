@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.turbo/
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor (keep .vscode/ shared, ignore user-specific)
+*.swp
+*.swo
+*~
+.idea/
+
+# Changesets — ignore in-flight template scratch only
+.changeset/*-template.md
+
+# Tooling caches
+.eslintcache
+.cache/
+
+# Local agent / tooling state (not part of the package)
+.claude/
+.tldr/
+.tldrignore

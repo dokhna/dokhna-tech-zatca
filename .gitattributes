@@ -1,0 +1,17 @@
+# Normalize line endings on checkin; checkout as LF on all platforms.
+* text=auto eol=lf
+
+# Explicit text formats
+*.md         text
+*.xml        text
+*.json       text
+*.yml        text
+*.yaml       text
+*.ts         text
+*.tsx        text
+*.js         text
+*.cjs        text
+*.mjs        text
+
+# Treat lockfiles as binary for diff sanity
+pnpm-lock.yaml -diff

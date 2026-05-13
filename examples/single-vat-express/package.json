@@ -1,0 +1,12 @@
+{
+  "name": "@dokhna-tach-examples/single-vat-express",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Example: @dokhna-tach/zatca with Express, single VAT (placeholder).",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'placeholder'",
+    "typecheck": "echo 'placeholder'",
+    "test": "echo 'placeholder'"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/storage-memory" },
+    { "path": "./packages/storage-mongo" },
+    { "path": "./packages/storage-postgres" }
+  ]
+}

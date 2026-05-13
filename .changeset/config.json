@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [
+    [
+      "@dokhna-tach/zatca",
+      "@dokhna-tach/zatca-storage-memory",
+      "@dokhna-tach/zatca-storage-mongo",
+      "@dokhna-tach/zatca-storage-postgres"
+    ]
+  ],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["@dokhna-tach-examples/single-vat-express", "@dokhna-tach-examples/multi-vat-saas", "@dokhna-tach-examples/byo-storage-prisma"]
+}
