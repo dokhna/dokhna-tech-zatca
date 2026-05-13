@@ -41,8 +41,17 @@ license.
 
 ------------------------------------------------------------------------
 
-NOTICE: The body of the official BSL 1.1 legal text has been omitted
-from this file pending verbatim insertion from the source at
-https://mariadb.com/bsl11/. The repository maintainer should replace
-this notice with the complete BSL 1.1 text before publishing to npm.
-The parameter values above are authoritative for this project.
+!!! MAINTAINER ACTION REQUIRED BEFORE PUBLIC NPM PUBLISH !!!
+
+The body of the official BSL 1.1 legal text MUST be pasted below
+verbatim from https://mariadb.com/bsl11/ before this package is
+published to the public npm registry. Until that body is present,
+this LICENSE file is INCOMPLETE: the four parameters above
+(Licensor, Licensed Work, Additional Use Grant, Change Date,
+Change License) are authoritative for the project's intent, but
+they do not stand in for the upstream license body required by
+the BSL 1.1 form itself.
+
+Do NOT remove this banner without first appending the upstream
+BSL 1.1 legal text. The Change Date (2030-05-13) and the Change
+License (Apache 2.0) are FIXED and must not be modified.

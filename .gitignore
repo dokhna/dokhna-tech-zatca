@@ -7,6 +7,9 @@ dist/
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 
+# Per-package LICENSE copies (synthesised by prepack from root LICENSE)
+packages/*/LICENSE
+
 # Test / coverage
 coverage/
 .nyc_output/

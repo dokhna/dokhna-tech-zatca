@@ -1,6 +1,6 @@
 {
   "name": "@dokhna-tach/zatca-storage-postgres",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "PostgreSQL storage adapter for @dokhna-tach/zatca (raw pg client).",
   "license": "BUSL-1.1",
   "type": "module",
@@ -14,12 +14,18 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "README.md", "LICENSE", "migrations"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "migrations"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "prepack": "cp ../../LICENSE ./LICENSE"
   },
   "engines": {
     "node": ">=20.0.0"

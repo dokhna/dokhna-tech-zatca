@@ -1,0 +1,23 @@
+# @dokhna-tach/zatca-storage-mongo
+
+## 1.0.0
+
+### Major Changes
+
+- Initial v1.0.0 release.
+
+  This is the first stable release of the `@dokhna-tach/zatca` family.
+  It provides a complete, audited implementation of Saudi Arabia's
+  ZATCA Phase 2 e-invoicing requirements for Node.js: UBL XML build,
+  XMLDSig signing, ZATCA SHA-256 hashing with byte-identity golden
+  vectors, TLV QR generation, full ZATCA API client (onboarding,
+  compliance, clearance, reporting, status, cancellation), and three
+  optional storage adapters (memory / mongo / postgres) sharing a
+  single `StorageAdapter` contract.
+
+  See `CHANGELOG.md` for the full feature list.
+
+### Patch Changes
+
+- Updated dependencies
+  - @dokhna-tach/zatca@1.0.0

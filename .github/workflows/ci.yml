@@ -43,3 +43,14 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Audit (warn-only on high/critical)
+        run: pnpm audit --audit-level high || echo "::warning::pnpm audit reported advisories — review and bump or document risk-accept"
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.node == '22'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
