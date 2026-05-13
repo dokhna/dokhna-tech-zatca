@@ -1,0 +1,39 @@
+{
+  "klass": "ZATCAStandardTaxInvoice",
+  "props": {
+    "egs_info": {
+      "uuid": "11111111-2222-3333-4444-555555555555",
+      "custom_id": "ACME-001",
+      "model": "SimplePOS-X1",
+      "CRN_number": "1010101010",
+      "VAT_name": "Acme LLC",
+      "VAT_number": "301234567890003",
+      "branch_name": "Riyadh Branch",
+      "branch_industry": "Retail",
+      "location": {
+        "city": "Riyadh",
+        "city_subdivision": "Olaya",
+        "street": "King Fahd Road",
+        "plot_identification": "1234",
+        "building": "1",
+        "postal_zone": "11564"
+      },
+      "private_key": "-----BEGIN EC PRIVATE KEY-----\nMHQCAQEEIHKGmds2GzVUGivN+Pmqvh5/VGh5+kMsZ5uTo5iuJH6qoAcGBSuBBAAK\noUQDQgAEoVOXWwO9SI8xQTqB9CSCjDYCwOtazU2jk6ljbdAXeRcJWdaFblOnJahI\no1I7ORAeiEO85GSvav9FGlP53SRfCA==\n-----END EC PRIVATE KEY-----\n",
+      "compliance_certificate": "-----BEGIN CERTIFICATE-----\nMIIB8DCCAZagAwIBAgIUU2dURJcBhqdhH8BP7YsjANU6NJkwCgYIKoZIzj0EAwIw\nTzELMAkGA1UEBhMCU0ExETAPBgNVBAoMCEFjbWUgTExDMRYwFAYDVQQLDA1SaXlh\nZGggQnJhbmNoMRUwEwYDVQQDDAxhY21lLWVncy0wMDEwHhcNMjYwNTEzMTU1MDEz\nWhcNMzYwNTEwMTU1MDEzWjBPMQswCQYDVQQGEwJTQTERMA8GA1UECgwIQWNtZSBM\nTEMxFjAUBgNVBAsMDVJpeWFkaCBCcmFuY2gxFTATBgNVBAMMDGFjbWUtZWdzLTAw\nMTBWMBAGByqGSM49AgEGBSuBBAAKA0IABKFTl1sDvUiPMUE6gfQkgow2AsDrWs1N\no5OpY23QF3kXCVnWhW5TpyWoSKNSOzkQHohDvORkr2r/RRpT+d0kXwijUzBRMB0G\nA1UdDgQWBBTtnxlshIa5oRjQAtK6sNkQfZDX6DAfBgNVHSMEGDAWgBTtnxlshIa5\noRjQAtK6sNkQfZDX6DAPBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49BAMCA0gAMEUC\nIGcfZb2XCxrbyQv9Cf9GedtHAQd2NJtAcJ4HrL1jxZTHAiEAuOi2BVGhsnlFvG5k\n2ScxJM2maqKdP0CTJjjxA0cRw9U=\n-----END CERTIFICATE-----\n"
+    },
+    "invoice_counter_number": 2,
+    "invoice_serial_number": "INV-0002",
+    "issue_date": "2024-01-15",
+    "issue_time": "14:31:00Z",
+    "previous_invoice_hash": "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==",
+    "line_items": [
+      {
+        "id": "1",
+        "name": "Service Fee",
+        "quantity": 1,
+        "tax_exclusive_price": 100,
+        "VAT_percent": 0.15
+      }
+    ]
+  }
+}

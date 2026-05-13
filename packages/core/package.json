@@ -29,6 +29,10 @@
   },
   "keywords": ["zatca", "saudi-arabia", "e-invoicing", "phase-2", "ubl", "fatoora"],
   "dependencies": {
+    "@fidm/x509": "^1.2.1",
+    "@xmldom/xmldom": "^0.8.10",
+    "fast-xml-parser": "^4.5.0",
+    "xmldsigjs": "^2.6.1",
     "zod": "^3.25.76"
   }
 }
