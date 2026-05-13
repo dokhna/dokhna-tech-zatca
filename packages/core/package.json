@@ -27,5 +27,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "keywords": ["zatca", "saudi-arabia", "e-invoicing", "phase-2", "ubl", "fatoora"]
+  "keywords": ["zatca", "saudi-arabia", "e-invoicing", "phase-2", "ubl", "fatoora"],
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
 }

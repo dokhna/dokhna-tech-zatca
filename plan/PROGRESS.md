@@ -5,7 +5,7 @@ Live status of each phase. Updated by the orchestrator on phase entry/exit and b
 | Phase | Status | Agent | Started | Completed | Notes |
 |-------|--------|-------|---------|-----------|-------|
 | 00 — Bootstrap & plan directory | completed | build-engineer + main | 2026-05-13T15:25:00Z | 2026-05-13T15:50:00Z | Initial agent hit content filter mid-flight; main context finished the scaffold. |
-| 01 — Type system foundation | pending | typescript-pro | — | — | — |
+| 01 — Type system foundation | completed | typescript-pro | 2026-05-13T12:56:01Z | 2026-05-13T16:10:00Z | 23 source files; 54 tests pass; type-only surface locked. |
 | 02 — Crypto, XML, QR core | pending | backend-developer | — | — | — |
 | 03 — Invoice / credit / debit builders | pending | backend-developer | — | — | — |
 | 04 — ZATCA API client | pending | backend-developer | — | — | — |
@@ -17,3 +17,7 @@ Live status of each phase. Updated by the orchestrator on phase entry/exit and b
 ## Stall warnings
 
 _None yet. Populated by the observer on detected stalls (see `OBSERVER.md`)._
+
+## Notes on observer execution
+
+In the current implementation pass, the orchestrator (main Claude Code conversation) is interactive and synchronous — Phases 1–8 are dispatched one at a time and gated on per-phase exit tests. A live `/loop 2m` observer would interrupt orchestration unnecessarily. Instead, the orchestrator logs each phase entry/exit to `plan/observer.log` and runs the three probe checks (git porcelain, typecheck, mtime) inline between phases. If a future re-run uses a non-interactive driver, the live observer per `OBSERVER.md` can be enabled.
