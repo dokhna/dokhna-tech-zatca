@@ -2,7 +2,7 @@
  * Unit tests — {@link issueStandardDebitNote}.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { TenantScope } from "../types/storage.js";
 import {
   makeTestCancelation,
@@ -54,5 +54,59 @@ describe("issueStandardDebitNote", () => {
     expect(result.invoiceXml).toContain("Acme Buyer Co.");
     expect(result.invoiceXml).toContain("<cbc:RoundingAmount");
     expect(log.getPreviousHash[0]?.kind).toBe("standard-debit-note");
+  });
+
+  it("calls storage.recordInvoice once with the expected record shape", async () => {
+    const { storage } = makeMemoryStorage();
+    const keys = readTestKeys();
+    const recordSpy = vi.spyOn(storage, "recordInvoice");
+    const fixedNow = new Date("2024-01-17T12:00:00.000Z");
+    await issueStandardDebitNote({
+      input: {
+        kind: "standard-debit-note",
+        issueDate: "2024-01-17",
+        issueTime: "12:00:00Z",
+        lineItems: [
+          {
+            ...makeTestLineItem(),
+            quantity: 1,
+            taxExclusivePrice: 50,
+            name: "Service Adjustment",
+          },
+        ],
+        buyerInfo: {
+          registrationName: "Acme Buyer Co.",
+          identityScheme: "CRN",
+          identityNumber: "2020202020",
+        },
+        cancelation: makeTestCancelation("383"),
+      },
+      egsInfo,
+      storage,
+      scope,
+      signing: {
+        certificate: keys.signingCertificatePem,
+        privateKey: keys.signingPrivateKeyPem,
+      },
+      invoiceId: "test-stddn-id",
+      now: () => fixedNow,
+    });
+    expect(recordSpy).toHaveBeenCalledTimes(1);
+    expect(recordSpy).toHaveBeenCalledWith(
+      scope,
+      expect.objectContaining({
+        invoiceId: "test-stddn-id",
+        kind: "standard-debit-note",
+        serial: "INV-0001",
+        counterNumber: 1,
+        uuid: egsInfo.uuid,
+        invoiceHash: expect.any(String),
+        previousInvoiceHash: expect.any(String),
+        signedXml: expect.stringContaining("<ds:SignatureValue>"),
+        qrBase64: expect.any(String),
+        issuedAt: fixedNow,
+        status: "pending",
+      }),
+    );
   });
 });

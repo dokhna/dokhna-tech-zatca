@@ -6,7 +6,7 @@
  * the in-memory storage double — no real persistence needed.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { TenantScope } from "../types/storage.js";
 import {
   makeTestEgsInfo,
@@ -86,6 +86,48 @@ describe("issueSimplifiedTaxInvoice", () => {
       },
     });
     expect(second.sequence).toBe(first.sequence + 1);
+  });
+
+  it("calls storage.recordInvoice once with the expected record shape", async () => {
+    const { storage } = makeMemoryStorage();
+    const keys = readTestKeys();
+    const recordSpy = vi.spyOn(storage, "recordInvoice");
+    const fixedNow = new Date("2024-01-15T14:30:45.000Z");
+    await issueSimplifiedTaxInvoice({
+      input: {
+        kind: "simplified-tax-invoice",
+        issueDate: "2024-01-15",
+        issueTime: "14:30:45Z",
+        lineItems: [makeTestLineItem()],
+        buyerName: "Walk-in Customer",
+      },
+      egsInfo,
+      storage,
+      scope,
+      signing: {
+        certificate: keys.signingCertificatePem,
+        privateKey: keys.signingPrivateKeyPem,
+      },
+      invoiceId: "test-invoice-id",
+      now: () => fixedNow,
+    });
+    expect(recordSpy).toHaveBeenCalledTimes(1);
+    expect(recordSpy).toHaveBeenCalledWith(
+      scope,
+      expect.objectContaining({
+        invoiceId: "test-invoice-id",
+        kind: "simplified-tax-invoice",
+        serial: "INV-0001",
+        counterNumber: 1,
+        uuid: egsInfo.uuid,
+        invoiceHash: expect.any(String),
+        previousInvoiceHash: expect.any(String),
+        signedXml: expect.stringContaining("<ds:SignatureValue>"),
+        qrBase64: expect.any(String),
+        issuedAt: fixedNow,
+        status: "pending",
+      }),
+    );
   });
 
   it("throws ZatcaValidationError when scope does not match egsInfo", async () => {

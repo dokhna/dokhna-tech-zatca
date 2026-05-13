@@ -27,3 +27,6 @@ export * from "./qr/index.js";
 export * from "./invoices/index.js";
 export * from "./issue/index.js";
 export * from "./api/index.js";
+export * from "./certificates/index.js";
+export * from "./compliance/index.js";
+export * from "./onboarding/index.js";

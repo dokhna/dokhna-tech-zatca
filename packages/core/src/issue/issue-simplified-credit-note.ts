@@ -2,6 +2,7 @@
  * Public issuer for simplified Phase 2 credit notes.
  */
 
+import { randomUUID } from "node:crypto";
 import type { EGSUnitInfo } from "../types/egs.js";
 import type { SimplifiedCreditNoteInput } from "../types/invoice.js";
 import type { StorageAdapter, TenantScope } from "../types/storage.js";
@@ -21,6 +22,10 @@ export interface IssueSimplifiedCreditNoteArgs {
   storage: StorageAdapter;
   scope: TenantScope;
   signing: { certificate: string; privateKey: string };
+  /** Caller-chosen primary key for the persisted record; defaults to `randomUUID()`. */
+  invoiceId?: string;
+  /** Override the issuance clock (defaults to `new Date()`). */
+  now?: () => Date;
 }
 
 function assertScope(egsInfo: EGSUnitInfo, scope: TenantScope): void {
@@ -59,6 +64,23 @@ export async function issueSimplifiedCreditNote(
     signingCertificatePem: args.signing.certificate,
     signingPrivateKeyPem: args.signing.privateKey,
   });
+
+  const invoiceId = args.invoiceId ?? randomUUID();
+  const now = args.now ?? (() => new Date());
+  await args.storage.recordInvoice(args.scope, {
+    invoiceId,
+    kind: "simplified-credit-note",
+    serial: invoiceNumber,
+    counterNumber: sequence,
+    uuid: args.egsInfo.uuid,
+    invoiceHash: built.invoiceHash,
+    previousInvoiceHash,
+    signedXml: built.signedXml,
+    qrBase64: built.qrCode,
+    issuedAt: now(),
+    status: "pending",
+  });
+
   return {
     invoiceXml: built.invoiceXml,
     signedXml: built.signedXml,
