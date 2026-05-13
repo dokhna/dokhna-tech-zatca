@@ -7,7 +7,7 @@ Live status of each phase. Updated by the orchestrator on phase entry/exit and b
 | 00 — Bootstrap & plan directory | completed | build-engineer + main | 2026-05-13T15:25:00Z | 2026-05-13T15:50:00Z | Initial agent hit content filter mid-flight; main context finished the scaffold. |
 | 01 — Type system foundation | completed | typescript-pro | 2026-05-13T12:56:01Z | 2026-05-13T16:10:00Z | 23 source files; 54 tests pass; type-only surface locked. |
 | 02 — Crypto, XML, QR core | completed | backend-developer | 2026-05-13T13:00:00Z | 2026-05-13T18:54:00Z | 46 source/fixture files; 133 tests pass; 3 golden vectors captured from rwiqha (hash byte-identical). |
-| 03 — Invoice / credit / debit builders | pending | backend-developer | — | — | — |
+| 03 — Invoice / credit / debit builders | completed | backend-developer | 2026-05-13T13:01:00Z | 2026-05-13T19:22:00Z | 56 source/test files; 192 tests pass; six concrete builders < 80 LOC each; three captured golden vectors reproduce byte-identical hashes through the Phase 3 builders. |
 | 04 — ZATCA API client | pending | backend-developer | — | — | — |
 | 05 — Storage adapters | pending | architect → typescript-pro → backend-developer | — | — | — |
 | 06 — Onboarding, compliance tests, cert management | pending | backend-developer | — | — | — |

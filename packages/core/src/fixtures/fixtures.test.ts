@@ -121,3 +121,196 @@ describe("golden vectors — QR shape", () => {
     });
   }
 });
+
+// ---------------------------------------------------------------------------
+// Phase 3 builder parity — re-running the new Phase 3 builders on the
+// same `input.json` payloads MUST produce byte-identical invoice hashes
+// to the captured `expected-hash.txt` from the rwiqha helper. This is
+// the regression that proves the Phase 3 refactor preserves the
+// canonical pre-sign XML to the byte.
+// ---------------------------------------------------------------------------
+import { SimplifiedTaxInvoiceBuilder } from "../invoices/simplified-tax-invoice.js";
+import { StandardTaxInvoiceBuilder } from "../invoices/standard-tax-invoice.js";
+import { SimplifiedCreditNoteBuilder } from "../invoices/simplified-credit-note.js";
+import type {
+  CommercialRegistrationNumber,
+  EGSUuid,
+  InvoiceHash,
+  VATNumber,
+} from "../types/branded.js";
+import type {
+  SimplifiedCreditNoteInput,
+  SimplifiedTaxInvoiceInput,
+  StandardTaxInvoiceInput,
+  ZatcaInvoiceType,
+  ZatcaPaymentMethod,
+} from "../types/invoice.js";
+
+interface LegacyEgsInfo {
+  uuid: string;
+  custom_id: string;
+  model: string;
+  CRN_number: string;
+  VAT_name: string;
+  VAT_number: string;
+  branch_name: string;
+  branch_industry: string;
+  location: {
+    city: string;
+    city_subdivision: string;
+    street: string;
+    plot_identification: string;
+    building: string;
+    postal_zone: string;
+  };
+}
+interface LegacyLineItem {
+  id: string;
+  name: string;
+  quantity: number;
+  tax_exclusive_price: number;
+  VAT_percent: number;
+}
+interface LegacyProps {
+  egs_info: LegacyEgsInfo;
+  invoice_counter_number: number;
+  invoice_serial_number: string;
+  issue_date: string;
+  issue_time: string;
+  previous_invoice_hash: string;
+  line_items: ReadonlyArray<LegacyLineItem>;
+  buyer_name?: string;
+  cancelation?: {
+    canceled_invoice_number: number;
+    payment_method: ZatcaPaymentMethod;
+    cancelation_type: ZatcaInvoiceType;
+    reason: string;
+  };
+}
+
+function readProps(scenario: string): LegacyProps {
+  const raw = JSON.parse(
+    readFileSync(join(__dirname, scenario, "input.json"), "utf8"),
+  ) as { props: LegacyProps };
+  return raw.props;
+}
+function readPhase3Keys(): {
+  signingCertificatePem: string;
+  signingPrivateKeyPem: string;
+} {
+  return {
+    signingCertificatePem: readFileSync(
+      join(__dirname, "_keys", "test-cert.pem"),
+      "utf8",
+    ),
+    signingPrivateKeyPem: readFileSync(
+      join(__dirname, "_keys", "test-key.pem"),
+      "utf8",
+    ),
+  };
+}
+function mapEgs(p: LegacyEgsInfo): SimplifiedTaxInvoiceInput["egsInfo"] {
+  return {
+    uuid: p.uuid as EGSUuid,
+    customId: p.custom_id,
+    model: p.model,
+    crnNumber: p.CRN_number as CommercialRegistrationNumber,
+    vatName: p.VAT_name,
+    vatNumber: p.VAT_number as VATNumber,
+    branchName: p.branch_name,
+    branchIndustry: p.branch_industry,
+    location: {
+      cityName: p.location.city,
+      citySubdivision: p.location.city_subdivision,
+      street: p.location.street,
+      plotIdentification: p.location.plot_identification,
+      building: p.location.building,
+      postalZone: p.location.postal_zone,
+    },
+  };
+}
+function mapItems(
+  items: ReadonlyArray<LegacyLineItem>,
+): SimplifiedTaxInvoiceInput["lineItems"] {
+  return items.map((li) => ({
+    id: li.id,
+    name: li.name,
+    quantity: li.quantity,
+    taxExclusivePrice: li.tax_exclusive_price,
+    vatPercent: li.VAT_percent,
+  }));
+}
+
+describe("golden vectors — Phase 3 builders reproduce captured hashes", () => {
+  it("SimplifiedTaxInvoiceBuilder matches simple-simplified-invoice", () => {
+    const p = readProps("simple-simplified-invoice");
+    const expectedHash = readFileSync(
+      join(__dirname, "simple-simplified-invoice", "expected-hash.txt"),
+      "utf8",
+    ).trim();
+    const input: SimplifiedTaxInvoiceInput = {
+      kind: "simplified-tax-invoice",
+      egsInfo: mapEgs(p.egs_info),
+      invoiceCounterNumber: p.invoice_counter_number,
+      invoiceSerialNumber: p.invoice_serial_number,
+      issueDate: p.issue_date,
+      issueTime: p.issue_time,
+      previousInvoiceHash: p.previous_invoice_hash as InvoiceHash,
+      lineItems: mapItems(p.line_items),
+      buyerName: p.buyer_name ?? "Walk-in Customer",
+    };
+    const built = new SimplifiedTaxInvoiceBuilder(input).build(readPhase3Keys());
+    expect(built.invoiceHash).toBe(expectedHash);
+  });
+
+  it("StandardTaxInvoiceBuilder matches simple-standard-invoice", () => {
+    const p = readProps("simple-standard-invoice");
+    const expectedHash = readFileSync(
+      join(__dirname, "simple-standard-invoice", "expected-hash.txt"),
+      "utf8",
+    ).trim();
+    const input: StandardTaxInvoiceInput = {
+      kind: "standard-tax-invoice",
+      egsInfo: mapEgs(p.egs_info),
+      invoiceCounterNumber: p.invoice_counter_number,
+      invoiceSerialNumber: p.invoice_serial_number,
+      issueDate: p.issue_date,
+      issueTime: p.issue_time,
+      previousInvoiceHash: p.previous_invoice_hash as InvoiceHash,
+      lineItems: mapItems(p.line_items),
+    };
+    const built = new StandardTaxInvoiceBuilder(input).build(readPhase3Keys());
+    expect(built.invoiceHash).toBe(expectedHash);
+  });
+
+  it("SimplifiedCreditNoteBuilder matches simple-simplified-credit-note", () => {
+    const p = readProps("simple-simplified-credit-note");
+    const expectedHash = readFileSync(
+      join(__dirname, "simple-simplified-credit-note", "expected-hash.txt"),
+      "utf8",
+    ).trim();
+    if (p.cancelation === undefined) {
+      throw new Error("Credit-note fixture must carry cancelation block.");
+    }
+    const input: SimplifiedCreditNoteInput = {
+      kind: "simplified-credit-note",
+      egsInfo: mapEgs(p.egs_info),
+      invoiceCounterNumber: p.invoice_counter_number,
+      invoiceSerialNumber: p.invoice_serial_number,
+      issueDate: p.issue_date,
+      issueTime: p.issue_time,
+      previousInvoiceHash: p.previous_invoice_hash as InvoiceHash,
+      lineItems: mapItems(p.line_items),
+      cancelation: {
+        canceledInvoiceNumber: p.cancelation.canceled_invoice_number,
+        paymentMethod: p.cancelation.payment_method,
+        cancelationType: p.cancelation.cancelation_type,
+        reason: p.cancelation.reason,
+      },
+    };
+    const built = new SimplifiedCreditNoteBuilder(input).build(
+      readPhase3Keys(),
+    );
+    expect(built.invoiceHash).toBe(expectedHash);
+  });
+});
