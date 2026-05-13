@@ -8,7 +8,7 @@ Live status of each phase. Updated by the orchestrator on phase entry/exit and b
 | 01 — Type system foundation | completed | typescript-pro | 2026-05-13T12:56:01Z | 2026-05-13T16:10:00Z | 23 source files; 54 tests pass; type-only surface locked. |
 | 02 — Crypto, XML, QR core | completed | backend-developer | 2026-05-13T13:00:00Z | 2026-05-13T18:54:00Z | 46 source/fixture files; 133 tests pass; 3 golden vectors captured from rwiqha (hash byte-identical). |
 | 03 — Invoice / credit / debit builders | completed | backend-developer | 2026-05-13T13:01:00Z | 2026-05-13T19:22:00Z | 56 source/test files; 192 tests pass; six concrete builders < 80 LOC each; three captured golden vectors reproduce byte-identical hashes through the Phase 3 builders. |
-| 04 — ZATCA API client | pending | backend-developer | — | — | — |
+| 04 — ZATCA API client | completed | backend-developer | 2026-05-13T13:02:00Z | 2026-05-13T19:35:00Z | 17 api files (10 src + 7 test); 250 tests pass (58 new); fetch-based client with retry/backoff/timeout; token-debug + mock CSID fallback removed; @hapi/boom dropped. |
 | 05 — Storage adapters | pending | architect → typescript-pro → backend-developer | — | — | — |
 | 06 — Onboarding, compliance tests, cert management | pending | backend-developer | — | — | — |
 | 07 — Documentation & examples | pending | typescript-pro → architect-reviewer | — | — | — |

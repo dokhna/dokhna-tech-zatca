@@ -7,7 +7,11 @@
  * OpenSSL CLI shims (key + CSR generation) along with a probe.
  * Phase 3 ships the six UBL invoice builder classes, two Phase 1
  * builders, and the high-level `issue*` issuer functions that
- * orchestrate the storage handshake + signing.
+ * orchestrate the storage handshake + signing. Phase 4 ships the
+ * portable, fetch-based ZATCA API client (compliance check,
+ * clearance / reporting submission, cancel, status, compliance and
+ * production CSID issuance) with retry + structured error
+ * normalization.
  *
  * Internal helpers — CSR template builder, raw PEM strippers, the
  * `_test-helpers` + `_memory-storage` shims used by tests — are NOT
@@ -22,3 +26,4 @@ export * from "./crypto/index.js";
 export * from "./qr/index.js";
 export * from "./invoices/index.js";
 export * from "./issue/index.js";
+export * from "./api/index.js";
