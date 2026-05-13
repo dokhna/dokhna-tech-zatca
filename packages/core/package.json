@@ -12,6 +12,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./test-helpers": {
+      "types": "./dist/test-helpers.d.ts",
+      "import": "./dist/test-helpers.js",
+      "require": "./dist/test-helpers.cjs"
     }
   },
   "files": ["dist", "README.md", "LICENSE"],
@@ -39,5 +44,13 @@
   "devDependencies": {
     "@types/debug": "^4.1.12",
     "msw": "^2.6.0"
+  },
+  "peerDependencies": {
+    "vitest": "^2.0.0 || ^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
   }
 }

@@ -12,5 +12,10 @@ export default defineConfig({
     pool: "threads",
     root: ".",
     passWithNoTests: true,
+    // First-run cold-start has to launch a `mongod` child process and
+    // wait for the WiredTiger init log. 60s gives plenty of headroom
+    // for CI hosts under load; warm runs finish in ~300ms.
+    hookTimeout: 60_000,
+    testTimeout: 30_000,
   },
 });

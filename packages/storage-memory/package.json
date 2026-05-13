@@ -27,7 +27,15 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "async-mutex": "^0.5.0",
+    "debug": "^4.3.7"
+  },
   "peerDependencies": {
     "@dokhna-tach/zatca": "workspace:*"
+  },
+  "devDependencies": {
+    "@dokhna-tach/zatca": "workspace:*",
+    "@types/debug": "^4.1.12"
   }
 }

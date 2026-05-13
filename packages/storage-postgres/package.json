@@ -27,8 +27,18 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "debug": "^4.3.7"
+  },
   "peerDependencies": {
     "@dokhna-tach/zatca": "workspace:*",
     "pg": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@dokhna-tach/zatca": "workspace:*",
+    "@types/debug": "^4.1.12",
+    "@types/pg": "^8.11.10",
+    "pg": "^8.20.0",
+    "pg-mem": "^3.0.5"
   }
 }

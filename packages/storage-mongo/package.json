@@ -27,8 +27,17 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "debug": "^4.3.7"
+  },
   "peerDependencies": {
     "@dokhna-tach/zatca": "workspace:*",
     "mongoose": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@dokhna-tach/zatca": "workspace:*",
+    "@types/debug": "^4.1.12",
+    "mongodb-memory-server": "^10.1.2",
+    "mongoose": "^9.6.2"
   }
 }
