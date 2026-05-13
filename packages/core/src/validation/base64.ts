@@ -27,9 +27,17 @@ export function isBase64(value: unknown): value is Base64 {
 }
 
 /**
- * Brand factory for arbitrary base64 strings. Throws
- * `ZatcaValidationError` if the string contains characters outside the
- * RFC 4648 alphabet or has malformed padding.
+ * Brand factory for arbitrary base64 strings.
+ *
+ * @param value - Candidate base64 string.
+ * @returns The same value typed as `Base64`.
+ * @throws {ZatcaValidationError} when the string contains characters
+ *         outside the RFC 4648 alphabet or has malformed padding.
+ *
+ * @example
+ * ```ts
+ * const b64 = asBase64("SGVsbG8gd29ybGQ=");
+ * ```
  */
 export function asBase64(value: string): Base64 {
   if (!BASE64_REGEX.test(value)) {

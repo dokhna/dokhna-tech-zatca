@@ -1,0 +1,11 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: zatca-saas-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - zatca-saas-mongo-data:/data/db
+
+volumes:
+  zatca-saas-mongo-data:

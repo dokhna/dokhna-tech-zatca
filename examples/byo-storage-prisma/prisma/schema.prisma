@@ -1,0 +1,46 @@
+// Prisma schema for the @dokhna-tach/zatca BYO-storage example.
+//
+// Run `pnpm prisma:generate` after `pnpm install` to produce the typed
+// client. The example uses SQLite for zero-setup; swap to postgres /
+// mysql by changing the datasource.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ZatcaInvoice {
+  id                  String   @id
+  vatNumber           String
+  egsUuid             String
+  kind                String
+  serial              String
+  counterNumber       Int
+  uuid                String
+  invoiceHash         String
+  previousInvoiceHash String
+  signedXml           String
+  qrBase64            String
+  issuedAt            DateTime
+  status              String
+  clearanceNumber     String?
+  validationResults   String?  // JSON-serialised
+  createdAt           DateTime @default(now())
+
+  @@unique([vatNumber, egsUuid, id])
+  @@index([vatNumber, egsUuid, counterNumber])
+}
+
+model ZatcaCounter {
+  vatNumber String
+  egsUuid   String
+  yearMonth String
+  sequence  Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@id([vatNumber, egsUuid, yearMonth])
+}

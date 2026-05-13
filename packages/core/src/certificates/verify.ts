@@ -75,10 +75,23 @@ function spkiMatches(cert: X509Certificate, privateKeyPem: string): boolean {
 /**
  * Parse the PEM and return a {@link CertificateVerification} record.
  *
+ * @param args - The certificate PEM, an optional matching private key,
+ *               and an optional clock for deterministic tests.
+ * @returns A structured verification of the certificate.
  * @throws {ZatcaCertificateError} when the certificate PEM cannot be
  *         parsed. Private-key parse failures are NOT thrown — they
  *         set `publicKeyMatchesPrivateKey` to `false` (callers should
  *         treat that as "verification did not pass").
+ *
+ * @example
+ * ```ts
+ * const v = verifyCertificate({
+ *   certificate: pemFromZatca,
+ *   privateKey: pemFromOnboarding,
+ * });
+ * if (!v.isValid) throw new Error("certificate expired");
+ * if (v.publicKeyMatchesPrivateKey === false) throw new Error("key mismatch");
+ * ```
  */
 export function verifyCertificate(args: {
   certificate: string;

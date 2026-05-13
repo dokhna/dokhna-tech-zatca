@@ -96,6 +96,31 @@ function assertScope(egsInfo: EGSUnitInfo, scope: TenantScope): void {
  * 4. Build the signed XML + Phase 2 QR via the builder.
  * 5. Persist the resulting record via `storage.recordInvoice`.
  * 6. Return the {@link IssuedInvoice} package.
+ *
+ * @param args - The invoice business input, EGS metadata, storage
+ *               adapter, tenant scope, and signing material.
+ * @returns The signed invoice envelope (XML, hash, QR, serial).
+ * @throws {ZatcaValidationError} when `egsInfo` does not match `scope`.
+ *
+ * @example
+ * ```ts
+ * const issued = await issueSimplifiedTaxInvoice({
+ *   egsInfo,
+ *   storage,
+ *   scope: { vatNumber, egsUuid },
+ *   signing: { certificate, privateKey },
+ *   input: {
+ *     kind: "simplified-tax-invoice",
+ *     issueDate: "2026-05-13",
+ *     issueTime: "12:00:00",
+ *     buyerName: "Walk-in customer",
+ *     lineItems: [
+ *       { id: "1", name: "Coffee 250ml", quantity: 2,
+ *         taxExclusivePrice: 10, vatPercent: 15 },
+ *     ],
+ *   },
+ * });
+ * ```
  */
 export async function issueSimplifiedTaxInvoice(
   args: IssueSimplifiedTaxInvoiceArgs,

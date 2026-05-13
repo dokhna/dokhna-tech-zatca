@@ -187,9 +187,31 @@ function withComplianceCertificate(
 /**
  * Runs the full ZATCA onboarding pipeline.
  *
- * @throws {ZatcaOnboardingError} when OpenSSL is missing, the
- *         compliance tests fail, or any required field is empty.
+ * @param args - EGS info, 6-digit Fatoora-portal OTP, target
+ *               environment (sandbox / simulation only), and the
+ *               solution-provider name embedded in the CSR.
+ * @returns The full bundle of artifacts the caller must persist —
+ *          private key, certificates, API secrets, request ids, and
+ *          the compliance-test report.
+ * @throws {ZatcaOnboardingError} when OpenSSL is missing, when
+ *         `environment` is `"production"`, when the compliance tests
+ *         fail, or when any required field is empty.
  * @throws {ZatcaApiError} when ZATCA returns a non-2xx response.
+ *
+ * @example
+ * ```ts
+ * const result = await onboard({
+ *   egsInfo, // OnboardingEgsInfo
+ *   otp: "123456",
+ *   environment: "simulation",
+ *   solutionName: "MyBilling SaaS v1.0",
+ * });
+ * await encryptedSecretsStore.put(scopeKey, {
+ *   privateKey: result.privateKey,
+ *   complianceApiSecret: result.complianceApiSecret,
+ *   productionApiSecret: result.productionApiSecret,
+ * });
+ * ```
  */
 export async function onboard(args: OnboardArgs): Promise<OnboardingResult> {
   if (!args.otp) {

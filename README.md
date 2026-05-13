@@ -6,7 +6,7 @@
 
 A TypeScript-first ZATCA Phase 2 e-invoicing library for Saudi Arabia. Build, sign, hash, generate QR codes, and submit invoices to the ZATCA Fatoora system. Supports single-VAT and multi-VAT (multi-tenant SaaS) deployments with a bring-your-own storage adapter pattern.
 
-> **Status: v0.1.0-alpha — under active development.** See [`plan/`](./plan/README.md) for the multi-phase roadmap.
+> **Status: v0.9.0-beta — feature-complete; Phase 8 release prep pending.** See [`plan/`](./plan/README.md) for the multi-phase roadmap.
 
 ## Table of contents
 
@@ -14,10 +14,11 @@ A TypeScript-first ZATCA Phase 2 e-invoicing library for Saudi Arabia. Build, si
 - [Features](#features)
 - [Quickstart](#quickstart)
 - [Packages](#packages)
+- [Examples](#examples)
+- [Documentation](#documentation)
 - [Storage adapters](#storage-adapters)
 - [Multi-VAT / multi-tenant](#multi-vat--multi-tenant)
 - [Requirements](#requirements)
-- [Documentation](#documentation)
 - [License](#license)
 - [Contributing](#contributing)
 
@@ -29,13 +30,14 @@ We tried several existing Node.js ZATCA Phase 2 packages on a real production sy
 
 - Build and sign all six ZATCA Phase 2 invoice types (Simplified / Standard × Tax invoice / Credit note / Debit note).
 - Phase 1 (QR-only) fallback for pre-onboarding.
-- Compliance test runner for new EGS unit onboarding.
-- Direct ZATCA Compliance, Clearance, and Reporting API clients.
+- One-shot `onboard()` orchestrating key generation, CSR, compliance certificate, the six-scenario compliance test pack, and production CSID issuance.
+- Direct ZATCA Compliance, Clearance, and Reporting API clients with retry + structured error normalization.
 - Cancel and status-check APIs.
 - Certificate management helpers (verify, expiration, validity).
 - Pure functional API — no class hierarchy to learn.
 - BYO storage via a small `StorageAdapter` interface; reference adapters for MongoDB, PostgreSQL, in-memory.
 - Multi-tenant SaaS friendly — per-VAT-number certificate isolation and atomic hash-chain management.
+- Zero logging — the package writes nothing to stdout / stderr / disk. Errors are typed exceptions.
 
 ## Quickstart
 
@@ -44,10 +46,61 @@ pnpm add @dokhna-tach/zatca @dokhna-tach/zatca-storage-memory
 ```
 
 ```ts
-// Placeholder — Phase 6 onwards
+import {
+  asCommercialRegistrationNumber,
+  asEGSUuid,
+  asVATNumber,
+  issueSimplifiedTaxInvoice,
+  type EGSUnitInfo,
+} from "@dokhna-tach/zatca";
+import { createMemoryStorageAdapter } from "@dokhna-tach/zatca-storage-memory";
+
+const storage = createMemoryStorageAdapter();
+const vatNumber = asVATNumber("301234567890003");
+const egsUuid = asEGSUuid("00000000-0000-4000-8000-000000000001");
+
+const egsInfo: EGSUnitInfo = {
+  uuid: egsUuid,
+  customId: "branch-01-pos-03",
+  model: "Acme POS v2",
+  crnNumber: asCommercialRegistrationNumber("1010010101"),
+  vatName: "Acme Trading Co.",
+  vatNumber,
+  branchName: "Riyadh HQ",
+  branchIndustry: "Retail",
+  location: {
+    cityName: "Riyadh",
+    citySubdivision: "Olaya",
+    street: "King Fahd Road",
+    plotIdentification: "1234",
+    building: "5678",
+    postalZone: "12345",
+  },
+};
+
+const issued = await issueSimplifiedTaxInvoice({
+  egsInfo,
+  storage,
+  scope: { vatNumber, egsUuid },
+  signing: {
+    certificate: process.env["ZATCA_PRODUCTION_CERTIFICATE"] ?? "",
+    privateKey: process.env["ZATCA_PRIVATE_KEY"] ?? "",
+  },
+  input: {
+    kind: "simplified-tax-invoice",
+    issueDate: "2026-05-13",
+    issueTime: "12:00:00",
+    buyerName: "Walk-in customer",
+    lineItems: [
+      { id: "1", name: "Coffee 250ml", quantity: 2, taxExclusivePrice: 10, vatPercent: 15 },
+    ],
+  },
+});
+
+// issued.signedXml / .invoiceHash / .qrCode / .invoiceNumber / .sequence
 ```
 
-Full quickstart will land in Phase 7. Track progress in [`plan/PROGRESS.md`](./plan/PROGRESS.md).
+To get the certificate + key in the first place, run [`onboard()`](./docs/onboarding.md). For the full 15-minute path, see [`docs/getting-started.md`](./docs/getting-started.md).
 
 ## Packages
 
@@ -58,24 +111,52 @@ Full quickstart will land in Phase 7. Track progress in [`plan/PROGRESS.md`](./p
 | [`@dokhna-tach/zatca-storage-mongo`](./packages/storage-mongo) | MongoDB adapter (Mongoose peer-dep) |
 | [`@dokhna-tach/zatca-storage-postgres`](./packages/storage-postgres) | PostgreSQL adapter (pg peer-dep) |
 
+## Examples
+
+Three runnable example projects under [`examples/`](./examples/):
+
+| Example | Demonstrates |
+|---------|--------------|
+| [`single-vat-express/`](./examples/single-vat-express) | Express server, one VAT, in-memory storage, full onboarding + issuance flow. |
+| [`multi-vat-saas/`](./examples/multi-vat-saas) | Fastify server, multiple tenants, per-tenant scoping, MongoDB. |
+| [`byo-storage-prisma/`](./examples/byo-storage-prisma) | Custom `StorageAdapter` against Prisma + SQLite. |
+
+From the repo root:
+
+```bash
+pnpm install
+pnpm --filter @dokhna-tach-examples/single-vat-express start
+```
+
+## Documentation
+
+- [Getting started](./docs/getting-started.md) — 15-minute path to a signed invoice.
+- [Single VAT deployment](./docs/single-vat.md) — Express wire-up.
+- [Multi-VAT SaaS](./docs/multi-vat-saas.md) — per-tenant scoping, certificate isolation.
+- [Storage adapters](./docs/storage-adapters.md) — interface contract + custom adapter.
+- [Onboarding](./docs/onboarding.md) — CSR, OTP, compliance certs, production CSID.
+- [Compliance tests](./docs/compliance-tests.md) — `runComplianceTests` + interpreting results.
+- [Migration from an existing helper](./docs/migration-from-existing-helper.md) — function-by-function table.
+- [Troubleshooting](./docs/troubleshooting.md) — ZATCA error codes + Lambda OpenSSL recipe.
+- [Security](./docs/security.md) — secret classification, rotation, zero-logging policy.
+- [API reference](./docs/api-reference.md) — links to the TypeDoc-generated HTML at `docs/typedoc/index.html`.
+
+Regenerate the API reference with `pnpm docs:api`.
+
 ## Storage adapters
 
-This package does not lock you into a database. The `StorageAdapter` interface has five methods (atomic counter increment, previous-hash lookup, record invoice, load invoice, update status). We ship three reference implementations; writing your own takes ~50 lines. See `docs/storage-adapters.md` (Phase 7).
+This package does not lock you into a database. The `StorageAdapter` interface has five methods (atomic counter increment, previous-hash lookup, record invoice, load invoice, update status). We ship three reference implementations; writing your own takes ~80 lines. See [`docs/storage-adapters.md`](./docs/storage-adapters.md).
 
 ## Multi-VAT / multi-tenant
 
-Pass a `TenantScope = { vatNumber, egsUuid }` into every storage call. Counters and hash chains are scoped per-tenant. Certificates are passed as parameters, never read from a global. See `docs/multi-vat-saas.md` (Phase 7).
+Pass a `TenantScope = { vatNumber, egsUuid }` into every storage call. Counters and hash chains are scoped per-tenant. Certificates are passed as parameters, never read from a global. See [`docs/multi-vat-saas.md`](./docs/multi-vat-saas.md).
 
 ## Requirements
 
 - Node.js 20+
 - pnpm 9+ (for monorepo development)
-- OpenSSL CLI installed in the runtime environment (used for CSR generation during EGS onboarding)
+- OpenSSL CLI installed in the runtime environment (used for CSR generation during EGS onboarding). See [troubleshooting.md](./docs/troubleshooting.md#openssl-not-found) for Lambda / Alpine recipes.
 - TypeScript 5.6+ for consumers
-
-## Documentation
-
-All documentation lives under `docs/` (created in Phase 7). The current development roadmap is in [`plan/`](./plan/).
 
 ## License
 

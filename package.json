@@ -16,6 +16,7 @@
     "typecheck": "pnpm -r --parallel typecheck",
     "lint": "biome check .",
     "format": "biome format --write .",
+    "docs:api": "typedoc",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm -r build && changeset publish",
@@ -26,6 +27,7 @@
     "@changesets/cli": "^2.27.9",
     "tsup": "^8.3.0",
     "tsx": "^4.21.0",
+    "typedoc": "^0.28.0",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
   }

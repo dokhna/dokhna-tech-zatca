@@ -2,11 +2,25 @@
   "name": "@dokhna-tach-examples/multi-vat-saas",
   "version": "0.0.0",
   "private": true,
-  "description": "Example: @dokhna-tach/zatca multi-tenant SaaS (placeholder).",
+  "description": "Example: @dokhna-tach/zatca multi-tenant SaaS with Fastify + MongoDB.",
   "type": "module",
   "scripts": {
-    "build": "echo 'placeholder'",
-    "typecheck": "echo 'placeholder'",
-    "test": "echo 'placeholder'"
+    "build": "tsc -p .",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no tests'",
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts"
+  },
+  "dependencies": {
+    "@dokhna-tach/zatca": "workspace:*",
+    "@dokhna-tach/zatca-storage-mongo": "workspace:*",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.0.0",
+    "mongoose": "^9.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.0"
   }
 }

@@ -143,6 +143,29 @@ function describeError(err: unknown): string {
  * `passed: false`. The function only throws on irrecoverable setup
  * errors (e.g. missing compliance credentials on `egsInfo`) wrapped in
  * {@link ZatcaOnboardingError}.
+ *
+ * @param args - EGS info (with compliance certificate), environment
+ *               (sandbox / simulation), signing keypair, compliance
+ *               API credentials, and optional storage / scope / HTTP
+ *               overrides.
+ * @returns A structured report with one row per scenario plus an
+ *          aggregate pass/fail flag.
+ * @throws {ZatcaOnboardingError} when compliance credentials or
+ *         signing material are missing from the inputs.
+ *
+ * @example
+ * ```ts
+ * const report = await runComplianceTests({
+ *   egsInfo, environment: "simulation",
+ *   signing: { certificate, privateKey },
+ *   apiCredentials: { binarySecurityToken, apiSecret },
+ * });
+ * if (report.overallStatus === "failed") {
+ *   for (const r of report.results) {
+ *     if (!r.passed) handleFailure(r);
+ *   }
+ * }
+ * ```
  */
 export async function runComplianceTests(
   args: RunComplianceTestsArgs,

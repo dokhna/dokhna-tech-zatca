@@ -24,7 +24,16 @@ export function isUuidV4(value: unknown): value is string {
 
 /**
  * Brand factory for invoice UUIDs (one per issued document).
- * Throws `ZatcaValidationError` on malformed input.
+ *
+ * @param value - Candidate UUID string.
+ * @returns The same value typed as `InvoiceUUID`.
+ * @throws {ZatcaValidationError} when the value is not a v4 UUID.
+ *
+ * @example
+ * ```ts
+ * import { randomUUID } from "node:crypto";
+ * const id = asInvoiceUUID(randomUUID());
+ * ```
  */
 export function asInvoiceUUID(value: string): InvoiceUUID {
   if (!UUID_V4_REGEX.test(value)) {
@@ -37,7 +46,16 @@ export function asInvoiceUUID(value: string): InvoiceUUID {
 
 /**
  * Brand factory for EGS UUIDs (one per EGS unit, immutable across the
- * unit's lifetime). Throws `ZatcaValidationError` on malformed input.
+ * unit's lifetime).
+ *
+ * @param value - Candidate EGS UUID string.
+ * @returns The same value typed as `EGSUuid`.
+ * @throws {ZatcaValidationError} when the value is not a v4 UUID.
+ *
+ * @example
+ * ```ts
+ * const egs = asEGSUuid("00000000-0000-4000-8000-000000000001");
+ * ```
  */
 export function asEGSUuid(value: string): EGSUuid {
   if (!UUID_V4_REGEX.test(value)) {

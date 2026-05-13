@@ -2,11 +2,25 @@
   "name": "@dokhna-tach-examples/single-vat-express",
   "version": "0.0.0",
   "private": true,
-  "description": "Example: @dokhna-tach/zatca with Express, single VAT (placeholder).",
+  "description": "Example: @dokhna-tach/zatca with Express, single VAT registration.",
   "type": "module",
   "scripts": {
-    "build": "echo 'placeholder'",
-    "typecheck": "echo 'placeholder'",
-    "test": "echo 'placeholder'"
+    "build": "tsc -p .",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no tests'",
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts"
+  },
+  "dependencies": {
+    "@dokhna-tach/zatca": "workspace:*",
+    "@dokhna-tach/zatca-storage-memory": "workspace:*",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.16.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.0"
   }
 }

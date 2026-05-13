@@ -19,6 +19,16 @@ export function isCommercialRegistrationNumber(
  * Brand factory — throws `ZatcaValidationError` on malformed input,
  * otherwise returns the same string typed as
  * `CommercialRegistrationNumber`.
+ *
+ * @param value - Candidate CRN string.
+ * @returns The same value typed as `CommercialRegistrationNumber`.
+ * @throws {ZatcaValidationError} when the value is not exactly 10 digits.
+ *
+ * @example
+ * ```ts
+ * const crn = asCommercialRegistrationNumber("1010010101"); // typed as CRN
+ * asCommercialRegistrationNumber("nope"); // throws ZatcaValidationError
+ * ```
  */
 export function asCommercialRegistrationNumber(
   value: string,

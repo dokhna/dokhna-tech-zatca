@@ -1,0 +1,12 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["packages/core/src/index.ts"],
+  "tsconfig": "packages/core/tsconfig.json",
+  "out": "docs/typedoc",
+  "name": "@dokhna-tach/zatca",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "githubPages": false,
+  "skipErrorChecking": true
+}
