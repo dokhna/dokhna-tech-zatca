@@ -1,6 +1,6 @@
 {
   "name": "@dokhna-tech/zatca",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Saudi Arabia ZATCA Phase 2 e-invoicing core library — XML build, signing, hashing, QR, and ZATCA API client.",
   "license": "BUSL-1.1",
   "repository": {
@@ -28,7 +28,11 @@
       "require": "./dist/test-helpers.cjs"
     }
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -42,7 +46,14 @@
   "publishConfig": {
     "access": "public"
   },
-  "keywords": ["zatca", "saudi-arabia", "e-invoicing", "phase-2", "ubl", "fatoora"],
+  "keywords": [
+    "zatca",
+    "saudi-arabia",
+    "e-invoicing",
+    "phase-2",
+    "ubl",
+    "fatoora"
+  ],
   "dependencies": {
     "@fidm/x509": "^1.2.1",
     "@xmldom/xmldom": "^0.8.10",
