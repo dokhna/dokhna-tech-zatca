@@ -1,5 +1,11 @@
 # @dokhna-tech/zatca
 
+## 2.0.2
+
+### Patch Changes
+
+- 940b22e: adding readme files to packages
+
 ## 1.0.0
 
 ### Major Changes
