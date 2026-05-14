@@ -2,9 +2,9 @@
  * Internal in-memory `StorageAdapter` used by {@link runComplianceTests}
  * when the caller does not supply a real adapter.
  *
- * This is **not** exported from the package — `@dokhna-tach/zatca-
+ * This is **not** exported from the package — `@dokhna-tech/zatca-
  * storage-memory` is the real, race-safe, BYO-mutex adapter Phase 5
- * ships. Because `storage-memory` peer-depends on `@dokhna-tach/zatca`
+ * ships. Because `storage-memory` peer-depends on `@dokhna-tech/zatca`
  * we cannot reach for it from inside core without creating a
  * circular workspace dependency, so this file provides a minimal
  * single-process equivalent for the compliance runner only.

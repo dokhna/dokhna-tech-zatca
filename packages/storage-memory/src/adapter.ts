@@ -6,12 +6,12 @@
  *
  * - Local development without a real database.
  * - CI / unit tests that need a working storage backend.
- * - The conformance fixture for `@dokhna-tach/zatca/test-helpers`.
+ * - The conformance fixture for `@dokhna-tech/zatca/test-helpers`.
  *
  * Not intended for production: state lives entirely in process memory
  * and is lost on restart. For real deployments use
- * `@dokhna-tach/zatca-storage-mongo` or
- * `@dokhna-tach/zatca-storage-postgres`.
+ * `@dokhna-tech/zatca-storage-mongo` or
+ * `@dokhna-tech/zatca-storage-postgres`.
  *
  * Concurrency model:
  *
@@ -31,8 +31,8 @@ import type {
   InvoiceStatus,
   StorageAdapter,
   TenantScope,
-} from "@dokhna-tach/zatca";
-import { ZatcaStorageError } from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
+import { ZatcaStorageError } from "@dokhna-tech/zatca";
 
 const log = debug("zatca:storage:memory");
 

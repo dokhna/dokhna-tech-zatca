@@ -1,5 +1,5 @@
 /**
- * Public XML helpers re-exported from `@dokhna-tach/zatca`.
+ * Public XML helpers re-exported from `@dokhna-tech/zatca`.
  */
 
 export { XMLDocument } from "./document.js";

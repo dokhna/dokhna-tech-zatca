@@ -38,9 +38,9 @@ On all phases complete:
 
 Every dispatched specialist receives, prepended to its phase MD:
 
-> You are executing **Phase XX** of a multi-phase plan to extract a Saudi ZATCA Phase 2 e-invoicing helper from `/Users/ameensaeed/Documents/Node/rwiqha-backend` into the open-source package `@dokhna-tach/zatca`. The full master plan is at `/Users/ameensaeed/.claude/plans/we-ve-been-trying-to-twinkly-pascal.md` — read it first for context.
+> You are executing **Phase XX** of a multi-phase plan to extract a Saudi ZATCA Phase 2 e-invoicing helper from `/Users/ameensaeed/Documents/Node/rwiqha-backend` into the open-source package `@dokhna-tech/zatca`. The full master plan is at `/Users/ameensaeed/.claude/plans/we-ve-been-trying-to-twinkly-pascal.md` — read it first for context.
 >
-> Working directory: `/Users/ameensaeed/Documents/Node/dokhna-tach-zatca-phase-2`.
+> Working directory: `/Users/ameensaeed/Documents/Node/dokhna-tech-zatca-phase-2`.
 >
 > Hard rules:
 > - Sequential tool execution only. One tool_use, wait for its tool_result, then continue.

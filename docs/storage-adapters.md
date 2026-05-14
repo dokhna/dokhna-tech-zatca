@@ -2,9 +2,9 @@
 
 The core package never owns persistence. Every issuer function takes a `StorageAdapter` and a `TenantScope`. Three reference adapters ship:
 
-- [`@dokhna-tach/zatca-storage-memory`](../packages/storage-memory/) — in-process; for local dev and tests.
-- [`@dokhna-tach/zatca-storage-mongo`](../packages/storage-mongo/) — Mongoose-backed.
-- [`@dokhna-tach/zatca-storage-postgres`](../packages/storage-postgres/) — `pg`-backed.
+- [`@dokhna-tech/zatca-storage-memory`](../packages/storage-memory/) — in-process; for local dev and tests.
+- [`@dokhna-tech/zatca-storage-mongo`](../packages/storage-mongo/) — Mongoose-backed.
+- [`@dokhna-tech/zatca-storage-postgres`](../packages/storage-postgres/) — `pg`-backed.
 
 Writing your own takes ~80 lines. See [`examples/byo-storage-prisma/`](../examples/byo-storage-prisma/) for a worked example against Prisma.
 
@@ -137,8 +137,8 @@ import type {
   InvoiceStatus,
   StorageAdapter,
   TenantScope,
-} from "@dokhna-tach/zatca";
-import { ZatcaStorageError } from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
+import { ZatcaStorageError } from "@dokhna-tech/zatca";
 
 const ZATCA_BASE_INVOICE_HASH =
   "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==" as InvoiceHash;
@@ -249,7 +249,7 @@ The core package ships a conformance suite that exercises 13 scenarios — atomi
 
 ```ts
 import { describe } from "vitest";
-import { runStorageAdapterConformance } from "@dokhna-tach/zatca/test-helpers";
+import { runStorageAdapterConformance } from "@dokhna-tech/zatca/test-helpers";
 
 describe("Prisma adapter conformance", () => {
   runStorageAdapterConformance({

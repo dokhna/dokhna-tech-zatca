@@ -58,7 +58,7 @@ These belong to the orchestrator's exit tests, not the observer.
 
 ## Observer prompt (paste into `/loop 2m <prompt>`)
 
-> You are the observer for the @dokhna-tach/zatca phase pipeline. Run three probes against `/Users/ameensaeed/Documents/Node/dokhna-tach-zatca-phase-2`:
+> You are the observer for the @dokhna-tech/zatca phase pipeline. Run three probes against `/Users/ameensaeed/Documents/Node/dokhna-tech-zatca-phase-2`:
 > 1. `cd <workdir> && git status --porcelain | wc -l`
 > 2. `cd <workdir> && pnpm -r typecheck --silent ; echo $?`
 > 3. Find the row in `plan/PROGRESS.md` with status `in_progress`; locate the matching `plan/PHASES/PHASE-XX-*.md`; report its mtime.

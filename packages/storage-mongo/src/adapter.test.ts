@@ -11,7 +11,7 @@
  * occasionally trips the WriteConflict path).
  */
 
-import { runStorageAdapterConformance } from "@dokhna-tach/zatca/test-helpers";
+import { runStorageAdapterConformance } from "@dokhna-tech/zatca/test-helpers";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { createMongoStorageAdapter } from "./adapter.js";

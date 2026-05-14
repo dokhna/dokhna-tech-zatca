@@ -11,7 +11,7 @@
 
 Please **do not** open a public GitHub issue for security vulnerabilities.
 
-Email `security@dokhna-tach.example` (placeholder — update before publishing) with:
+Email `security@dokhna-tech.example` (placeholder — update before publishing) with:
 
 1. A description of the issue and the affected versions.
 2. A reproducer or proof of concept.

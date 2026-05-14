@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 /**
- * Local vitest config for `@dokhna-tach/zatca-storage-mongo`.
+ * Local vitest config for `@dokhna-tech/zatca-storage-mongo`.
  * Pins the Node environment so a parent directory's vitest config
  * (e.g. a Cloudflare Workers pool config) cannot bleed in.
  */

@@ -33,7 +33,7 @@ export interface CounterDoc {
 
 /**
  * Invoice document shape. Mirrors {@link InvoiceRecord} from
- * `@dokhna-tach/zatca` plus three Mongo-specific fields:
+ * `@dokhna-tech/zatca` plus three Mongo-specific fields:
  *
  * - `vatNumber` / `egsUuid` — denormalized from the call-site
  *   `TenantScope` so a single compound index serves both hash-chain

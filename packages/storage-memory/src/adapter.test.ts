@@ -7,7 +7,7 @@
  * called by `beforeAll`.
  */
 
-import { runStorageAdapterConformance } from "@dokhna-tach/zatca/test-helpers";
+import { runStorageAdapterConformance } from "@dokhna-tech/zatca/test-helpers";
 import { createMemoryStorageAdapter } from "./adapter.js";
 
 runStorageAdapterConformance(() => createMemoryStorageAdapter());

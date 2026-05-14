@@ -1,7 +1,7 @@
 {
-  "name": "@dokhna-tach/zatca-storage-postgres",
+  "name": "@dokhna-tech/zatca-storage-postgres",
   "version": "1.0.0",
-  "description": "PostgreSQL storage adapter for @dokhna-tach/zatca (raw pg client).",
+  "description": "PostgreSQL storage adapter for @dokhna-tech/zatca (raw pg client).",
   "license": "BUSL-1.1",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -37,11 +37,11 @@
     "debug": "^4.3.7"
   },
   "peerDependencies": {
-    "@dokhna-tach/zatca": "workspace:*",
+    "@dokhna-tech/zatca": "workspace:*",
     "pg": ">=8.0.0"
   },
   "devDependencies": {
-    "@dokhna-tach/zatca": "workspace:*",
+    "@dokhna-tech/zatca": "workspace:*",
     "@types/debug": "^4.1.12",
     "@types/pg": "^8.11.10",
     "pg": "^8.20.0",

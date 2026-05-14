@@ -50,16 +50,16 @@ Causes and fixes:
 
 The probe can be skipped with `args.crypto.skipOpensslProbe: true` (test-only). Do not use this in production — if OpenSSL is missing, key + CSR generation will fail with a less helpful error.
 
-### `Cannot find module '@dokhna-tach/zatca'`
+### `Cannot find module '@dokhna-tech/zatca'`
 
 You're using a non-pnpm package manager that doesn't link the workspace. From the example app's directory:
 
 ```bash
 pnpm install
-pnpm --filter @dokhna-tach-examples/single-vat-express build
+pnpm --filter @dokhna-tech-examples/single-vat-express build
 ```
 
-Or, if you've published the package, `pnpm add @dokhna-tach/zatca` should pick up the registry version.
+Or, if you've published the package, `pnpm add @dokhna-tech/zatca` should pick up the registry version.
 
 ### URLs and auth-scheme drift caveat
 
@@ -79,7 +79,7 @@ You called `recordInvoice` with the same `invoiceId` but different field values.
 If you see two invoices with the same `counterNumber` on the same `(vatNumber, egsUuid)`:
 
 - You are bypassing the adapter on one call site. The atomic increment is the adapter's job; do not call `model.create({ counterNumber: ... })` directly.
-- Your adapter is wrong. Run the conformance suite (`runStorageAdapterConformance` from `@dokhna-tach/zatca/test-helpers`) against your adapter.
+- Your adapter is wrong. Run the conformance suite (`runStorageAdapterConformance` from `@dokhna-tech/zatca/test-helpers`) against your adapter.
 
 ### Hash chain breaks
 
@@ -115,7 +115,7 @@ The package targets `module: NodeNext`. Make sure your `tsconfig.json` has:
 }
 ```
 
-If you must stay on `CommonJS`, use the `require` entry: `const { issueSimplifiedTaxInvoice } = require("@dokhna-tach/zatca");`. The package ships both ESM and CJS bundles.
+If you must stay on `CommonJS`, use the `require` entry: `const { issueSimplifiedTaxInvoice } = require("@dokhna-tech/zatca");`. The package ships both ESM and CJS bundles.
 
 ### "I get no logs from the package"
 

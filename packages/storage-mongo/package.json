@@ -1,7 +1,7 @@
 {
-  "name": "@dokhna-tach/zatca-storage-mongo",
+  "name": "@dokhna-tech/zatca-storage-mongo",
   "version": "1.0.0",
-  "description": "MongoDB (Mongoose) storage adapter for @dokhna-tach/zatca.",
+  "description": "MongoDB (Mongoose) storage adapter for @dokhna-tech/zatca.",
   "license": "BUSL-1.1",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -36,11 +36,11 @@
     "debug": "^4.3.7"
   },
   "peerDependencies": {
-    "@dokhna-tach/zatca": "workspace:*",
+    "@dokhna-tech/zatca": "workspace:*",
     "mongoose": ">=8.0.0"
   },
   "devDependencies": {
-    "@dokhna-tach/zatca": "workspace:*",
+    "@dokhna-tech/zatca": "workspace:*",
     "@types/debug": "^4.1.12",
     "mongodb-memory-server": "^10.1.2",
     "mongoose": "^9.6.2"

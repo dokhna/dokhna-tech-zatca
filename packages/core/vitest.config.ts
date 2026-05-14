@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 /**
- * Local vitest config for `@dokhna-tach/zatca` (core).
+ * Local vitest config for `@dokhna-tech/zatca` (core).
  *
  * Pins the Node environment so a parent directory's
  * `vitest.config.mts` (e.g. one configured for

@@ -1,4 +1,4 @@
-# @dokhna-tach/zatca
+# @dokhna-tech/zatca
 
 ZATCA Phase 2 e-invoicing core library — Saudi Arabia.
 

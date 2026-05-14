@@ -1,5 +1,5 @@
 /**
- * `@dokhna-tach/zatca-storage-mongo` — public entrypoint.
+ * `@dokhna-tech/zatca-storage-mongo` — public entrypoint.
  *
  * The Mongoose adapter takes a caller-owned `Connection` so multi-
  * tenant SaaS apps can reuse their existing connection pool.

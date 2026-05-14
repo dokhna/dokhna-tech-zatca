@@ -1,4 +1,4 @@
-// Prisma schema for the @dokhna-tach/zatca BYO-storage example.
+// Prisma schema for the @dokhna-tech/zatca BYO-storage example.
 //
 // Run `pnpm prisma:generate` after `pnpm install` to produce the typed
 // client. The example uses SQLite for zero-setup; swap to postgres /

@@ -1,5 +1,5 @@
 /**
- * `@dokhna-tach/zatca-storage-postgres` — public entrypoint.
+ * `@dokhna-tech/zatca-storage-postgres` — public entrypoint.
  *
  * Pass a `pg.Pool` (or compatible {@link PgQueryable}) to
  * `createPostgresStorageAdapter`. The migration in

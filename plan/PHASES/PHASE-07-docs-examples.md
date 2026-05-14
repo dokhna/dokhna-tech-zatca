@@ -29,14 +29,14 @@ docs/
 ### Examples (replace Phase 0 placeholders with real, working code)
 
 #### `examples/single-vat-express/`
-- `package.json` — express, dotenv, @dokhna-tach/zatca, @dokhna-tach/zatca-storage-memory
+- `package.json` — express, dotenv, @dokhna-tech/zatca, @dokhna-tech/zatca-storage-memory
 - `src/server.ts` — Express app with POST `/invoices` that builds + signs + records
 - `src/zatca-client.ts` — wires up storage-memory and the issuer
 - `.env.example` — VAT_NUMBER, EGS_UUID, CERT_PEM_PATH, etc.
 - `README.md` — copy-paste quickstart
 
 #### `examples/multi-vat-saas/`
-- `package.json` — fastify, @dokhna-tach/zatca, @dokhna-tach/zatca-storage-mongo, mongoose
+- `package.json` — fastify, @dokhna-tech/zatca, @dokhna-tech/zatca-storage-mongo, mongoose
 - `src/server.ts` — Fastify with per-tenant route guards
 - `src/tenant-router.ts` — resolves `TenantScope` from request headers
 - `src/zatca-mongo.ts` — MongoStorageAdapter setup
@@ -45,7 +45,7 @@ docs/
 - `README.md`
 
 #### `examples/byo-storage-prisma/`
-- `package.json` — prisma, @dokhna-tach/zatca, @prisma/client
+- `package.json` — prisma, @dokhna-tech/zatca, @prisma/client
 - `prisma/schema.prisma` — schema matching `InvoiceRecord` + `CounterRecord`
 - `src/prisma-adapter.ts` — implements `StorageAdapter` against Prisma
 - `src/index.ts` — short demo
@@ -57,7 +57,7 @@ docs/
 - Every public API mention is hyperlinked to typedoc.
 - Multi-VAT and single-VAT docs are SHORT and FOCUSED — the user picks one based on their situation.
 - Troubleshooting page is keyed by ZATCA error code (e.g., `BR-KSA-02`, `BR-KSA-09`) — list common codes and what they mean in practice. Capture these from rwiqha's compliance test runs.
-- Migration doc has a function-by-function table: `rwiqha-backend function name` → `@dokhna-tach/zatca function name` → notes on signature changes.
+- Migration doc has a function-by-function table: `rwiqha-backend function name` → `@dokhna-tech/zatca function name` → notes on signature changes.
 
 ## Typedoc setup
 
@@ -67,7 +67,7 @@ Add `typedoc` to devDeps. Configure `typedoc.json` at repo root to emit `docs/ty
 
 1. `pnpm -r typecheck`, `pnpm -r build`, `pnpm -r test` pass — examples are part of the workspace and must build.
 2. Each of the three examples has its own working `pnpm dev` or `pnpm start` and a README that runs without modification (with a `.env` populated).
-3. `pnpm --filter @dokhna-tach-examples/single-vat-express start` boots, accepts a POST, returns a signed XML body.
+3. `pnpm --filter @dokhna-tech-examples/single-vat-express start` boots, accepts a POST, returns a signed XML body.
 4. `pnpm docs:api` generates typedoc HTML without errors.
 5. Manual review by the architect-reviewer agent — score docs across: clarity, completeness, copy-pasteability, accuracy.
 

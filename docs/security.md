@@ -1,6 +1,6 @@
 # Security
 
-`@dokhna-tach/zatca` is a cryptographic boundary library — it generates ECDSA keys, signs documents, and brokers credentials with the ZATCA gateway. This page enumerates the secret material, the storage / rotation guidance, and the package's own zero-logging policy.
+`@dokhna-tech/zatca` is a cryptographic boundary library — it generates ECDSA keys, signs documents, and brokers credentials with the ZATCA gateway. This page enumerates the secret material, the storage / rotation guidance, and the package's own zero-logging policy.
 
 ## Threat model
 

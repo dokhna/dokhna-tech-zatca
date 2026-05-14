@@ -1,4 +1,4 @@
-# `@dokhna-tach/zatca` v1.0.0
+# `@dokhna-tech/zatca` v1.0.0
 
 ## TL;DR
 
@@ -6,10 +6,10 @@ Saudi Arabia's ZATCA Phase 2 e-invoicing — fully implemented, audited, and tes
 
 ## What's in this release
 
-- **`@dokhna-tach/zatca`** — the core. UBL XML build for all six Phase 2 invoice types (standard tax invoice, standard credit/debit note, simplified tax invoice, simplified credit note) plus Phase 1 invoice and credit note. XMLDSig signing, ZATCA SHA-256 hashing, TLV QR generation, full ZATCA API client (compliance, clearance, reporting, status, cancellation, onboarding), and end-to-end onboarding orchestration.
-- **`@dokhna-tach/zatca-storage-memory`** — in-memory adapter for tests and local development.
-- **`@dokhna-tach/zatca-storage-mongo`** — Mongoose-based MongoDB adapter.
-- **`@dokhna-tach/zatca-storage-postgres`** — raw `pg` PostgreSQL adapter (ships with the initial schema migration).
+- **`@dokhna-tech/zatca`** — the core. UBL XML build for all six Phase 2 invoice types (standard tax invoice, standard credit/debit note, simplified tax invoice, simplified credit note) plus Phase 1 invoice and credit note. XMLDSig signing, ZATCA SHA-256 hashing, TLV QR generation, full ZATCA API client (compliance, clearance, reporting, status, cancellation, onboarding), and end-to-end onboarding orchestration.
+- **`@dokhna-tech/zatca-storage-memory`** — in-memory adapter for tests and local development.
+- **`@dokhna-tech/zatca-storage-mongo`** — Mongoose-based MongoDB adapter.
+- **`@dokhna-tech/zatca-storage-postgres`** — raw `pg` PostgreSQL adapter (ships with the initial schema migration).
 
 All three storage adapters share a single `StorageAdapter` contract from the core package and are verified by a shared conformance suite (13 tests per adapter).
 
@@ -17,17 +17,17 @@ All three storage adapters share a single `StorageAdapter` contract from the cor
 
 ```bash
 # Core only
-npm install @dokhna-tach/zatca
+npm install @dokhna-tech/zatca
 
 # With your storage of choice
-npm install @dokhna-tach/zatca @dokhna-tach/zatca-storage-postgres pg
+npm install @dokhna-tech/zatca @dokhna-tech/zatca-storage-postgres pg
 # or
-npm install @dokhna-tach/zatca @dokhna-tach/zatca-storage-mongo mongoose
+npm install @dokhna-tech/zatca @dokhna-tech/zatca-storage-mongo mongoose
 # or for tests
-npm install --save-dev @dokhna-tach/zatca-storage-memory
+npm install --save-dev @dokhna-tech/zatca-storage-memory
 ```
 
-Storage packages declare `@dokhna-tach/zatca` as a peer dependency, so you only get one copy of the core in your tree regardless of how many adapters you install.
+Storage packages declare `@dokhna-tech/zatca` as a peer dependency, so you only get one copy of the core in your tree regardless of how many adapters you install.
 
 ## How to start using it
 
@@ -40,7 +40,7 @@ Storage packages declare `@dokhna-tach/zatca` as a peer dependency, so you only 
 
 ## License model
 
-`@dokhna-tach/zatca` and its sub-packages are dual-licensed:
+`@dokhna-tech/zatca` and its sub-packages are dual-licensed:
 
 - **Free for non-SaaS use** under the [Business Source License 1.1](./LICENSE). Internal use within a single organisation, including single-tenant deployments, is permitted with no commercial license required.
 - **Commercial license required for SaaS / multi-tenant production use.** See [`LICENSES/COMMERCIAL.md`](./LICENSES/COMMERCIAL.md).

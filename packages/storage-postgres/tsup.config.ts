@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 /**
- * Build config for `@dokhna-tach/zatca-storage-postgres`.
+ * Build config for `@dokhna-tech/zatca-storage-postgres`.
  * Uses a non-composite `tsconfig.build.json` for the DTS worker.
  */
 export default defineConfig({

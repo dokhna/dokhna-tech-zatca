@@ -51,10 +51,7 @@ export function buildInvoiceLineItemTotals(
     "cbc:ID": lineItem.vatPercent ? "S" : "O",
   };
   if (lineItem.vatPercent) {
-    vatEntry["cbc:Percent"] = toFixedNoRounding(
-      lineItem.vatPercent * 100,
-      2,
-    );
+    vatEntry["cbc:Percent"] = toFixedNoRounding(lineItem.vatPercent, 2);
   }
   vatEntry["cac:TaxScheme"] = { "cbc:ID": "VAT" };
   classifiedTaxCategories.push(vatEntry);
@@ -78,7 +75,7 @@ export function buildInvoiceLineItemTotals(
   totalTaxes =
     Number.parseFloat(toFixedNoRounding(totalTaxes, 2)) +
     Number.parseFloat(
-      toFixedNoRounding(lineSubtotal * lineItem.vatPercent, 2),
+      toFixedNoRounding((lineSubtotal * lineItem.vatPercent) / 100, 2),
     );
   totalTaxes = Number.parseFloat(toFixedNoRounding(totalTaxes, 2));
 
@@ -86,12 +83,12 @@ export function buildInvoiceLineItemTotals(
     totalTaxes =
       Number.parseFloat(toFixedNoRounding(totalTaxes, 2)) +
       Number.parseFloat(
-        toFixedNoRounding(otherTax.percentAmount * lineSubtotal, 2),
+        toFixedNoRounding((otherTax.percentAmount * lineSubtotal) / 100, 2),
       );
     totalTaxes = Number.parseFloat(toFixedNoRounding(totalTaxes, 2));
     classifiedTaxCategories.push({
       "cbc:ID": "S",
-      "cbc:Percent": toFixedNoRounding(otherTax.percentAmount * 100, 2),
+      "cbc:Percent": toFixedNoRounding(otherTax.percentAmount, 2),
       "cac:TaxScheme": { "cbc:ID": "VAT" },
     });
   }
@@ -153,7 +150,7 @@ export function buildInvoiceTaxTotal(
           "@_schemeID": "UN/ECE 5305",
           "#text": taxPercent ? "S" : "O",
         },
-        "cbc:Percent": toFixedNoRounding(taxPercent * 100, 2),
+        "cbc:Percent": toFixedNoRounding(taxPercent, 2),
         ...(taxPercent
           ? {}
           : { "cbc:TaxExemptionReason": "Not subject to VAT" }),
@@ -174,12 +171,12 @@ export function buildInvoiceTaxTotal(
       lineItem.discounts?.reduce<number>((p, c) => p + c.amount, 0) ?? 0;
     const taxableAmount =
       lineItem.taxExclusivePrice * lineItem.quantity - lineDiscounts;
-    let taxAmount = lineItem.vatPercent * taxableAmount;
+    let taxAmount = (lineItem.vatPercent * taxableAmount) / 100;
     pushSubtotal(taxableAmount, taxAmount, lineItem.vatPercent);
     totalTaxes += Number.parseFloat(toFixedNoRounding(taxAmount, 2));
     for (const otherTax of lineItem.otherTaxes ?? []) {
       const t: ZATCAInvoiceLineItemTax = otherTax;
-      taxAmount = t.percentAmount * taxableAmount;
+      taxAmount = (t.percentAmount * taxableAmount) / 100;
       pushSubtotal(taxableAmount, taxAmount, t.percentAmount);
       totalTaxes += Number.parseFloat(toFixedNoRounding(taxAmount, 2));
     }

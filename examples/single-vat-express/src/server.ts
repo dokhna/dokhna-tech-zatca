@@ -1,5 +1,5 @@
 /**
- * Single-VAT Express example for @dokhna-tach/zatca.
+ * Single-VAT Express example for @dokhna-tech/zatca.
  *
  * Exposes:
  *   POST /onboard       — runs onboard() and writes the result to data/onboarding.json
@@ -8,7 +8,7 @@
  *   GET  /health        — liveness
  *
  * Run with:
- *   pnpm --filter @dokhna-tach-examples/single-vat-express start
+ *   pnpm --filter @dokhna-tech-examples/single-vat-express start
  *
  * Make sure `.env` has the required values (see .env.example).
  */
@@ -32,7 +32,7 @@ import {
   onboard,
   type EGSUnitInfo,
   type OnboardingResult,
-} from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
 
 import { buildZatcaContext } from "./zatca-client.js";
 

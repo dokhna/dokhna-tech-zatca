@@ -1,10 +1,10 @@
 # Migration from an existing in-house helper
 
-If you're moving from a hand-rolled ZATCA helper (the kind every Saudi back office has built at least once) to `@dokhna-tach/zatca`, this is your function-by-function map. The mapping below uses the structure of the source helper this package was extracted from — your in-house helper probably has the same shape because we all read the same ZATCA spec.
+If you're moving from a hand-rolled ZATCA helper (the kind every Saudi back office has built at least once) to `@dokhna-tech/zatca`, this is your function-by-function map. The mapping below uses the structure of the source helper this package was extracted from — your in-house helper probably has the same shape because we all read the same ZATCA spec.
 
 ## High level
 
-| Concern | In-house helper | `@dokhna-tach/zatca` |
+| Concern | In-house helper | `@dokhna-tech/zatca` |
 |---------|----------------|-----------------------|
 | Build + sign one document | A builder class per document type (`ZATCASimplifiedTaxInvoice`, ...) | An issuer function per document type (`issueSimplifiedTaxInvoice`, ...) |
 | QR generation | `generateQR(...)` / `generatePhaseOneQR(...)` | Built into the issuer; you get `IssuedInvoice.qrCode` |
@@ -19,7 +19,7 @@ If you're moving from a hand-rolled ZATCA helper (the kind every Saudi back offi
 
 ### Builders (UBL XML generation)
 
-| In-house | `@dokhna-tach/zatca` | Notes |
+| In-house | `@dokhna-tech/zatca` | Notes |
 |----------|----------------------|-------|
 | `new ZATCASimplifiedTaxInvoice(props).getXML()` | `issueSimplifiedTaxInvoice({ input, egsInfo, storage, scope, signing })` | Issuer signs + records + returns the bundle. To get the raw class, import `SimplifiedTaxInvoiceBuilder` (advanced). |
 | `new ZATCAStandardTaxInvoice(props).getXML()` | `issueStandardTaxInvoice(...)` | Same shape. |
@@ -39,7 +39,7 @@ If you're moving from a hand-rolled ZATCA helper (the kind every Saudi back offi
 
 ### Signing / hashing primitives
 
-| In-house | `@dokhna-tach/zatca` | Notes |
+| In-house | `@dokhna-tech/zatca` | Notes |
 |----------|----------------------|-------|
 | `generateSignedXMLString(...)` | (handled by issuer) | Lower-level signing lives in `packages/core/src/crypto/` but is not re-exported by name. |
 | `getPureInvoiceString(...)` | (internal) | Canonical XML stripping logic. |
@@ -52,14 +52,14 @@ If you're moving from a hand-rolled ZATCA helper (the kind every Saudi back offi
 
 ### QR codes
 
-| In-house | `@dokhna-tach/zatca` | Notes |
+| In-house | `@dokhna-tech/zatca` | Notes |
 |----------|----------------------|-------|
 | `generateQR({...phase2...})` | `IssuedInvoice.qrCode` from any Phase 2 issuer | The QR is computed during issue and returned base64. |
 | `generatePhaseOneQR({...})` | `issuePhase1Invoice(...).qrCode` | Phase 1 issuers also return `qrCode`. |
 
 ### ZATCA API client (the part that talks to `*.zatca.gov.sa`)
 
-| In-house | `@dokhna-tach/zatca` | Signature change |
+| In-house | `@dokhna-tech/zatca` | Signature change |
 |----------|----------------------|------------------|
 | `Zatca.submitInvoiceClearance({ xmlContent, invoiceHash, uuid, previousInvoiceHash })` | `singleInvoiceReportingOrClearanceStatus({ signedInvoiceXml, invoiceHash, egsUuid, binarySecurityToken, apiSecret, environment })` | Routing is automatic from the XML; you no longer pick clearance vs reporting yourself. Credentials are explicit, not pulled from globals. |
 | `Zatca.reportSimplifiedInvoice({ xmlContent, invoiceHash, uuid })` | `singleInvoiceReportingOrClearanceStatus(...)` | Same — one entry point for both. |
@@ -71,7 +71,7 @@ If you're moving from a hand-rolled ZATCA helper (the kind every Saudi back offi
 
 ### Cancellation / status
 
-| In-house behaviour | `@dokhna-tach/zatca` |
+| In-house behaviour | `@dokhna-tech/zatca` |
 |--------------------|-----------------------|
 | Throws untyped `Error` with concatenated message | Throws `ZatcaApiError` with `statusCode` + `validationResults` |
 | Inherits credentials from process env | Credentials explicit per call |
@@ -79,7 +79,7 @@ If you're moving from a hand-rolled ZATCA helper (the kind every Saudi back offi
 
 ### Storage and persistence
 
-| In-house | `@dokhna-tach/zatca` |
+| In-house | `@dokhna-tech/zatca` |
 |----------|-----------------------|
 | Mongoose `ZatcaInvoice` model with counter + chain logic mixed in | `StorageAdapter` interface; counter + chain operations are explicit methods |
 | Manual `findOneAndUpdate({$inc:{sequence:1}})` per call site | `storage.incrementCounter(scope)` |
@@ -87,11 +87,11 @@ If you're moving from a hand-rolled ZATCA helper (the kind every Saudi back offi
 | Manual `model.create(...)` to persist | `storage.recordInvoice(scope, record)` (idempotent on `invoiceId`) |
 | Status updates via direct model mutation | `storage.updateInvoiceStatus(scope, invoiceId, status)` |
 
-If you already have Mongoose in your codebase, [`@dokhna-tach/zatca-storage-mongo`](../packages/storage-mongo/) takes a `Connection` you already own. Migration is a couple of imports plus deleting your custom counter logic.
+If you already have Mongoose in your codebase, [`@dokhna-tech/zatca-storage-mongo`](../packages/storage-mongo/) takes a `Connection` you already own. Migration is a couple of imports plus deleting your custom counter logic.
 
 ### Onboarding
 
-| In-house | `@dokhna-tach/zatca` |
+| In-house | `@dokhna-tech/zatca` |
 |----------|-----------------------|
 | A shell script that runs `openssl ecparam` / `openssl req` and then calls compliance endpoints manually | `onboard({ egsInfo, otp, environment, solutionName })` |
 | Manual six-scenario compliance test invocation | `runComplianceTests(...)` — or just call `onboard()` |
@@ -137,7 +137,7 @@ import type {
   ZatcaEnvironment, ZatcaClearanceResult, ZatcaComplianceResult,
   // errors
   ZatcaApiError, ZatcaValidationError, ZatcaStorageError, ZatcaOnboardingError,
-} from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
 ```
 
 All exported types are the canonical names used in the generated API reference (`docs/typedoc/`).

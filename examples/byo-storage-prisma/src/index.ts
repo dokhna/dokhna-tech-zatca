@@ -3,7 +3,7 @@
  *
  * Run with:
  *   pnpm prisma:generate
- *   pnpm --filter @dokhna-tach-examples/byo-storage-prisma start
+ *   pnpm --filter @dokhna-tech-examples/byo-storage-prisma start
  *
  * The DATABASE_URL env var must be set (see .env.example).
  */
@@ -16,7 +16,7 @@ import {
   asVATNumber,
   issueSimplifiedTaxInvoice,
   type EGSUnitInfo,
-} from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
 
 import { createPrismaStorageAdapter, type PrismaLike } from "./prisma-adapter.js";
 

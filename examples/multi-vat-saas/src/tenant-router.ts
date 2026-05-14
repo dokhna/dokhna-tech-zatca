@@ -13,7 +13,7 @@ import {
   asVATNumber,
   type EGSUnitInfo,
   type TenantScope,
-} from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
 
 export interface TenantCredentials {
   readonly certificate: string;

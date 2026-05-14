@@ -1,6 +1,6 @@
 /**
  * Public certificate-management helpers re-exported from
- * `@dokhna-tach/zatca`.
+ * `@dokhna-tech/zatca`.
  *
  * All three helpers are pure, synchronous, and perform no network or
  * filesystem I/O. They wrap Node's built-in {@link X509Certificate}

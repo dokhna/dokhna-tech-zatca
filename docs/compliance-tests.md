@@ -10,7 +10,7 @@ ZATCA requires every newly onboarded EGS to round-trip **six compliance test inv
 ## Direct invocation
 
 ```ts
-import { runComplianceTests, type EGSUnitInfo } from "@dokhna-tach/zatca";
+import { runComplianceTests, type EGSUnitInfo } from "@dokhna-tech/zatca";
 
 const report = await runComplianceTests({
   egsInfo: egsInfoWithComplianceCertificate, // egsInfo.certificate must be populated

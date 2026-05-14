@@ -1,9 +1,9 @@
 /**
  * Public compliance-test surface re-exported from
- * `@dokhna-tach/zatca`.
+ * `@dokhna-tech/zatca`.
  *
  * The internal in-memory adapter (`_internal-memory-storage`) is
- * intentionally NOT re-exported — users wire `@dokhna-tach/zatca-
+ * intentionally NOT re-exported — users wire `@dokhna-tech/zatca-
  * storage-memory` (or another adapter) for that.
  */
 

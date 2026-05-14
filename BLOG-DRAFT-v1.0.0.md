@@ -1,6 +1,6 @@
-# Open-sourcing `@dokhna-tach/zatca` — Saudi ZATCA Phase 2 e-invoicing for Node.js
+# Open-sourcing `@dokhna-tech/zatca` — Saudi ZATCA Phase 2 e-invoicing for Node.js
 
-We are releasing `@dokhna-tach/zatca` 1.0.0 today: a complete, audited, dual-licensed implementation of Saudi Arabia's ZATCA Phase 2 e-invoicing requirements for Node.js. Four packages, 332 tests, three byte-identity golden vectors against the official ZATCA reference fixtures.
+We are releasing `@dokhna-tech/zatca` 1.0.0 today: a complete, audited, dual-licensed implementation of Saudi Arabia's ZATCA Phase 2 e-invoicing requirements for Node.js. Four packages, 332 tests, three byte-identity golden vectors against the official ZATCA reference fixtures.
 
 ## Why we built this
 
@@ -12,7 +12,7 @@ Rather than have every Node.js shop in the region re-discover the same lessons, 
 
 ## What it does
 
-`@dokhna-tach/zatca` ships:
+`@dokhna-tech/zatca` ships:
 
 - **All six Phase 2 invoice types** plus Phase 1 fallbacks — standard tax invoice, standard credit/debit notes, simplified tax invoice, simplified credit notes, with full UBL XML.
 - **Crypto and XML** — XMLDSig signing, ZATCA-flavoured SHA-256 hashing, TLV-encoded base64 QR. Three golden vectors run on every CI build and assert byte-identity against ZATCA's published reference outputs.
@@ -31,8 +31,8 @@ The Change Date is non-negotiable: in four years, every version published before
 ## Quickstart
 
 ```ts
-import { onboard, buildStandardTaxInvoice, signInvoiceXml, buildQR } from "@dokhna-tach/zatca";
-import { MemoryStorageAdapter } from "@dokhna-tach/zatca-storage-memory";
+import { onboard, buildStandardTaxInvoice, signInvoiceXml, buildQR } from "@dokhna-tech/zatca";
+import { MemoryStorageAdapter } from "@dokhna-tech/zatca-storage-memory";
 
 // One-time: get production CSIDs
 const result = await onboard({

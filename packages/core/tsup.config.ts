@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 /**
- * Build config for `@dokhna-tach/zatca` (core).
+ * Build config for `@dokhna-tech/zatca` (core).
  *
  * Emits dual ESM + CJS bundles from a single entrypoint, generates
  * `.d.ts` for the public API, and produces source maps for clean

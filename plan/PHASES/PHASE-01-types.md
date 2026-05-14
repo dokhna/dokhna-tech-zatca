@@ -122,8 +122,8 @@ That is the ONLY runtime dep added this phase. No crypto, no XML, no HTTP libs y
 Run from repo root:
 1. `pnpm install` (after adding zod) succeeds.
 2. `pnpm -r typecheck` passes with zero errors.
-3. `pnpm -r build` produces dist files for `@dokhna-tach/zatca` containing all type exports.
-4. `pnpm --filter @dokhna-tach/zatca test` runs and passes branded-type runtime guard tests:
+3. `pnpm -r build` produces dist files for `@dokhna-tech/zatca` containing all type exports.
+4. `pnpm --filter @dokhna-tech/zatca test` runs and passes branded-type runtime guard tests:
    - `asVATNumber("310987654321003")` returns branded
    - `asVATNumber("invalid")` throws `ZatcaValidationError`
    - Similar tests for CRN and InvoiceUUID

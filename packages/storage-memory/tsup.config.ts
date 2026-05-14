@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 /**
- * Build config for `@dokhna-tach/zatca-storage-memory`.
+ * Build config for `@dokhna-tech/zatca-storage-memory`.
  * Uses a non-composite `tsconfig.build.json` for the DTS worker;
  * the main `tsconfig.json` is composite (for project references).
  */

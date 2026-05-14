@@ -1,5 +1,5 @@
 /**
- * Public cryptographic helpers re-exported from `@dokhna-tach/zatca`.
+ * Public cryptographic helpers re-exported from `@dokhna-tech/zatca`.
  *
  * Internal helpers — `csr-template.ts` builder, the various
  * `cleanUp*` PEM strippers — are intentionally not re-exported.

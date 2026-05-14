@@ -1,7 +1,7 @@
 {
-  "name": "@dokhna-tach/zatca-storage-memory",
+  "name": "@dokhna-tech/zatca-storage-memory",
   "version": "1.0.0",
-  "description": "In-memory storage adapter for @dokhna-tach/zatca (testing/dev).",
+  "description": "In-memory storage adapter for @dokhna-tech/zatca (testing/dev).",
   "license": "BUSL-1.1",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -37,10 +37,10 @@
     "debug": "^4.3.7"
   },
   "peerDependencies": {
-    "@dokhna-tach/zatca": "workspace:*"
+    "@dokhna-tech/zatca": "workspace:*"
   },
   "devDependencies": {
-    "@dokhna-tach/zatca": "workspace:*",
+    "@dokhna-tech/zatca": "workspace:*",
     "@types/debug": "^4.1.12"
   }
 }

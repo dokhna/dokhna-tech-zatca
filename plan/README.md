@@ -1,4 +1,4 @@
-# Plan — @dokhna-tach/zatca
+# Plan — @dokhna-tech/zatca
 
 This directory drives the multi-phase implementation of the package. It is the source of truth for what is being built next, who is building it, and how progress is verified.
 

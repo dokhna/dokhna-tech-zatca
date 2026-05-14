@@ -18,7 +18,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { runStorageAdapterConformance } from "@dokhna-tach/zatca/test-helpers";
+import { runStorageAdapterConformance } from "@dokhna-tech/zatca/test-helpers";
 import { newDb } from "pg-mem";
 import { createPostgresStorageAdapter, type PgQueryable } from "./adapter.js";
 

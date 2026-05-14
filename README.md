@@ -1,7 +1,7 @@
-# @dokhna-tach/zatca
+# @dokhna-tech/zatca
 
-[![CI](https://github.com/dokhna-tach/zatca/actions/workflows/ci.yml/badge.svg)](https://github.com/dokhna-tach/zatca/actions)
-[![npm](https://img.shields.io/npm/v/@dokhna-tach/zatca.svg)](https://www.npmjs.com/package/@dokhna-tach/zatca)
+[![CI](https://github.com/dokhna-tech/zatca/actions/workflows/ci.yml/badge.svg)](https://github.com/dokhna-tech/zatca/actions)
+[![npm](https://img.shields.io/npm/v/@dokhna-tech/zatca.svg)](https://www.npmjs.com/package/@dokhna-tech/zatca)
 [![license](https://img.shields.io/badge/license-BUSL--1.1-blue.svg)](./LICENSE)
 
 A TypeScript-first ZATCA Phase 2 e-invoicing library for Saudi Arabia. Build, sign, hash, generate QR codes, and submit invoices to the ZATCA Fatoora system. Supports single-VAT and multi-VAT (multi-tenant SaaS) deployments with a bring-your-own storage adapter pattern.
@@ -42,7 +42,7 @@ We tried several existing Node.js ZATCA Phase 2 packages on a real production sy
 ## Quickstart
 
 ```bash
-pnpm add @dokhna-tach/zatca @dokhna-tach/zatca-storage-memory
+pnpm add @dokhna-tech/zatca @dokhna-tech/zatca-storage-memory
 ```
 
 ```ts
@@ -52,8 +52,8 @@ import {
   asVATNumber,
   issueSimplifiedTaxInvoice,
   type EGSUnitInfo,
-} from "@dokhna-tach/zatca";
-import { createMemoryStorageAdapter } from "@dokhna-tach/zatca-storage-memory";
+} from "@dokhna-tech/zatca";
+import { createMemoryStorageAdapter } from "@dokhna-tech/zatca-storage-memory";
 
 const storage = createMemoryStorageAdapter();
 const vatNumber = asVATNumber("301234567890003");
@@ -106,10 +106,10 @@ To get the certificate + key in the first place, run [`onboard()`](./docs/onboar
 
 | Package | What it is |
 |---------|------------|
-| [`@dokhna-tach/zatca`](./packages/core) | Core: XML build, signing, QR, ZATCA API client, onboarding |
-| [`@dokhna-tach/zatca-storage-memory`](./packages/storage-memory) | In-memory adapter (testing/dev) |
-| [`@dokhna-tach/zatca-storage-mongo`](./packages/storage-mongo) | MongoDB adapter (Mongoose peer-dep) |
-| [`@dokhna-tach/zatca-storage-postgres`](./packages/storage-postgres) | PostgreSQL adapter (pg peer-dep) |
+| [`@dokhna-tech/zatca`](./packages/core) | Core: XML build, signing, QR, ZATCA API client, onboarding |
+| [`@dokhna-tech/zatca-storage-memory`](./packages/storage-memory) | In-memory adapter (testing/dev) |
+| [`@dokhna-tech/zatca-storage-mongo`](./packages/storage-mongo) | MongoDB adapter (Mongoose peer-dep) |
+| [`@dokhna-tech/zatca-storage-postgres`](./packages/storage-postgres) | PostgreSQL adapter (pg peer-dep) |
 
 ## Examples
 
@@ -125,7 +125,7 @@ From the repo root:
 
 ```bash
 pnpm install
-pnpm --filter @dokhna-tach-examples/single-vat-express start
+pnpm --filter @dokhna-tech-examples/single-vat-express start
 ```
 
 ## Documentation
@@ -165,7 +165,7 @@ This package is dual-licensed:
 - **Free for non-SaaS use** under the [Business Source License 1.1](./LICENSE). On 2030-05-13 (four years from the first release), the license automatically converts to Apache License 2.0.
 - **Commercial license required for SaaS / multi-tenant production use.** See [`LICENSES/COMMERCIAL.md`](./LICENSES/COMMERCIAL.md).
 
-If you are unsure which applies to your use case, read the LICENSE file's "Additional Use Grant" section or contact `licensing@dokhna-tach.example`.
+If you are unsure which applies to your use case, read the LICENSE file's "Additional Use Grant" section or contact `licensing@dokhna-tech.example`.
 
 The BSL model is used by MariaDB, Sentry, CockroachDB, and Couchbase. It is a source-available license, not an OSI-approved open-source license, until the Change Date.
 

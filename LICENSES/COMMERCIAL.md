@@ -1,8 +1,8 @@
-# Commercial License — @dokhna-tach/zatca
+# Commercial License — @dokhna-tech/zatca
 
-The Business Source License 1.1 (`LICENSE` at the repository root) permits free use of `@dokhna-tach/zatca` and its sub-packages except when the Licensed Work is offered to third parties as a hosted or embedded SaaS service.
+The Business Source License 1.1 (`LICENSE` at the repository root) permits free use of `@dokhna-tech/zatca` and its sub-packages except when the Licensed Work is offered to third parties as a hosted or embedded SaaS service.
 
-If you intend to use `@dokhna-tach/zatca` to provide ZATCA e-invoicing — or any related service — to third-party customers on a multi-tenant or hosted basis, you must obtain a commercial license from the Licensor.
+If you intend to use `@dokhna-tech/zatca` to provide ZATCA e-invoicing — or any related service — to third-party customers on a multi-tenant or hosted basis, you must obtain a commercial license from the Licensor.
 
 ## What requires a commercial license
 
@@ -20,7 +20,7 @@ If you intend to use `@dokhna-tach/zatca` to provide ZATCA e-invoicing — or an
 
 ## How to obtain a commercial license
 
-Contact `licensing@dokhna-tach.example` (placeholder — replace with real contact before publishing) with:
+Contact `licensing@dokhna-tech.example` (placeholder — replace with real contact before publishing) with:
 
 1. Your organisation name and country of registration.
 2. The expected number of tenants / VAT numbers you will serve.

@@ -1,5 +1,5 @@
 /**
- * `@dokhna-tach/zatca` — public entrypoint.
+ * `@dokhna-tech/zatca` — public entrypoint.
  *
  * Phase 1 shipped the type system + runtime validators. Phase 2
  * added the XML wrapper, crypto pipeline (hash + sign + cert info),

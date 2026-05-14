@@ -1,8 +1,8 @@
 {
-  "name": "@dokhna-tach-examples/byo-storage-prisma",
+  "name": "@dokhna-tech-examples/byo-storage-prisma",
   "version": "0.0.0",
   "private": true,
-  "description": "Example: custom Prisma StorageAdapter for @dokhna-tach/zatca.",
+  "description": "Example: custom Prisma StorageAdapter for @dokhna-tech/zatca.",
   "type": "module",
   "scripts": {
     "build": "tsc -p .",
@@ -12,7 +12,7 @@
     "prisma:generate": "prisma generate"
   },
   "dependencies": {
-    "@dokhna-tach/zatca": "workspace:*",
+    "@dokhna-tech/zatca": "workspace:*",
     "@prisma/client": "^5.22.0"
   },
   "devDependencies": {

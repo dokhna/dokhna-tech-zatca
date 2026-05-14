@@ -1,8 +1,8 @@
 {
-  "name": "dokhna-tach-zatca-monorepo",
+  "name": "dokhna-tech-zatca-monorepo",
   "version": "0.0.0",
   "private": true,
-  "description": "Monorepo root for @dokhna-tach/zatca — Saudi Arabia ZATCA Phase 2 e-invoicing helper.",
+  "description": "Monorepo root for @dokhna-tech/zatca — Saudi Arabia ZATCA Phase 2 e-invoicing helper.",
   "license": "BUSL-1.1",
   "engines": {
     "node": ">=20.0.0",

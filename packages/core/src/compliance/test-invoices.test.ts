@@ -78,7 +78,7 @@ describe("compliance scenario factories", () => {
     for (const s of scenarios) {
       expect(s.lineItems[0]?.quantity).toBe(1);
       expect(s.lineItems[0]?.taxExclusivePrice).toBe(100);
-      expect(s.lineItems[0]?.vatPercent).toBe(0.15);
+      expect(s.lineItems[0]?.vatPercent).toBe(15);
     }
   });
 });

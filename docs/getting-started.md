@@ -5,10 +5,10 @@ Get from `npm install` to a signed Phase 2 invoice in 15 minutes.
 ## 1. Install
 
 ```bash
-pnpm add @dokhna-tach/zatca @dokhna-tach/zatca-storage-memory
+pnpm add @dokhna-tech/zatca @dokhna-tech/zatca-storage-memory
 # or for a real database:
-pnpm add @dokhna-tach/zatca @dokhna-tach/zatca-storage-mongo mongoose
-pnpm add @dokhna-tach/zatca @dokhna-tach/zatca-storage-postgres pg
+pnpm add @dokhna-tech/zatca @dokhna-tech/zatca-storage-mongo mongoose
+pnpm add @dokhna-tech/zatca @dokhna-tech/zatca-storage-postgres pg
 ```
 
 Peer requirements:
@@ -34,7 +34,7 @@ import {
   asVATNumber,
   asCommercialRegistrationNumber,
   asEGSUuid,
-} from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
 import { randomUUID } from "node:crypto";
 
 const result = await onboard({
@@ -90,8 +90,8 @@ import {
   asEGSUuid,
   asVATNumber,
   asCommercialRegistrationNumber,
-} from "@dokhna-tach/zatca";
-import { createMemoryStorageAdapter } from "@dokhna-tach/zatca-storage-memory";
+} from "@dokhna-tech/zatca";
+import { createMemoryStorageAdapter } from "@dokhna-tech/zatca-storage-memory";
 
 const storage = createMemoryStorageAdapter();
 

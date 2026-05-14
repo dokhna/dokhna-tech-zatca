@@ -1,5 +1,5 @@
 /**
- * Public onboarding surface re-exported from `@dokhna-tach/zatca`.
+ * Public onboarding surface re-exported from `@dokhna-tech/zatca`.
  *
  * The `onboard` function orchestrates key generation, CSR signing,
  * compliance certificate issuance, the six-scenario compliance test

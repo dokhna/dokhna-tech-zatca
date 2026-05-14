@@ -18,7 +18,7 @@ import {
   asVATNumber,
   asCommercialRegistrationNumber,
   asEGSUuid,
-} from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
 import { randomUUID } from "node:crypto";
 
 const result = await onboard({
@@ -112,7 +112,7 @@ import {
   issueComplianceCertificate,
   runComplianceTests,
   issueCSIDS,
-} from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
 
 const privateKey = await generateSecp256k1KeyPair();
 const csr = await generateCSR({ /* ... */ });

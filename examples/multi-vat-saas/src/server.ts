@@ -1,5 +1,5 @@
 /**
- * Multi-tenant SaaS example for @dokhna-tach/zatca.
+ * Multi-tenant SaaS example for @dokhna-tech/zatca.
  *
  * Fastify server with a single Mongoose connection. Every request
  * resolves a TenantScope from the `X-Tenant-ID` header before invoking
@@ -20,7 +20,7 @@ import Fastify, {
   type FastifyReply,
   type FastifyRequest,
 } from "fastify";
-import { issueSimplifiedTaxInvoice, type StorageAdapter } from "@dokhna-tach/zatca";
+import { issueSimplifiedTaxInvoice, type StorageAdapter } from "@dokhna-tech/zatca";
 
 import { buildStorageAdapter, connectMongo } from "./zatca-mongo.js";
 import {

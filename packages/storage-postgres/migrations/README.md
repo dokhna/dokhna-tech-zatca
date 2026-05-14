@@ -1,4 +1,4 @@
-# `@dokhna-tach/zatca-storage-postgres` — migrations
+# `@dokhna-tech/zatca-storage-postgres` — migrations
 
 This directory contains the SQL needed to bring a Postgres database
 to the schema the adapter expects. Migrations are plain `.sql`
@@ -15,7 +15,7 @@ files — pick the tool that fits your stack.
 ### psql
 
 ```bash
-psql "$DATABASE_URL" -f node_modules/@dokhna-tach/zatca-storage-postgres/migrations/001_initial.sql
+psql "$DATABASE_URL" -f node_modules/@dokhna-tech/zatca-storage-postgres/migrations/001_initial.sql
 ```
 
 ### node-pg directly
@@ -26,7 +26,7 @@ import { Pool } from "pg";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const sql = readFileSync(
-  "node_modules/@dokhna-tach/zatca-storage-postgres/migrations/001_initial.sql",
+  "node_modules/@dokhna-tech/zatca-storage-postgres/migrations/001_initial.sql",
   "utf8",
 );
 await pool.query(sql);

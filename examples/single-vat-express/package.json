@@ -1,8 +1,8 @@
 {
-  "name": "@dokhna-tach-examples/single-vat-express",
+  "name": "@dokhna-tech-examples/single-vat-express",
   "version": "0.0.0",
   "private": true,
-  "description": "Example: @dokhna-tach/zatca with Express, single VAT registration.",
+  "description": "Example: @dokhna-tech/zatca with Express, single VAT registration.",
   "type": "module",
   "scripts": {
     "build": "tsc -p .",
@@ -12,8 +12,8 @@
     "dev": "tsx watch src/server.ts"
   },
   "dependencies": {
-    "@dokhna-tach/zatca": "workspace:*",
-    "@dokhna-tach/zatca-storage-memory": "workspace:*",
+    "@dokhna-tech/zatca": "workspace:*",
+    "@dokhna-tech/zatca-storage-memory": "workspace:*",
     "dotenv": "^16.4.5",
     "express": "^4.21.0"
   },

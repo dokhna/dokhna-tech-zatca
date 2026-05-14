@@ -7,9 +7,9 @@
 ## Goal
 
 Lock the `StorageAdapter` contract and ship three reference implementations:
-- `@dokhna-tach/zatca-storage-memory` — in-process, async-mutex-guarded
-- `@dokhna-tach/zatca-storage-mongo` — Mongoose, clean schema
-- `@dokhna-tach/zatca-storage-postgres` — raw `pg` + SQL migrations
+- `@dokhna-tech/zatca-storage-memory` — in-process, async-mutex-guarded
+- `@dokhna-tech/zatca-storage-mongo` — Mongoose, clean schema
+- `@dokhna-tech/zatca-storage-postgres` — raw `pg` + SQL migrations
 
 After this phase, multi-VAT SaaS deployments are unblocked.
 

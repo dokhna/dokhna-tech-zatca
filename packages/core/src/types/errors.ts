@@ -1,7 +1,7 @@
 /**
  * Error hierarchy for the ZATCA core package.
  *
- * All errors thrown by `@dokhna-tach/zatca` extend `ZatcaError`, so
+ * All errors thrown by `@dokhna-tech/zatca` extend `ZatcaError`, so
  * users can `catch (err) { if (err instanceof ZatcaError) ... }` and
  * narrow further on subclasses or `err.name`.
  *

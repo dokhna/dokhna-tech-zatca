@@ -6,8 +6,8 @@
  */
 
 import mongoose, { type Connection } from "mongoose";
-import type { StorageAdapter } from "@dokhna-tach/zatca";
-import { createMongoStorageAdapter } from "@dokhna-tach/zatca-storage-mongo";
+import type { StorageAdapter } from "@dokhna-tech/zatca";
+import { createMongoStorageAdapter } from "@dokhna-tech/zatca-storage-mongo";
 
 export async function connectMongo(uri: string): Promise<Connection> {
   await mongoose.connect(uri);

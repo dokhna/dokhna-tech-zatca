@@ -1,6 +1,6 @@
 # byo-storage-prisma
 
-Worked example of implementing a custom `StorageAdapter` for `@dokhna-tach/zatca` against Prisma + SQLite.
+Worked example of implementing a custom `StorageAdapter` for `@dokhna-tech/zatca` against Prisma + SQLite.
 
 ## Why this example
 
@@ -13,7 +13,7 @@ The reference adapters (`-memory`, `-mongo`, `-postgres`) cover most deployments
 pnpm install
 
 # generate the Prisma client from prisma/schema.prisma
-pnpm --filter @dokhna-tach-examples/byo-storage-prisma prisma:generate
+pnpm --filter @dokhna-tech-examples/byo-storage-prisma prisma:generate
 
 # apply the schema to a local SQLite file
 cp examples/byo-storage-prisma/.env.example examples/byo-storage-prisma/.env
@@ -22,7 +22,7 @@ pnpm exec prisma migrate dev --name init
 cd -
 
 # issue two demo invoices
-pnpm --filter @dokhna-tach-examples/byo-storage-prisma start
+pnpm --filter @dokhna-tech-examples/byo-storage-prisma start
 ```
 
 The demo populates `prisma/dev.db` and prints the issued invoice numbers + hashes.
@@ -53,7 +53,7 @@ Once your adapter compiles, run the conformance suite against it:
 
 ```ts
 import { describe } from "vitest";
-import { runStorageAdapterConformance } from "@dokhna-tach/zatca/test-helpers";
+import { runStorageAdapterConformance } from "@dokhna-tech/zatca/test-helpers";
 
 describe("Prisma adapter conformance", () => {
   runStorageAdapterConformance({

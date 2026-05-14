@@ -11,8 +11,8 @@ import {
   asVATNumber,
   type EGSUnitInfo,
   type TenantScope,
-} from "@dokhna-tach/zatca";
-import { createMemoryStorageAdapter } from "@dokhna-tach/zatca-storage-memory";
+} from "@dokhna-tech/zatca";
+import { createMemoryStorageAdapter } from "@dokhna-tech/zatca-storage-memory";
 
 const env = (key: string): string => {
   const value = process.env[key];

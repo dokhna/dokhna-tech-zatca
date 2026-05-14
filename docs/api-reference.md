@@ -17,7 +17,7 @@ The output goes into `docs/typedoc/`. The CI publishes it to GitHub Pages on eac
 
 ## What's documented
 
-Every public export of `@dokhna-tach/zatca` has:
+Every public export of `@dokhna-tech/zatca` has:
 
 - A one-line summary.
 - `@param` for each parameter.
@@ -25,7 +25,7 @@ Every public export of `@dokhna-tach/zatca` has:
 - `@throws` for documented error classes.
 - `@example` for non-trivial APIs.
 
-The storage adapter packages (`@dokhna-tach/zatca-storage-{memory,mongo,postgres}`) are not (yet) part of the TypeDoc generation — their public surface is small and covered in [storage-adapters.md](./storage-adapters.md). To include them, add their `src/index.ts` to `typedoc.json`'s `entryPoints` array.
+The storage adapter packages (`@dokhna-tech/zatca-storage-{memory,mongo,postgres}`) are not (yet) part of the TypeDoc generation — their public surface is small and covered in [storage-adapters.md](./storage-adapters.md). To include them, add their `src/index.ts` to `typedoc.json`'s `entryPoints` array.
 
 ## Quick index of major exports
 

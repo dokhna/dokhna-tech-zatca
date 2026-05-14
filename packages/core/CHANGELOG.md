@@ -1,4 +1,4 @@
-# @dokhna-tach/zatca
+# @dokhna-tech/zatca
 
 ## 1.0.0
 
@@ -6,7 +6,7 @@
 
 - Initial v1.0.0 release.
 
-  This is the first stable release of the `@dokhna-tach/zatca` family.
+  This is the first stable release of the `@dokhna-tech/zatca` family.
   It provides a complete, audited implementation of Saudi Arabia's
   ZATCA Phase 2 e-invoicing requirements for Node.js: UBL XML build,
   XMLDSig signing, ZATCA SHA-256 hashing with byte-identity golden

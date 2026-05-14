@@ -18,7 +18,7 @@ Every storage call accepts a `TenantScope`. The adapter uses it to:
 - Persist the issued record namespaced by that tenant.
 
 ```ts
-import type { TenantScope } from "@dokhna-tach/zatca";
+import type { TenantScope } from "@dokhna-tech/zatca";
 
 function tenantScopeFromRequest(req: { headers: Record<string, string> }): TenantScope {
   const tenantId = req.headers["x-tenant-id"];

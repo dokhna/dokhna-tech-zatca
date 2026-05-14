@@ -26,10 +26,10 @@ Turn the working directory into a real pnpm-workspace monorepo, scaffold the fou
 - `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `.github/dependabot.yml`
 
 ### Packages (skeletons only — empty `src/index.ts`)
-- `packages/core/` → `@dokhna-tach/zatca`
-- `packages/storage-memory/` → `@dokhna-tach/zatca-storage-memory`
-- `packages/storage-mongo/` → `@dokhna-tach/zatca-storage-mongo` (mongoose peer dep)
-- `packages/storage-postgres/` → `@dokhna-tach/zatca-storage-postgres` (pg peer dep)
+- `packages/core/` → `@dokhna-tech/zatca`
+- `packages/storage-memory/` → `@dokhna-tech/zatca-storage-memory`
+- `packages/storage-mongo/` → `@dokhna-tech/zatca-storage-mongo` (mongoose peer dep)
+- `packages/storage-postgres/` → `@dokhna-tech/zatca-storage-postgres` (pg peer dep)
 
 Each package contains: `package.json`, `tsconfig.json`, `tsup.config.ts` (plain-object default export to avoid `import { defineConfig }` pre-flight), `src/index.ts` (`export {};`), `README.md`.
 

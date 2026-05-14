@@ -80,7 +80,7 @@ export function makeTestLineItem(): ZATCAInvoiceLineItem {
     name: "Coffee",
     quantity: 2,
     taxExclusivePrice: 10,
-    vatPercent: 0.15,
+    vatPercent: 15,
   };
 }
 

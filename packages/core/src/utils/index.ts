@@ -1,5 +1,5 @@
 /**
- * Public utility helpers re-exported from `@dokhna-tach/zatca`.
+ * Public utility helpers re-exported from `@dokhna-tech/zatca`.
  *
  * Only pure, side-effect-free helpers belong here. Anything that
  * touches the filesystem, network, or child processes lives under

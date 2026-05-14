@@ -45,9 +45,9 @@ In a sibling directory:
 ```bash
 mkdir -p /tmp/zatca-install-test && cd /tmp/zatca-install-test
 npm init -y
-npm install /Users/ameensaeed/Documents/Node/dokhna-tach-zatca-phase-2/packages/core/dokhna-tach-zatca-1.0.0.tgz \
-            /Users/ameensaeed/Documents/Node/dokhna-tach-zatca-phase-2/packages/storage-memory/dokhna-tach-zatca-storage-memory-1.0.0.tgz
-node -e "const z = require('@dokhna-tach/zatca'); console.log(Object.keys(z))"
+npm install /Users/ameensaeed/Documents/Node/dokhna-tech-zatca-phase-2/packages/core/dokhna-tech-zatca-1.0.0.tgz \
+            /Users/ameensaeed/Documents/Node/dokhna-tech-zatca-phase-2/packages/storage-memory/dokhna-tech-zatca-storage-memory-1.0.0.tgz
+node -e "const z = require('@dokhna-tech/zatca'); console.log(Object.keys(z))"
 ```
 
 Must succeed without errors and emit the expected public API surface.
@@ -78,19 +78,19 @@ Must succeed without errors and emit the expected public API surface.
 | 4. No `any` outside JSDoc | PASS | 0 matches |
 | 5. LICENSE BSL parameter block present | PASS | Licensor, Licensed Work, Additional Use Grant, Change Date (2030-05-13), Change License (Apache 2.0) all present. Banner strengthened to flag that upstream BSL body still needs verbatim paste. |
 | 6. README license claim matches LICENSE | PASS | Both state BSL 1.1 → Apache 2.0 on 2030-05-13 |
-| 7. SECURITY.md / CODE_OF_CONDUCT.md / CONTRIBUTING.md exist | PASS-with-WARN | All three present, non-placeholder structure. Contact emails are placeholders (`@dokhna-tach.example`) — must be replaced before publish. |
+| 7. SECURITY.md / CODE_OF_CONDUCT.md / CONTRIBUTING.md exist | PASS-with-WARN | All three present, non-placeholder structure. Contact emails are placeholders (`@dokhna-tech.example`) — must be replaced before publish. |
 | 8. `pnpm audit` clean of high/critical | PASS-with-WARN | 0 high/critical. 3 moderate: vitest→esbuild (dev-only), vitest→vite (dev-only), fast-xml-parser (runtime — tracked for v1.0.1). |
 | 9. `pnpm licenses list` — no GPL/AGPL/SSPL/Commons Clause in runtime | PASS | All prod deps are MIT / Apache-2.0 / BSD / ISC / 0BSD / CC0. No copyleft. |
-| 10. No workspace dep cycles — storage-* uses core only as peerDep | PASS | All three adapters list `@dokhna-tach/zatca` in `peerDependencies`, not `dependencies`. |
+| 10. No workspace dep cycles — storage-* uses core only as peerDep | PASS | All three adapters list `@dokhna-tech/zatca` in `peerDependencies`, not `dependencies`. |
 
 ### Tarball inspection
 
 | Package | Tarball size | Files OK | Notes |
 |---------|--------------|----------|-------|
-| `@dokhna-tach/zatca` | 317 KB (gz) | YES | LICENSE + README + dist (ESM/CJS + .d.ts/.d.cts + test-helpers entry). No src, no tests, no tsconfig. |
-| `@dokhna-tach/zatca-storage-memory` | 8.0 KB (gz) | YES | LICENSE + README + dist. |
-| `@dokhna-tach/zatca-storage-mongo` | 11.2 KB (gz) | YES | LICENSE + README + dist. |
-| `@dokhna-tach/zatca-storage-postgres` | 10.4 KB (gz) | YES | LICENSE + README + dist + `migrations/001_initial.sql` + `migrations/README.md`. |
+| `@dokhna-tech/zatca` | 317 KB (gz) | YES | LICENSE + README + dist (ESM/CJS + .d.ts/.d.cts + test-helpers entry). No src, no tests, no tsconfig. |
+| `@dokhna-tech/zatca-storage-memory` | 8.0 KB (gz) | YES | LICENSE + README + dist. |
+| `@dokhna-tech/zatca-storage-mongo` | 11.2 KB (gz) | YES | LICENSE + README + dist. |
+| `@dokhna-tech/zatca-storage-postgres` | 10.4 KB (gz) | YES | LICENSE + README + dist + `migrations/001_initial.sql` + `migrations/README.md`. |
 
 LICENSE copy is performed by a `prepack` script in each package (`cp ../../LICENSE ./LICENSE`). Verified by inspecting all four `*.tgz` archives.
 
@@ -100,10 +100,10 @@ LICENSE copy is performed by a `prepack` script in each package (`cp ../../LICEN
 
 | Package | Version | Status |
 |---------|---------|--------|
-| `@dokhna-tach/zatca` | 1.0.0 | would-publish |
-| `@dokhna-tach/zatca-storage-memory` | 1.0.0 | would-publish |
-| `@dokhna-tach/zatca-storage-mongo` | 1.0.0 | would-publish |
-| `@dokhna-tach/zatca-storage-postgres` | 1.0.0 | would-publish |
+| `@dokhna-tech/zatca` | 1.0.0 | would-publish |
+| `@dokhna-tech/zatca-storage-memory` | 1.0.0 | would-publish |
+| `@dokhna-tech/zatca-storage-mongo` | 1.0.0 | would-publish |
+| `@dokhna-tech/zatca-storage-postgres` | 1.0.0 | would-publish |
 
 Three example packages (`single-vat-express`, `multi-vat-saas`, `byo-storage-prisma`) are `"private": true` and correctly skipped.
 
@@ -111,24 +111,24 @@ Three example packages (`single-vat-express`, `multi-vat-saas`, `byo-storage-pri
 
 In `/tmp/zatca-install-test`, installed the core + memory tarballs and verified both ESM and CJS imports:
 
-- `import('@dokhna-tach/zatca')` → 120 exports
-- `require('@dokhna-tach/zatca')` → 120 exports
-- `import('@dokhna-tach/zatca-storage-memory')` → `createMemoryStorageAdapter`
+- `import('@dokhna-tech/zatca')` → 120 exports
+- `require('@dokhna-tech/zatca')` → 120 exports
+- `import('@dokhna-tech/zatca-storage-memory')` → `createMemoryStorageAdapter`
 
 ### Known gaps for v1.1.0
 
 - BSL 1.1 full upstream legal-text body still needs verbatim paste into `LICENSE`. Parameter block is authoritative for intent; banner now makes this requirement loud.
 - Replace `@fidm/x509` (unmaintained) with `pkijs` for X.509 parsing.
 - Pure-JS CSR/key generation path so OpenSSL CLI is no longer a hard runtime dep (currently required for `onboard()`).
-- Optional `@dokhna-tach/zatca-pdf` sub-package for PDF/A-3 invoice attachment flows.
+- Optional `@dokhna-tech/zatca-pdf` sub-package for PDF/A-3 invoice attachment flows.
 - 3 moderate `pnpm audit` advisories: 2 in dev-only path (vitest→esbuild, vitest→vite), 1 in runtime (fast-xml-parser ≤4.5.0) — schedule v1.0.1 bump.
 
 ### Action items before public npm publish
 
 1. **Replace placeholder emails:**
-   - `SECURITY.md` — `security@dokhna-tach.example` → real address
-   - `CODE_OF_CONDUCT.md` — `conduct@dokhna-tach.example` → real address
-   - `README.md` — `licensing@dokhna-tach.example` → real address
+   - `SECURITY.md` — `security@dokhna-tech.example` → real address
+   - `CODE_OF_CONDUCT.md` — `conduct@dokhna-tech.example` → real address
+   - `README.md` — `licensing@dokhna-tech.example` → real address
 2. **Paste the verbatim BSL 1.1 upstream body** from <https://mariadb.com/bsl11/> into `LICENSE` and remove the maintainer-action banner.
 3. **Configure repository secrets** for the release workflow:
    - `NPM_TOKEN` (npm publish)

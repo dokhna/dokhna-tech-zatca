@@ -5,14 +5,14 @@
   "fixed": [],
   "linked": [
     [
-      "@dokhna-tach/zatca",
-      "@dokhna-tach/zatca-storage-memory",
-      "@dokhna-tach/zatca-storage-mongo",
-      "@dokhna-tach/zatca-storage-postgres"
+      "@dokhna-tech/zatca",
+      "@dokhna-tech/zatca-storage-memory",
+      "@dokhna-tech/zatca-storage-mongo",
+      "@dokhna-tech/zatca-storage-postgres"
     ]
   ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@dokhna-tach-examples/single-vat-express", "@dokhna-tach-examples/multi-vat-saas", "@dokhna-tach-examples/byo-storage-prisma"]
+  "ignore": ["@dokhna-tech-examples/single-vat-express", "@dokhna-tech-examples/multi-vat-saas", "@dokhna-tech-examples/byo-storage-prisma"]
 }

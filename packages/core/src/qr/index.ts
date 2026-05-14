@@ -1,5 +1,5 @@
 /**
- * Public QR helpers re-exported from `@dokhna-tach/zatca`.
+ * Public QR helpers re-exported from `@dokhna-tech/zatca`.
  */
 
 export { createTLV, encodeTLVAsBase64 } from "./tlv.js";

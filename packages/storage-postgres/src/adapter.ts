@@ -26,8 +26,8 @@ import type {
   InvoiceStatus,
   StorageAdapter,
   TenantScope,
-} from "@dokhna-tach/zatca";
-import { ZatcaStorageError } from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
+import { ZatcaStorageError } from "@dokhna-tech/zatca";
 
 const log = debug("zatca:storage:postgres");
 

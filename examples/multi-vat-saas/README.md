@@ -1,6 +1,6 @@
 # multi-vat-saas
 
-Fastify server that demonstrates a multi-tenant SaaS topology: many Saudi VAT registrants on one runtime, isolated certificates, isolated counters, isolated hash chains, all sharing one Mongoose connection through `@dokhna-tach/zatca-storage-mongo`.
+Fastify server that demonstrates a multi-tenant SaaS topology: many Saudi VAT registrants on one runtime, isolated certificates, isolated counters, isolated hash chains, all sharing one Mongoose connection through `@dokhna-tech/zatca-storage-mongo`.
 
 ## Architecture
 
@@ -36,7 +36,7 @@ docker compose --file examples/multi-vat-saas/docker-compose.yml up -d
 cp examples/multi-vat-saas/.env.example examples/multi-vat-saas/.env
 # fill in per-tenant signing material
 
-pnpm --filter @dokhna-tach-examples/multi-vat-saas start
+pnpm --filter @dokhna-tech-examples/multi-vat-saas start
 ```
 
 The server listens on `http://localhost:3000`.

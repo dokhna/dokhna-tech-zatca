@@ -237,7 +237,10 @@ function mapItems(
     name: li.name,
     quantity: li.quantity,
     taxExclusivePrice: li.tax_exclusive_price,
-    vatPercent: li.VAT_percent,
+    // rwiqha's input.json stores VAT_percent as a decimal fraction
+    // (0.15); the v2 builder API takes a percent (15). Convert at the
+    // boundary so the captured golden vectors remain byte-identical.
+    vatPercent: li.VAT_percent * 100,
   }));
 }
 

@@ -23,8 +23,8 @@ import type {
   InvoiceStatus,
   StorageAdapter,
   TenantScope,
-} from "@dokhna-tach/zatca";
-import { ZatcaStorageError } from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
+import { ZatcaStorageError } from "@dokhna-tech/zatca";
 import { buildModels, type CounterDoc, type InvoiceDoc } from "./schema.js";
 
 const log = debug("zatca:storage:mongo");

@@ -122,7 +122,7 @@ Run from repo root:
 1. `pnpm install` succeeds.
 2. `pnpm -r typecheck` passes.
 3. `pnpm -r build` succeeds.
-4. `pnpm --filter @dokhna-tach/zatca test` passes, including:
+4. `pnpm --filter @dokhna-tech/zatca test` passes, including:
    - XMLDocument round-trip on canonical UBL XML
    - SHA-256 hash byte-identical to fixture (≥3 fixtures)
    - Signed XML byte-identical (whitespace-stripped) to fixture

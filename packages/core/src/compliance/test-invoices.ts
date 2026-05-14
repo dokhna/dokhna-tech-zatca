@@ -41,7 +41,7 @@ function makeComplianceLineItem(): ZATCAInvoiceLineItem {
     name: "Test Item",
     quantity: 1,
     taxExclusivePrice: 100,
-    vatPercent: 0.15,
+    vatPercent: 15,
   };
 }
 

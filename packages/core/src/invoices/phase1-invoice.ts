@@ -43,7 +43,7 @@ function computeTotals(input: Phase1InvoiceInput): {
   for (const item of input.lineItems) {
     const lineTotal = item.taxExclusivePrice * item.quantity;
     subtotal += lineTotal;
-    vatAmount += lineTotal * item.vatPercent;
+    vatAmount += (lineTotal * item.vatPercent) / 100;
   }
   return { subtotal, vatAmount, total: subtotal + vatAmount };
 }

@@ -22,8 +22,8 @@ import {
   asEGSUuid,
   type TenantScope,
   type EGSUnitInfo,
-} from "@dokhna-tach/zatca";
-import { createMemoryStorageAdapter } from "@dokhna-tach/zatca-storage-memory";
+} from "@dokhna-tech/zatca";
+import { createMemoryStorageAdapter } from "@dokhna-tech/zatca-storage-memory";
 
 const storage = createMemoryStorageAdapter();
 
@@ -88,7 +88,7 @@ The full runnable equivalent is in [`examples/single-vat-express/`](../examples/
 `issueSimplifiedTaxInvoice` only builds + signs + records. To send the document to the gateway:
 
 ```ts
-import { singleInvoiceReportingOrClearanceStatus } from "@dokhna-tach/zatca";
+import { singleInvoiceReportingOrClearanceStatus } from "@dokhna-tech/zatca";
 
 const submission = await singleInvoiceReportingOrClearanceStatus({
   signedInvoiceXml: issued.signedXml,

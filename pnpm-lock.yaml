@@ -32,7 +32,7 @@ importers:
 
   examples/byo-storage-prisma:
     dependencies:
-      '@dokhna-tach/zatca':
+      '@dokhna-tech/zatca':
         specifier: workspace:*
         version: link:../../packages/core
       '@prisma/client':
@@ -54,10 +54,10 @@ importers:
 
   examples/multi-vat-saas:
     dependencies:
-      '@dokhna-tach/zatca':
+      '@dokhna-tech/zatca':
         specifier: workspace:*
         version: link:../../packages/core
-      '@dokhna-tach/zatca-storage-mongo':
+      '@dokhna-tech/zatca-storage-mongo':
         specifier: workspace:*
         version: link:../../packages/storage-mongo
       dotenv:
@@ -82,10 +82,10 @@ importers:
 
   examples/single-vat-express:
     dependencies:
-      '@dokhna-tach/zatca':
+      '@dokhna-tech/zatca':
         specifier: workspace:*
         version: link:../../packages/core
-      '@dokhna-tach/zatca-storage-memory':
+      '@dokhna-tech/zatca-storage-memory':
         specifier: workspace:*
         version: link:../../packages/storage-memory
       dotenv:
@@ -148,7 +148,7 @@ importers:
         specifier: ^4.3.7
         version: 4.4.3
     devDependencies:
-      '@dokhna-tach/zatca':
+      '@dokhna-tech/zatca':
         specifier: workspace:*
         version: link:../core
       '@types/debug':
@@ -161,7 +161,7 @@ importers:
         specifier: ^4.3.7
         version: 4.4.3
     devDependencies:
-      '@dokhna-tach/zatca':
+      '@dokhna-tech/zatca':
         specifier: workspace:*
         version: link:../core
       '@types/debug':
@@ -180,7 +180,7 @@ importers:
         specifier: ^4.3.7
         version: 4.4.3
     devDependencies:
-      '@dokhna-tach/zatca':
+      '@dokhna-tech/zatca':
         specifier: workspace:*
         version: link:../core
       '@types/debug':

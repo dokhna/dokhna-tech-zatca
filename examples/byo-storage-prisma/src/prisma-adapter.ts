@@ -1,5 +1,5 @@
 /**
- * Prisma-backed StorageAdapter for @dokhna-tach/zatca.
+ * Prisma-backed StorageAdapter for @dokhna-tech/zatca.
  *
  * The Prisma client's exact types only exist after `prisma generate`
  * runs. To keep this file typecheckable without the generated client
@@ -23,8 +23,8 @@ import type {
   InvoiceStatus,
   StorageAdapter,
   TenantScope,
-} from "@dokhna-tach/zatca";
-import { ZatcaStorageError } from "@dokhna-tach/zatca";
+} from "@dokhna-tech/zatca";
+import { ZatcaStorageError } from "@dokhna-tech/zatca";
 
 const ZATCA_BASE_INVOICE_HASH =
   "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==" as InvoiceHash;

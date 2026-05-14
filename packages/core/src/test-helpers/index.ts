@@ -1,12 +1,12 @@
 /**
- * Public test-helpers surface for `@dokhna-tach/zatca`.
+ * Public test-helpers surface for `@dokhna-tech/zatca`.
  *
- * Imported via the subpath export `@dokhna-tach/zatca/test-helpers`,
+ * Imported via the subpath export `@dokhna-tech/zatca/test-helpers`,
  * so callers who write their own `StorageAdapter` can drop a
  * pre-canned vitest suite into their codebase:
  *
  * ```ts
- * import { runStorageAdapterConformance } from "@dokhna-tach/zatca/test-helpers";
+ * import { runStorageAdapterConformance } from "@dokhna-tech/zatca/test-helpers";
  * import { createMemoryStorageAdapter } from "./my-adapter.js";
  *
  * runStorageAdapterConformance(() => createMemoryStorageAdapter());

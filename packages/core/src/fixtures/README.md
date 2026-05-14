@@ -97,7 +97,7 @@ identity for fixture capture.
    `props` object that matches the rwiqha invoice class' input
    contract.
 2. Re-run the capture script.
-3. Re-run `pnpm --filter @dokhna-tach/zatca test` — the
+3. Re-run `pnpm --filter @dokhna-tech/zatca test` — the
    `fixtures.test.ts` autodiscovers any new directory.
 
 ## Fallback (if rwiqha capture is unavailable)

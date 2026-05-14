@@ -133,7 +133,7 @@ Phase 1 variants return `{ invoiceXml, qrCode, sequence, invoiceNumber }` (no `s
 2. For each of the 6 invoice types (+ 2 Phase 1 variants), unit tests assert byte-equal XML against captured fixtures from rwiqha.
 3. Round-trip parse test: build → parse with `XMLDocument` → assert key ZATCA fields present (`cbc:ID`, `cbc:UUID`, `cac:AccountingSupplierParty`, etc.).
 4. `BaseInvoiceBuilder` has at least one direct unit test covering the template-method dispatch.
-5. `pnpm --filter @dokhna-tach/zatca exec sh -c 'wc -l src/invoices/*.ts'` shows each concrete builder file < 80 LOC (refactor proves itself).
+5. `pnpm --filter @dokhna-tech/zatca exec sh -c 'wc -l src/invoices/*.ts'` shows each concrete builder file < 80 LOC (refactor proves itself).
 
 ## What this phase does NOT do
 

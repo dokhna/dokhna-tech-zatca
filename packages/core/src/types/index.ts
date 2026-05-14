@@ -1,10 +1,10 @@
 /**
- * Public type surface of `@dokhna-tach/zatca`.
+ * Public type surface of `@dokhna-tech/zatca`.
  *
  * Re-exports every domain type so consumers can write:
  *
  * ```ts
- * import type { InvoiceInput, VATNumber, StorageAdapter } from "@dokhna-tach/zatca";
+ * import type { InvoiceInput, VATNumber, StorageAdapter } from "@dokhna-tech/zatca";
  * ```
  *
  * Implementation files live in sibling modules; this file is purely a

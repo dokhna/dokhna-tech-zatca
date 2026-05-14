@@ -9,7 +9,7 @@ pnpm install                     # from the repo root
 cp examples/single-vat-express/.env.example examples/single-vat-express/.env
 # fill in VAT_NUMBER, EGS_UUID, etc.
 
-pnpm --filter @dokhna-tach-examples/single-vat-express start
+pnpm --filter @dokhna-tech-examples/single-vat-express start
 ```
 
 The server listens on `http://localhost:3000` (override via `PORT`).
