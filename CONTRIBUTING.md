@@ -37,8 +37,9 @@ Use Node 20 or 22 — CI runs both, on Ubuntu and macOS.
 ## Code review and merging
 
 - Every change to `main` goes through a pull request — direct pushes are blocked.
-- CI must be green on Node 20 and Node 22, on Ubuntu and macOS, plus CodeQL,
-  dependency-review, and gitleaks scans.
+- CI must be green on Node 20 and Node 22, on Ubuntu and macOS, plus the
+  CodeQL and dependency-review scans. GitHub's built-in secret scanning
+  with push protection guards against committed credentials.
 - Conversations must be resolved before merge.
 - Only **squash-merge** is enabled. The squash commit subject is the PR title — make
   sure it follows the conventional-commit prefix above.
