@@ -22,6 +22,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 - BSL 1.1 full upstream legal text body now appended to `LICENSE` verbatim from <https://mariadb.com/bsl11/>; the parameter block (Licensor, Licensed Work, Additional Use Grant, Change Date, Change License) is unchanged. Closes the corresponding v1.1.0 gap recorded under `[1.0.0]`.
 - Placeholder maintainer contact emails replaced with real addresses on the `@dokhna.tech` domain: `security@dokhna.tech` (`SECURITY.md`), `licensing@dokhna.tech` (`README.md`, `LICENSES/COMMERCIAL.md`), `zatca@dokhna.tech` (`CODE_OF_CONDUCT.md`). Closes the corresponding v1.1.0 gap recorded under `[1.0.0]`.
 
+### Security
+
+- Bumped `fast-xml-parser` from `^4.5.0` to `^5.7.0` (resolves `5.8.0`) to address GHSA-gh4j-gqv2-49f6 (XMLBuilder XML Comment and CDATA Injection via Unescaped Delimiters). The advisory is reachable through `XMLDocument.toString()`, which re-serialises customer-controlled invoice fields before signing. v4/v5 APIs are compatible for the options used (`ignoreAttributes`, `ignoreDeclaration`, `parseTagValue`); all 332 workspace tests pass and golden XML fixtures remain byte-identical. Source comment in `packages/core/src/xml/document.ts` refreshed to reflect the v5 pin.
+
 ## [1.0.0] — 2026-05-13
 
 ### Overview

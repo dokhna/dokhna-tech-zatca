@@ -76,10 +76,10 @@ Must succeed without errors and emit the expected public API surface.
 | 2. No `TODO`/`FIXME`/`XXX`/`HACK` in src | PASS | 0 matches |
 | 3. No hardcoded credentials in source | PASS | All hits are `.test.ts` fixtures or a JSDoc `@example` block in `onboard.ts` (test OTP `123456`). No runtime/published-code credential leakage. |
 | 4. No `any` outside JSDoc | PASS | 0 matches |
-| 5. LICENSE BSL parameter block present | PASS | Licensor, Licensed Work, Additional Use Grant, Change Date (2030-05-13), Change License (Apache 2.0) all present. Banner strengthened to flag that upstream BSL body still needs verbatim paste. |
+| 5. LICENSE BSL parameter block present | PASS | Licensor, Licensed Work, Additional Use Grant, Change Date (2030-05-13), Change License (Apache 2.0) all present. Verbatim BSL 1.1 upstream body appended in follow-up commit `c94c874`. |
 | 6. README license claim matches LICENSE | PASS | Both state BSL 1.1 → Apache 2.0 on 2030-05-13 |
-| 7. SECURITY.md / CODE_OF_CONDUCT.md / CONTRIBUTING.md exist | PASS-with-WARN | All three present, non-placeholder structure. Contact emails are placeholders (`@dokhna.tech`) — must be replaced before publish. |
-| 8. `pnpm audit` clean of high/critical | PASS-with-WARN | 0 high/critical. 3 moderate: vitest→esbuild (dev-only), vitest→vite (dev-only), fast-xml-parser (runtime — tracked for v1.0.1). |
+| 7. SECURITY.md / CODE_OF_CONDUCT.md / CONTRIBUTING.md exist | PASS | All three present. Contact emails finalised to `@dokhna.tech` addresses in `c94c874` (`security@`, `licensing@`, `zatca@`). |
+| 8. `pnpm audit` clean of high/critical | PASS-with-WARN | 0 high/critical. 2 moderate (both dev-only): vitest→esbuild, vitest→vite. Previous `fast-xml-parser` runtime advisory resolved by bump to `^5.7.0` (resolves `5.8.0`); golden vectors held byte-identical, all 332 tests pass. |
 | 9. `pnpm licenses list` — no GPL/AGPL/SSPL/Commons Clause in runtime | PASS | All prod deps are MIT / Apache-2.0 / BSD / ISC / 0BSD / CC0. No copyleft. |
 | 10. No workspace dep cycles — storage-* uses core only as peerDep | PASS | All three adapters list `@dokhna-tech/zatca` in `peerDependencies`, not `dependencies`. |
 
@@ -117,24 +117,20 @@ In `/tmp/zatca-install-test`, installed the core + memory tarballs and verified 
 
 ### Known gaps for v1.1.0
 
-- BSL 1.1 full upstream legal-text body still needs verbatim paste into `LICENSE`. Parameter block is authoritative for intent; banner now makes this requirement loud.
 - Replace `@fidm/x509` (unmaintained) with `pkijs` for X.509 parsing.
 - Pure-JS CSR/key generation path so OpenSSL CLI is no longer a hard runtime dep (currently required for `onboard()`).
 - Optional `@dokhna-tech/zatca-pdf` sub-package for PDF/A-3 invoice attachment flows.
-- 3 moderate `pnpm audit` advisories: 2 in dev-only path (vitest→esbuild, vitest→vite), 1 in runtime (fast-xml-parser ≤4.5.0) — schedule v1.0.1 bump.
+- 2 moderate `pnpm audit` advisories remain, both dev-only (vitest→esbuild, vitest→vite). Resolved by upgrading vitest in a v1.0.x bump.
 
 ### Action items before public npm publish
 
-1. **Replace placeholder emails:**
-   - `SECURITY.md` — `security@dokhna.tech` → real address
-   - `CODE_OF_CONDUCT.md` — `conduct@dokhna.tech` → real address
-   - `README.md` — `licensing@dokhna.tech` → real address
-2. **Paste the verbatim BSL 1.1 upstream body** from <https://mariadb.com/bsl11/> into `LICENSE` and remove the maintainer-action banner.
-3. **Configure repository secrets** for the release workflow:
+1. ✅ ~~Replace placeholder emails.~~ Done in `c94c874` — `security@dokhna.tech`, `licensing@dokhna.tech`, `zatca@dokhna.tech`.
+2. ✅ ~~Paste the verbatim BSL 1.1 upstream body.~~ Done in `c94c874`; maintainer-action banner removed.
+3. ✅ ~~Bump `fast-xml-parser` to `>=5.7.0`.~~ Bumped to `^5.7.0` (resolves `5.8.0`); audit no longer flags runtime advisories. Source comment in `src/xml/document.ts` refreshed.
+4. ✅ ~~Decide on commercial-license contact.~~ Finalised to `licensing@dokhna.tech` in `LICENSES/COMMERCIAL.md`.
+5. **Configure repository secrets** for the release workflow:
    - `NPM_TOKEN` (npm publish)
    - `CODECOV_TOKEN` (coverage upload)
-4. **Bump `fast-xml-parser`** to `>=5.7.0` and re-run audit before cutting v1.0.1.
-5. **Verify Codecov repo enrollment** so the `codecov/codecov-action@v4` step has a target.
-6. **Decide on commercial-license contact** and finalise `LICENSES/COMMERCIAL.md`.
+6. **Verify Codecov repo enrollment** so the `codecov/codecov-action@v4` step has a target.
 7. **Tag and push** — only after the above are done: `git tag v1.0.0 && git push --tags`.
 

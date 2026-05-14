@@ -10,9 +10,10 @@
  *    the original `filter(arr, matches(condition))` for the subset
  *    of inputs the ZATCA pipeline produces (plain objects with
  *    string / number / nested-object values).
- * 2. **`fast-xml-parser` v4 instead of v5.** The v4 / v5 APIs are
- *    compatible for the options we use (`ignoreAttributes: false`,
- *    `ignoreDeclaration: false`, `parseTagValue: false`).
+ * 2. **`fast-xml-parser` v5 (bumped from rwiqha's v4).** The v4 / v5
+ *    APIs are compatible for the options we use (`ignoreAttributes:
+ *    false`, `ignoreDeclaration: false`, `parseTagValue: false`).
+ *    Golden vectors confirmed byte-identical across the bump.
  *
  * The class is intentionally a thin wrapper: `get / set / delete /
  * toString`. Every ZATCA signing operation operates on the parsed
