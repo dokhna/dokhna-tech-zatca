@@ -10,6 +10,9 @@ tsconfig.tsbuildinfo
 # Per-package LICENSE copies (synthesised by prepack from root LICENSE)
 packages/*/LICENSE
 
+# Core README is a copy of root README, synthesised by prepack
+packages/core/README.md
+
 # Test / coverage
 coverage/
 .nyc_output/
