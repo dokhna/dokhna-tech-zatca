@@ -19,7 +19,7 @@
     "docs:api": "typedoc",
     "changeset": "changeset",
     "change": "changeset add",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && biome check --write .",
     "release": "pnpm -r build && changeset publish",
     "clean": "pnpm -r exec rm -rf dist .turbo tsconfig.tsbuildinfo && rm -rf node_modules"
   },
