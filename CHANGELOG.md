@@ -4,9 +4,9 @@ All notable changes to the `@dokhna-tech/zatca` family of packages are documente
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project adheres to [Semantic Versioning](https://semver.org/) starting at `1.0.0`.
 
-## [2.0.1] — 2026-05-14
+## [2.0.2] — 2026-05-14
 
-First publicly released version under the `@dokhna-tech` scope. (`1.0.0` and `2.0.0` existed in source as drafts but were never published to npm.) All four packages publish in lockstep at this version going forward — see `### Changed` below.
+First release where all four packages ship in lockstep at a single shared version. Relative to the previously published `@dokhna-tech/zatca@2.0.0`, this release adds the verbatim BSL 1.1 upstream legal text, finalised maintainer contact emails, a security patch for `fast-xml-parser`, and proper per-package READMEs on npm. Storage adapters jump from their previously published `1.0.0` to `2.0.2` to align with core — the version bump is purely lockstep harmonisation, no adapter API broke.
 
 ### BREAKING
 
@@ -18,7 +18,7 @@ First publicly released version under the `@dokhna-tech` scope. (`1.0.0` and `2.
 ### Changed
 
 - Brand spelling normalised across docs, package metadata, source, examples, and generated TypeDoc HTML: `dokhna-tach` → `dokhna-tech` (also fixed the stray `dokhna.tach` in `CODE_OF_CONDUCT.md`).
-- **Version harmonisation:** all four publishable packages (`@dokhna-tech/zatca`, `…-storage-memory`, `…-storage-mongo`, `…-storage-postgres`) are now bumped in lockstep to a single shared version (`2.0.1` here). The Changesets config moved from `linked` to `fixed` so every release bumps the whole group together, even packages with no changeset — preventing the version drift that existed before this release (core `2.0.0` while adapters were `1.0.0`).
+- **Version harmonisation:** all four publishable packages (`@dokhna-tech/zatca`, `…-storage-memory`, `…-storage-mongo`, `…-storage-postgres`) now bump in lockstep to a single shared version. The Changesets config moved from `linked` to `fixed` so every release bumps the whole group together, even packages with no changeset — preventing the version drift that existed before this release (core `2.0.0` while adapters were `1.0.0`).
 
 ### Fixed
 
