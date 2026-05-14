@@ -10,6 +10,8 @@
 
 import { randomUUID } from "node:crypto";
 
+import { PrismaClient } from "@prisma/client";
+
 import {
   type EGSUnitInfo,
   asCommercialRegistrationNumber,
@@ -21,15 +23,12 @@ import {
 import { type PrismaLike, createPrismaStorageAdapter } from "./prisma-adapter.js";
 
 async function main(): Promise<void> {
-  // We use a dynamic import so this file typechecks even before
-  // `prisma generate` has produced the @prisma/client module. In real
-  // application code, just `import { PrismaClient } from "@prisma/client";`.
+  // The example requires `pnpm prisma:generate` to be run beforehand so
+  // `@prisma/client` is populated. PrismaClient structurally satisfies
+  // our `PrismaLike` subset interface.
   let prismaInstance: PrismaLike;
   try {
-    const mod = (await import("@prisma/client")) as {
-      PrismaClient: new () => PrismaLike;
-    };
-    prismaInstance = new mod.PrismaClient();
+    prismaInstance = new PrismaClient() as unknown as PrismaLike;
   } catch (err) {
     console.log("[demo] @prisma/client not generated yet. Run `pnpm prisma:generate` and re-run.");
     if (err instanceof Error) console.log(`  cause: ${err.message}`);
