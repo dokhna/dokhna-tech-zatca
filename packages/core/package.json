@@ -51,7 +51,7 @@
     "debug": "^4.3.7",
     "fast-xml-parser": "^5.7.0",
     "xmldsigjs": "^2.6.1",
-    "zod": "^3.25.76"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
