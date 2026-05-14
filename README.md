@@ -165,7 +165,7 @@ This package is dual-licensed:
 - **Free for non-SaaS use** under the [Business Source License 1.1](./LICENSE). On 2030-05-13 (four years from the first release), the license automatically converts to Apache License 2.0.
 - **Commercial license required for SaaS / multi-tenant production use.** See [`LICENSES/COMMERCIAL.md`](./LICENSES/COMMERCIAL.md).
 
-If you are unsure which applies to your use case, read the LICENSE file's "Additional Use Grant" section or contact `licensing@dokhna-tech.example`.
+If you are unsure which applies to your use case, read the LICENSE file's "Additional Use Grant" section or contact `licensing@dokhna.tech`.
 
 The BSL model is used by MariaDB, Sentry, CockroachDB, and Couchbase. It is a source-available license, not an OSI-approved open-source license, until the Change Date.
 

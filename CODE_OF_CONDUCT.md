@@ -6,7 +6,7 @@ For the full text, see: https://www.contributor-covenant.org/version/2/1/code_of
 
 ## Reporting
 
-Reports of unacceptable behaviour can be sent to `zatca@dokhna.tach`. All complaints will be reviewed and investigated promptly and fairly. Reporter identity will be kept confidential.
+Reports of unacceptable behaviour can be sent to `zatca@dokhna.tech`. All complaints will be reviewed and investigated promptly and fairly. Reporter identity will be kept confidential.
 
 ## Scope
 

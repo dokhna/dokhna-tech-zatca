@@ -78,7 +78,7 @@ Must succeed without errors and emit the expected public API surface.
 | 4. No `any` outside JSDoc | PASS | 0 matches |
 | 5. LICENSE BSL parameter block present | PASS | Licensor, Licensed Work, Additional Use Grant, Change Date (2030-05-13), Change License (Apache 2.0) all present. Banner strengthened to flag that upstream BSL body still needs verbatim paste. |
 | 6. README license claim matches LICENSE | PASS | Both state BSL 1.1 → Apache 2.0 on 2030-05-13 |
-| 7. SECURITY.md / CODE_OF_CONDUCT.md / CONTRIBUTING.md exist | PASS-with-WARN | All three present, non-placeholder structure. Contact emails are placeholders (`@dokhna-tech.example`) — must be replaced before publish. |
+| 7. SECURITY.md / CODE_OF_CONDUCT.md / CONTRIBUTING.md exist | PASS-with-WARN | All three present, non-placeholder structure. Contact emails are placeholders (`@dokhna.tech`) — must be replaced before publish. |
 | 8. `pnpm audit` clean of high/critical | PASS-with-WARN | 0 high/critical. 3 moderate: vitest→esbuild (dev-only), vitest→vite (dev-only), fast-xml-parser (runtime — tracked for v1.0.1). |
 | 9. `pnpm licenses list` — no GPL/AGPL/SSPL/Commons Clause in runtime | PASS | All prod deps are MIT / Apache-2.0 / BSD / ISC / 0BSD / CC0. No copyleft. |
 | 10. No workspace dep cycles — storage-* uses core only as peerDep | PASS | All three adapters list `@dokhna-tech/zatca` in `peerDependencies`, not `dependencies`. |
@@ -126,9 +126,9 @@ In `/tmp/zatca-install-test`, installed the core + memory tarballs and verified 
 ### Action items before public npm publish
 
 1. **Replace placeholder emails:**
-   - `SECURITY.md` — `security@dokhna-tech.example` → real address
-   - `CODE_OF_CONDUCT.md` — `conduct@dokhna-tech.example` → real address
-   - `README.md` — `licensing@dokhna-tech.example` → real address
+   - `SECURITY.md` — `security@dokhna.tech` → real address
+   - `CODE_OF_CONDUCT.md` — `conduct@dokhna.tech` → real address
+   - `README.md` — `licensing@dokhna.tech` → real address
 2. **Paste the verbatim BSL 1.1 upstream body** from <https://mariadb.com/bsl11/> into `LICENSE` and remove the maintainer-action banner.
 3. **Configure repository secrets** for the release workflow:
    - `NPM_TOKEN` (npm publish)

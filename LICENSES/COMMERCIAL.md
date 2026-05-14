@@ -20,7 +20,7 @@ If you intend to use `@dokhna-tech/zatca` to provide ZATCA e-invoicing — or an
 
 ## How to obtain a commercial license
 
-Contact `licensing@dokhna-tech.example` (placeholder — replace with real contact before publishing) with:
+Contact `licensing@dokhna.tech` with:
 
 1. Your organisation name and country of registration.
 2. The expected number of tenants / VAT numbers you will serve.

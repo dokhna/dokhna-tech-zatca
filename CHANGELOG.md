@@ -13,6 +13,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
   Migration: multiply existing `vatPercent` / `percentAmount` values by 100 (e.g. `0.15` → `15`). Affects `ZATCAInvoiceLineItem` and `ZATCAInvoiceLineItemTax`.
   Affected internal math: `shared-tax-arithmetic.ts`, `shared-debit-note-arithmetic.ts`, `phase1-invoice.ts`, `phase1-credit-note.ts`. Captured golden vectors (`fixtures/_keys`) stay byte-identical — only the input mapping conversion was relocated.
 
+### Changed
+
+- Brand spelling normalised across docs, package metadata, source, examples, and generated TypeDoc HTML: `dokhna-tach` → `dokhna-tech` (also fixed the stray `dokhna.tach` in `CODE_OF_CONDUCT.md`).
+
+### Fixed
+
+- BSL 1.1 full upstream legal text body now appended to `LICENSE` verbatim from <https://mariadb.com/bsl11/>; the parameter block (Licensor, Licensed Work, Additional Use Grant, Change Date, Change License) is unchanged. Closes the corresponding v1.1.0 gap recorded under `[1.0.0]`.
+- Placeholder maintainer contact emails replaced with real addresses on the `@dokhna.tech` domain: `security@dokhna.tech` (`SECURITY.md`), `licensing@dokhna.tech` (`README.md`, `LICENSES/COMMERCIAL.md`), `zatca@dokhna.tech` (`CODE_OF_CONDUCT.md`). Closes the corresponding v1.1.0 gap recorded under `[1.0.0]`.
+
 ## [1.0.0] — 2026-05-13
 
 ### Overview
