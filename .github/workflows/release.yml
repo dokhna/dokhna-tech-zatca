@@ -39,6 +39,14 @@ jobs:
           commit: 'chore: release'
           title: 'chore: release'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # RELEASE_PAT is a fine-grained PAT scoped to this repo with
+          # contents:write + pull-requests:write. Using it (rather than
+          # the default GITHUB_TOKEN) means the release PR and its
+          # commits are attributed to a user, so GitHub will trigger
+          # downstream workflows on push / pull_request events. The
+          # default GITHUB_TOKEN suppresses those triggers to avoid
+          # workflow recursion, which would otherwise leave the release
+          # PR with no required-status checks.
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
