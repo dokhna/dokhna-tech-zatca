@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@dokhna-tech/zatca": "workspace:*",
-    "@prisma/client": "^5.22.0"
+    "@prisma/client": "^7.8.0"
   },
   "devDependencies": {
     "@types/node": "^20.16.0",
