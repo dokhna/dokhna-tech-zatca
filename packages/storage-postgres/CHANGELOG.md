@@ -1,5 +1,13 @@
 # @dokhna-tech/zatca-storage-postgres
 
+## 2.0.2
+
+### Patch Changes
+
+- 940b22e: adding readme files to packages
+- Updated dependencies [940b22e]
+  - @dokhna-tech/zatca@2.0.2
+
 ## 1.0.0
 
 ### Major Changes
