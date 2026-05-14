@@ -1,0 +1,21 @@
+# Code owners — auto-requested as reviewers when matching paths change.
+# Order matters: later matches override earlier ones.
+# Swap @ameensom for a team handle (e.g. @dokhna/maintainers) once that team exists.
+
+# Default owner for everything
+*                               @ameensom
+
+# Release & supply-chain surface — extra scrutiny
+/.github/                       @ameensom
+/.github/workflows/             @ameensom
+/.changeset/                    @ameensom
+/package.json                   @ameensom
+/pnpm-lock.yaml                 @ameensom
+/pnpm-workspace.yaml            @ameensom
+/scripts/                       @ameensom
+/LICENSE                        @ameensom
+/LICENSES/                      @ameensom
+/SECURITY.md                    @ameensom
+
+# Published packages
+/packages/                      @ameensom
