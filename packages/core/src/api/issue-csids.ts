@@ -21,11 +21,7 @@ import type { ZatcaEnvironment } from "../types/api.js";
 import { ZatcaApiError } from "../types/errors.js";
 import { getZatcaEndpoints } from "./endpoints.js";
 import { buildAuthHeaders } from "./headers.js";
-import {
-  type HttpClientOptions,
-  type RetryOptions,
-  request,
-} from "./http-client.js";
+import { type HttpClientOptions, type RetryOptions, request } from "./http-client.js";
 
 /**
  * Inputs to {@link issueCSIDS}.
@@ -81,26 +77,15 @@ interface CsidsResponseBody {
  * attached when present). Throws synchronously if any required input
  * is missing — there is intentionally no dev-only mock fallback.
  */
-export async function issueCSIDS(
-  params: IssueCSIDSParams,
-): Promise<IssueCSIDSResult> {
+export async function issueCSIDS(params: IssueCSIDSParams): Promise<IssueCSIDSResult> {
   if (!params.complianceRequestId) {
-    throw new ZatcaApiError(
-      "complianceRequestId is required for CSID issuance",
-      0,
-    );
+    throw new ZatcaApiError("complianceRequestId is required for CSID issuance", 0);
   }
   if (!params.binarySecurityToken) {
-    throw new ZatcaApiError(
-      "binarySecurityToken is required for CSID issuance",
-      0,
-    );
+    throw new ZatcaApiError("binarySecurityToken is required for CSID issuance", 0);
   }
   if (!params.apiSecret) {
-    throw new ZatcaApiError(
-      "apiSecret is required for CSID issuance",
-      0,
-    );
+    throw new ZatcaApiError("apiSecret is required for CSID issuance", 0);
   }
 
   const endpoints = getZatcaEndpoints(params.environment);
@@ -108,23 +93,17 @@ export async function issueCSIDS(
     baseUrl: endpoints.base,
     ...(params.httpOptions ?? {}),
   };
-  const headers = buildAuthHeaders(
-    params.binarySecurityToken,
-    params.apiSecret,
-  );
+  const headers = buildAuthHeaders(params.binarySecurityToken, params.apiSecret);
   const body: CsidsRequestBody = {
     compliance_request_id: params.complianceRequestId,
   };
 
-  const raw = await request<CsidsResponseBody, CsidsRequestBody>(
-    clientOptions,
-    {
-      method: "POST",
-      path: endpoints.csids,
-      headers,
-      body,
-    },
-  );
+  const raw = await request<CsidsResponseBody, CsidsRequestBody>(clientOptions, {
+    method: "POST",
+    path: endpoints.csids,
+    headers,
+    body,
+  });
 
   if (!raw.binarySecurityToken) {
     throw new ZatcaApiError(
@@ -136,13 +115,7 @@ export async function issueCSIDS(
     );
   }
   if (!raw.secret) {
-    throw new ZatcaApiError(
-      "ZATCA CSIDS response missing `secret`",
-      0,
-      undefined,
-      undefined,
-      raw,
-    );
+    throw new ZatcaApiError("ZATCA CSIDS response missing `secret`", 0, undefined, undefined, raw);
   }
   if (!raw.requestID) {
     throw new ZatcaApiError(
@@ -154,17 +127,13 @@ export async function issueCSIDS(
     );
   }
 
-  const decoded = Buffer.from(raw.binarySecurityToken, "base64").toString(
-    "utf8",
-  );
+  const decoded = Buffer.from(raw.binarySecurityToken, "base64").toString("utf8");
   const result: IssueCSIDSResult = {
     issuedCertificate: decoded,
     binarySecurityToken: raw.binarySecurityToken,
     apiSecret: raw.secret,
     requestId: raw.requestID,
-    ...(raw.dispositionMessage !== undefined
-      ? { dispositionMessage: raw.dispositionMessage }
-      : {}),
+    ...(raw.dispositionMessage !== undefined ? { dispositionMessage: raw.dispositionMessage } : {}),
   };
   return result;
 }

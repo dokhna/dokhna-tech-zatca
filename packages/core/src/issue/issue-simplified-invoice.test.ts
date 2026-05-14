@@ -7,14 +7,10 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
+import { makeTestEgsInfo, makeTestLineItem, readTestKeys } from "../invoices/_test-helpers.js";
 import type { TenantScope } from "../types/storage.js";
-import {
-  makeTestEgsInfo,
-  makeTestLineItem,
-  readTestKeys,
-} from "../invoices/_test-helpers.js";
-import { issueSimplifiedTaxInvoice } from "./issue-simplified-invoice.js";
 import { makeMemoryStorage } from "./_memory-storage.js";
+import { issueSimplifiedTaxInvoice } from "./issue-simplified-invoice.js";
 
 describe("issueSimplifiedTaxInvoice", () => {
   const egsInfo = makeTestEgsInfo();
@@ -144,7 +140,10 @@ describe("issueSimplifiedTaxInvoice", () => {
         },
         egsInfo,
         storage,
-        scope: { ...scope, egsUuid: "00000000-0000-4000-8000-000000000000" as typeof scope.egsUuid },
+        scope: {
+          ...scope,
+          egsUuid: "00000000-0000-4000-8000-000000000000" as typeof scope.egsUuid,
+        },
         signing: {
           certificate: keys.signingCertificatePem,
           privateKey: keys.signingPrivateKeyPem,

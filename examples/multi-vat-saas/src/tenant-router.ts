@@ -8,11 +8,11 @@
  */
 
 import {
+  type EGSUnitInfo,
+  type TenantScope,
   asCommercialRegistrationNumber,
   asEGSUuid,
   asVATNumber,
-  type EGSUnitInfo,
-  type TenantScope,
 } from "@dokhna-tech/zatca";
 
 export interface TenantCredentials {

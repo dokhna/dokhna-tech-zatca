@@ -29,7 +29,10 @@ export class ZatcaError extends Error {
     }
     // Preserve V8's clean stack trace if available.
     const ctor = Error as unknown as {
-      captureStackTrace?: (target: object, constructorOpt?: new (...args: never[]) => unknown) => void;
+      captureStackTrace?: (
+        target: object,
+        constructorOpt?: new (...args: never[]) => unknown,
+      ) => void;
     };
     if (typeof ctor.captureStackTrace === "function") {
       ctor.captureStackTrace(this, this.constructor as new (...args: never[]) => unknown);

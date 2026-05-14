@@ -30,9 +30,7 @@ export function isCommercialRegistrationNumber(
  * asCommercialRegistrationNumber("nope"); // throws ZatcaValidationError
  * ```
  */
-export function asCommercialRegistrationNumber(
-  value: string,
-): CommercialRegistrationNumber {
+export function asCommercialRegistrationNumber(value: string): CommercialRegistrationNumber {
   if (!CRN_REGEX.test(value)) {
     throw new ZatcaValidationError(
       `Invalid commercial registration number: ${value}. Expected 10 digits.`,

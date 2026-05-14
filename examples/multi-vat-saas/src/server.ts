@@ -11,23 +11,15 @@
  * path (cached briefly in-memory if your SLA demands it).
  */
 
-import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import "dotenv/config";
-import Fastify, {
-  type FastifyInstance,
-  type FastifyReply,
-  type FastifyRequest,
-} from "fastify";
-import { issueSimplifiedTaxInvoice, type StorageAdapter } from "@dokhna-tech/zatca";
+import { type StorageAdapter, issueSimplifiedTaxInvoice } from "@dokhna-tech/zatca";
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 
+import { type TenantContext, type TenantRecord, makeTenantResolver } from "./tenant-router.js";
 import { buildStorageAdapter, connectMongo } from "./zatca-mongo.js";
-import {
-  makeTenantResolver,
-  type TenantContext,
-  type TenantRecord,
-} from "./tenant-router.js";
 
 const DEMO_TENANTS: ReadonlyArray<TenantRecord> = [
   {
@@ -38,10 +30,10 @@ const DEMO_TENANTS: ReadonlyArray<TenantRecord> = [
     crn: "1010010101",
     branchName: "Riyadh HQ",
     credentials: {
-      certificate: process.env["ACME_CERTIFICATE"] ?? "",
-      privateKey: process.env["ACME_PRIVATE_KEY"] ?? "",
-      binarySecurityToken: process.env["ACME_BST"] ?? "",
-      apiSecret: process.env["ACME_API_SECRET"] ?? "",
+      certificate: process.env.ACME_CERTIFICATE ?? "",
+      privateKey: process.env.ACME_PRIVATE_KEY ?? "",
+      binarySecurityToken: process.env.ACME_BST ?? "",
+      apiSecret: process.env.ACME_API_SECRET ?? "",
     },
   },
   {
@@ -52,10 +44,10 @@ const DEMO_TENANTS: ReadonlyArray<TenantRecord> = [
     crn: "1010020202",
     branchName: "Jeddah Warehouse",
     credentials: {
-      certificate: process.env["GLOBEX_CERTIFICATE"] ?? "",
-      privateKey: process.env["GLOBEX_PRIVATE_KEY"] ?? "",
-      binarySecurityToken: process.env["GLOBEX_BST"] ?? "",
-      apiSecret: process.env["GLOBEX_API_SECRET"] ?? "",
+      certificate: process.env.GLOBEX_CERTIFICATE ?? "",
+      privateKey: process.env.GLOBEX_PRIVATE_KEY ?? "",
+      binarySecurityToken: process.env.GLOBEX_BST ?? "",
+      apiSecret: process.env.GLOBEX_API_SECRET ?? "",
     },
   },
 ];
@@ -75,10 +67,7 @@ interface IssueBody {
   }>;
 }
 
-function getTenant(
-  req: FastifyRequest,
-  reply: FastifyReply,
-): TenantContext | null {
+function getTenant(req: FastifyRequest, reply: FastifyReply): TenantContext | null {
   const header = req.headers["x-tenant-id"];
   const tenantId = Array.isArray(header) ? header[0] : header;
   if (typeof tenantId !== "string" || tenantId === "") {
@@ -93,9 +82,7 @@ function getTenant(
   return ctx;
 }
 
-export async function buildServer(
-  storage: StorageAdapter,
-): Promise<FastifyInstance> {
+export async function buildServer(storage: StorageAdapter): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
 
   app.get("/health", async () => ({ status: "ok", tenants: DEMO_TENANTS.length }));
@@ -109,10 +96,7 @@ export async function buildServer(
         error: "issueDate, issueTime, and lineItems are required",
       });
     }
-    if (
-      tenant.credentials.certificate === "" ||
-      tenant.credentials.privateKey === ""
-    ) {
+    if (tenant.credentials.certificate === "" || tenant.credentials.privateKey === "") {
       return reply.code(503).send({
         error: `tenant ${tenant.egsInfo.customId} has no signing material configured`,
       });
@@ -166,12 +150,11 @@ export async function buildServer(
 }
 
 const isMainModule =
-  process.argv[1] !== undefined &&
-  fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+  process.argv[1] !== undefined && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
 
 if (isMainModule) {
-  const mongoUri = process.env["MONGO_URI"] ?? "mongodb://localhost:27017/zatca-saas-demo";
-  const port = Number.parseInt(process.env["PORT"] ?? "3000", 10);
+  const mongoUri = process.env.MONGO_URI ?? "mongodb://localhost:27017/zatca-saas-demo";
+  const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 
   const connection = await connectMongo(mongoUri);
   const storage = buildStorageAdapter(connection);

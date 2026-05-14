@@ -9,6 +9,7 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { populateSimplifiedTaxInvoiceTemplate } from "../templates/simplified-tax-invoice.js";
 import type {
   SimplifiedTaxInvoiceInput,
   ZATCAInvoiceLineItem,
@@ -16,22 +17,13 @@ import type {
 } from "../types/invoice.js";
 import { ZATCA_INVOICE_TYPES } from "../types/invoice.js";
 import type { XMLObject } from "../xml/document.js";
-import { populateSimplifiedTaxInvoiceTemplate } from "../templates/simplified-tax-invoice.js";
-import {
-  BaseInvoiceBuilder,
-  type LineItemTotals,
-} from "./base.js";
+import { BASE_PIH, makeTestEgsInfo, makeTestLineItem, readTestKeys } from "./_test-helpers.js";
+import { BaseInvoiceBuilder, type LineItemTotals } from "./base.js";
 import {
   buildInvoiceLegalMonetaryTotal,
   buildInvoiceLineItemTotals,
   buildInvoiceTaxTotal,
 } from "./shared-tax-arithmetic.js";
-import {
-  BASE_PIH,
-  makeTestEgsInfo,
-  makeTestLineItem,
-  readTestKeys,
-} from "./_test-helpers.js";
 
 class SpyBuilder extends BaseInvoiceBuilder<SimplifiedTaxInvoiceInput> {
   public calls: string[] = [];
@@ -41,9 +33,7 @@ class SpyBuilder extends BaseInvoiceBuilder<SimplifiedTaxInvoiceInput> {
     return populateSimplifiedTaxInvoiceTemplate(input);
   }
 
-  protected override buildLineItemTotals(
-    lineItem: ZATCAInvoiceLineItem,
-  ): LineItemTotals {
+  protected override buildLineItemTotals(lineItem: ZATCAInvoiceLineItem): LineItemTotals {
     this.calls.push("buildLineItemTotals");
     return buildInvoiceLineItemTotals(lineItem);
   }
@@ -55,10 +45,7 @@ class SpyBuilder extends BaseInvoiceBuilder<SimplifiedTaxInvoiceInput> {
     return buildInvoiceTaxTotal(lineItems);
   }
 
-  protected override buildLegalMonetaryTotal(
-    totalSubtotal: number,
-    totalTaxes: number,
-  ): XMLObject {
+  protected override buildLegalMonetaryTotal(totalSubtotal: number, totalTaxes: number): XMLObject {
     this.calls.push("buildLegalMonetaryTotal");
     return buildInvoiceLegalMonetaryTotal(totalSubtotal, totalTaxes);
   }

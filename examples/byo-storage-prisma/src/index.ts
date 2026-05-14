@@ -11,14 +11,14 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  type EGSUnitInfo,
   asCommercialRegistrationNumber,
   asEGSUuid,
   asVATNumber,
   issueSimplifiedTaxInvoice,
-  type EGSUnitInfo,
 } from "@dokhna-tech/zatca";
 
-import { createPrismaStorageAdapter, type PrismaLike } from "./prisma-adapter.js";
+import { type PrismaLike, createPrismaStorageAdapter } from "./prisma-adapter.js";
 
 async function main(): Promise<void> {
   // We use a dynamic import so this file typechecks even before
@@ -31,9 +31,7 @@ async function main(): Promise<void> {
     };
     prismaInstance = new mod.PrismaClient();
   } catch (err) {
-    console.log(
-      "[demo] @prisma/client not generated yet. Run `pnpm prisma:generate` and re-run.",
-    );
+    console.log("[demo] @prisma/client not generated yet. Run `pnpm prisma:generate` and re-run.");
     if (err instanceof Error) console.log(`  cause: ${err.message}`);
     process.exitCode = 1;
     return;
@@ -65,8 +63,8 @@ async function main(): Promise<void> {
   const scope = { vatNumber, egsUuid };
   // Demo signing material — replace with real values from `onboard()`.
   const signing = {
-    certificate: process.env["ZATCA_CERTIFICATE"] ?? "",
-    privateKey: process.env["ZATCA_PRIVATE_KEY"] ?? "",
+    certificate: process.env.ZATCA_CERTIFICATE ?? "",
+    privateKey: process.env.ZATCA_PRIVATE_KEY ?? "",
   };
 
   if (signing.certificate === "" || signing.privateKey === "") {

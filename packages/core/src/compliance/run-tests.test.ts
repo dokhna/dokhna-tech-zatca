@@ -14,10 +14,7 @@ import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { ZATCA_ENDPOINTS } from "../api/endpoints.js";
-import {
-  makeTestEgsInfo,
-  readTestKeys,
-} from "../invoices/_test-helpers.js";
+import { makeTestEgsInfo, readTestKeys } from "../invoices/_test-helpers.js";
 import { ZatcaOnboardingError } from "../types/errors.js";
 import { runComplianceTests } from "./run-tests.js";
 
@@ -91,9 +88,7 @@ describe("runComplianceTests — happy path", () => {
     }
     // Every submission carried a unique invoice hash.
     expect(new Set(submittedHashes).size).toBe(6);
-    expect(report.finalInvoiceHash).toBe(
-      report.results[5]?.invoiceHash ?? "",
-    );
+    expect(report.finalInvoiceHash).toBe(report.results[5]?.invoiceHash ?? "");
   });
 });
 
@@ -148,10 +143,7 @@ describe("runComplianceTests — failure paths", () => {
       http.post(COMPLIANCE_URL, () => {
         callCount += 1;
         if (callCount === 1) {
-          return new HttpResponse(
-            JSON.stringify({ message: "Bad Request" }),
-            { status: 400 },
-          );
+          return new HttpResponse(JSON.stringify({ message: "Bad Request" }), { status: 400 });
         }
         return HttpResponse.json({
           validationResults: {

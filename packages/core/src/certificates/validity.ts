@@ -21,10 +21,7 @@ import { X509Certificate } from "node:crypto";
  * @returns           `true` iff PEM parses and `now` is inside
  *                     `[notBefore, notAfter]`.
  */
-export function isCertificateValid(
-  certificate: string,
-  now: Date = new Date(),
-): boolean {
+export function isCertificateValid(certificate: string, now: Date = new Date()): boolean {
   let cert: X509Certificate;
   try {
     cert = new X509Certificate(certificate);

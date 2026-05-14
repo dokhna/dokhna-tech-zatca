@@ -5,13 +5,13 @@
 import { describe, expect, it } from "vitest";
 import type { Phase1CreditNoteInput } from "../types/invoice.js";
 import { XMLDocument } from "../xml/document.js";
-import { Phase1CreditNoteBuilder } from "./phase1-credit-note.js";
 import {
   BASE_PIH,
   makeTestCancelation,
   makeTestEgsInfo,
   makeTestLineItem,
 } from "./_test-helpers.js";
+import { Phase1CreditNoteBuilder } from "./phase1-credit-note.js";
 
 function makeInput(): Phase1CreditNoteInput {
   return {
@@ -32,9 +32,7 @@ describe("Phase1CreditNoteBuilder.build", () => {
   it("emits cbc:InvoiceTypeCode 381 (credit note)", () => {
     const out = new Phase1CreditNoteBuilder(makeInput()).build();
     const doc = new XMLDocument(out.invoiceXml);
-    const code = doc.get("Invoice/cbc:InvoiceTypeCode")?.[0] as
-      | { "#text"?: string }
-      | undefined;
+    const code = doc.get("Invoice/cbc:InvoiceTypeCode")?.[0] as { "#text"?: string } | undefined;
     expect(code?.["#text"]).toBe("381");
   });
 

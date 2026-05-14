@@ -39,16 +39,12 @@ export function buildAuthHeaders(
   apiSecret: string,
 ): Record<string, string> {
   if (!binarySecurityToken) {
-    throw new Error(
-      "binarySecurityToken is required to build ZATCA auth headers",
-    );
+    throw new Error("binarySecurityToken is required to build ZATCA auth headers");
   }
   if (!apiSecret) {
     throw new Error("apiSecret is required to build ZATCA auth headers");
   }
-  const credentials = Buffer.from(
-    `${binarySecurityToken}:${apiSecret}`,
-  ).toString("base64");
+  const credentials = Buffer.from(`${binarySecurityToken}:${apiSecret}`).toString("base64");
   return {
     ...buildBaseHeaders(),
     Authorization: `Basic ${credentials}`,

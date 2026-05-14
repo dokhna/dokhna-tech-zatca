@@ -7,6 +7,7 @@
  * verbatim).
  */
 
+import { populateSimplifiedDebitNoteTemplate } from "../templates/simplified-debit-note.js";
 import type {
   SimplifiedDebitNoteInput,
   ZATCAInvoiceLineItem,
@@ -14,11 +15,7 @@ import type {
 } from "../types/invoice.js";
 import { ZATCA_INVOICE_TYPES } from "../types/invoice.js";
 import type { XMLObject } from "../xml/document.js";
-import { populateSimplifiedDebitNoteTemplate } from "../templates/simplified-debit-note.js";
-import {
-  BaseInvoiceBuilder,
-  type LineItemTotals,
-} from "./base.js";
+import { BaseInvoiceBuilder, type LineItemTotals } from "./base.js";
 import {
   buildDebitNoteLegalMonetaryTotal,
   buildDebitNoteLineItemTotals,
@@ -30,9 +27,7 @@ export class SimplifiedDebitNoteBuilder extends BaseInvoiceBuilder<SimplifiedDeb
     return populateSimplifiedDebitNoteTemplate(input);
   }
 
-  protected override buildLineItemTotals(
-    lineItem: ZATCAInvoiceLineItem,
-  ): LineItemTotals {
+  protected override buildLineItemTotals(lineItem: ZATCAInvoiceLineItem): LineItemTotals {
     return buildDebitNoteLineItemTotals(lineItem, false);
   }
 
@@ -42,10 +37,7 @@ export class SimplifiedDebitNoteBuilder extends BaseInvoiceBuilder<SimplifiedDeb
     return buildDebitNoteTaxTotal(lineItems);
   }
 
-  protected override buildLegalMonetaryTotal(
-    totalSubtotal: number,
-    totalTaxes: number,
-  ): XMLObject {
+  protected override buildLegalMonetaryTotal(totalSubtotal: number, totalTaxes: number): XMLObject {
     return buildDebitNoteLegalMonetaryTotal(totalSubtotal, totalTaxes);
   }
 

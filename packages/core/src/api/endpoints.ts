@@ -55,9 +55,7 @@ export interface ZatcaEnvironmentEndpoints {
  * intent (and so we can repoint either independently if ZATCA splits
  * them later).
  */
-export const ZATCA_ENDPOINTS: Readonly<
-  Record<ZatcaEnvironment, ZatcaEnvironmentEndpoints>
-> = {
+export const ZATCA_ENDPOINTS: Readonly<Record<ZatcaEnvironment, ZatcaEnvironmentEndpoints>> = {
   sandbox: {
     base: "https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal",
     compliance: "/compliance/invoices",
@@ -97,9 +95,7 @@ export const ZATCA_ENDPOINTS: Readonly<
  * (defensive — `ZatcaEnvironment` is a literal union, so this is a
  * runtime guard against any unchecked casts at the boundary).
  */
-export function getZatcaEndpoints(
-  environment: ZatcaEnvironment,
-): ZatcaEnvironmentEndpoints {
+export function getZatcaEndpoints(environment: ZatcaEnvironment): ZatcaEnvironmentEndpoints {
   const group = ZATCA_ENDPOINTS[environment];
   if (!group) {
     throw new Error(`Unknown ZATCA environment: ${environment}`);

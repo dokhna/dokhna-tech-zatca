@@ -17,11 +17,7 @@ import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { ZatcaApiError } from "../types/errors.js";
-import {
-  computeBackoffMs,
-  request,
-  type HttpClientOptions,
-} from "./http-client.js";
+import { type HttpClientOptions, computeBackoffMs, request } from "./http-client.js";
 
 const BASE = "https://gw-fatoora.test/zatca";
 
@@ -65,9 +61,7 @@ describe("computeBackoffMs", () => {
 
 describe("request — happy path", () => {
   it("returns parsed JSON on 200", async () => {
-    server.use(
-      http.get(`${BASE}/ping`, () => HttpResponse.json({ ok: true })),
-    );
+    server.use(http.get(`${BASE}/ping`, () => HttpResponse.json({ ok: true })));
     const out = await request<{ ok: boolean }>(fastClient(), {
       method: "GET",
       path: "/ping",
@@ -77,9 +71,7 @@ describe("request — happy path", () => {
 
   it("treats 202 as success", async () => {
     server.use(
-      http.post(`${BASE}/ping`, () =>
-        HttpResponse.json({ accepted: true }, { status: 202 }),
-      ),
+      http.post(`${BASE}/ping`, () => HttpResponse.json({ accepted: true }, { status: 202 })),
     );
     const out = await request<{ accepted: boolean }>(fastClient(), {
       method: "POST",
@@ -150,9 +142,9 @@ describe("request — 4xx terminal", () => {
         return HttpResponse.json({ message: "unauthorized" }, { status: 401 });
       }),
     );
-    await expect(
-      request(fastClient(), { method: "GET", path: "/auth" }),
-    ).rejects.toBeInstanceOf(ZatcaApiError);
+    await expect(request(fastClient(), { method: "GET", path: "/auth" })).rejects.toBeInstanceOf(
+      ZatcaApiError,
+    );
     expect(calls).toBe(1);
   });
 });
@@ -265,10 +257,7 @@ describe("request — request id and validation results", () => {
   it("extracts requestId from body `requestID` field", async () => {
     server.use(
       http.post(`${BASE}/y`, () =>
-        HttpResponse.json(
-          { requestID: "BODY-42", validationResults: {} },
-          { status: 400 },
-        ),
+        HttpResponse.json({ requestID: "BODY-42", validationResults: {} }, { status: 400 }),
       ),
     );
     try {
@@ -280,9 +269,7 @@ describe("request — request id and validation results", () => {
 
   it("attaches the raw decoded response to the error", async () => {
     server.use(
-      http.post(`${BASE}/r`, () =>
-        HttpResponse.json({ message: "boom" }, { status: 500 }),
-      ),
+      http.post(`${BASE}/r`, () => HttpResponse.json({ message: "boom" }, { status: 500 })),
     );
     try {
       await request(
@@ -327,11 +314,12 @@ describe("request — body marshalling", () => {
 
 describe("request — fetch injection", () => {
   it("uses the injected fetch over globalThis.fetch", async () => {
-    const spy = vi.fn(async () =>
-      new Response(JSON.stringify({ from: "spy" }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
+    const spy = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ from: "spy" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
     );
     const out = await request<{ from: string }>(
       { baseUrl: BASE, fetch: spy as unknown as typeof fetch },

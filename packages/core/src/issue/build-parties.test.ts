@@ -3,10 +3,10 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { BuyerInfo } from "../types/parties.js";
-import type { VATNumber } from "../types/branded.js";
-import { buildBuyerInfoXml, buildSellerSummary } from "./build-parties.js";
 import { makeTestEgsInfo } from "../invoices/_test-helpers.js";
+import type { VATNumber } from "../types/branded.js";
+import type { BuyerInfo } from "../types/parties.js";
+import { buildBuyerInfoXml, buildSellerSummary } from "./build-parties.js";
 
 describe("buildSellerSummary", () => {
   it("derives every projection field from the EGS unit info", () => {

@@ -24,8 +24,8 @@
  * See `fixtures/README.md` for capture procedure.
  */
 
-import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { getInvoiceHash } from "../crypto/hash.js";
@@ -73,9 +73,7 @@ const scenarios = discoverScenarios();
 
 describe("golden vectors — byte-identical hash parity", () => {
   if (scenarios.length === 0) {
-    it.todo(
-      "no fixtures captured yet — run `pnpm tsx scripts/capture-golden-vectors.mjs`",
-    );
+    it.todo("no fixtures captured yet — run `pnpm tsx scripts/capture-golden-vectors.mjs`");
     return;
   }
 
@@ -91,9 +89,10 @@ describe("golden vectors — byte-identical hash parity", () => {
 
 describe("golden vectors — signed XML structure", () => {
   for (const scenario of scenarios) {
-    if (!scenario.signedXmlPath) continue;
+    const signedXmlPath = scenario.signedXmlPath;
+    if (!signedXmlPath) continue;
     it(`signed XML contains the expected structural elements for ${scenario.name}`, () => {
-      const signed = readFileSync(scenario.signedXmlPath!, "utf8");
+      const signed = readFileSync(signedXmlPath, "utf8");
       expect(signed).toContain("<ds:SignatureValue>");
       expect(signed).toContain("<ds:X509Certificate>");
       expect(signed).toContain("<xades:SigningTime>");
@@ -104,9 +103,10 @@ describe("golden vectors — signed XML structure", () => {
 
 describe("golden vectors — QR shape", () => {
   for (const scenario of scenarios) {
-    if (!scenario.qrPath) continue;
+    const qrPath = scenario.qrPath;
+    if (!qrPath) continue;
     it(`captured QR is a valid base64 TLV with 9 tags for ${scenario.name}`, () => {
-      const qr = readFileSync(scenario.qrPath!, "utf8").trim();
+      const qr = readFileSync(qrPath, "utf8").trim();
       const bytes = Buffer.from(qr, "base64");
       let i = 0;
       let count = 0;
@@ -122,6 +122,7 @@ describe("golden vectors — QR shape", () => {
   }
 });
 
+import { SimplifiedCreditNoteBuilder } from "../invoices/simplified-credit-note.js";
 // ---------------------------------------------------------------------------
 // Phase 3 builder parity — re-running the new Phase 3 builders on the
 // same `input.json` payloads MUST produce byte-identical invoice hashes
@@ -131,7 +132,6 @@ describe("golden vectors — QR shape", () => {
 // ---------------------------------------------------------------------------
 import { SimplifiedTaxInvoiceBuilder } from "../invoices/simplified-tax-invoice.js";
 import { StandardTaxInvoiceBuilder } from "../invoices/standard-tax-invoice.js";
-import { SimplifiedCreditNoteBuilder } from "../invoices/simplified-credit-note.js";
 import type {
   CommercialRegistrationNumber,
   EGSUuid,
@@ -189,9 +189,9 @@ interface LegacyProps {
 }
 
 function readProps(scenario: string): LegacyProps {
-  const raw = JSON.parse(
-    readFileSync(join(__dirname, scenario, "input.json"), "utf8"),
-  ) as { props: LegacyProps };
+  const raw = JSON.parse(readFileSync(join(__dirname, scenario, "input.json"), "utf8")) as {
+    props: LegacyProps;
+  };
   return raw.props;
 }
 function readPhase3Keys(): {
@@ -199,14 +199,8 @@ function readPhase3Keys(): {
   signingPrivateKeyPem: string;
 } {
   return {
-    signingCertificatePem: readFileSync(
-      join(__dirname, "_keys", "test-cert.pem"),
-      "utf8",
-    ),
-    signingPrivateKeyPem: readFileSync(
-      join(__dirname, "_keys", "test-key.pem"),
-      "utf8",
-    ),
+    signingCertificatePem: readFileSync(join(__dirname, "_keys", "test-cert.pem"), "utf8"),
+    signingPrivateKeyPem: readFileSync(join(__dirname, "_keys", "test-key.pem"), "utf8"),
   };
 }
 function mapEgs(p: LegacyEgsInfo): SimplifiedTaxInvoiceInput["egsInfo"] {
@@ -229,9 +223,7 @@ function mapEgs(p: LegacyEgsInfo): SimplifiedTaxInvoiceInput["egsInfo"] {
     },
   };
 }
-function mapItems(
-  items: ReadonlyArray<LegacyLineItem>,
-): SimplifiedTaxInvoiceInput["lineItems"] {
+function mapItems(items: ReadonlyArray<LegacyLineItem>): SimplifiedTaxInvoiceInput["lineItems"] {
   return items.map((li) => ({
     id: li.id,
     name: li.name,
@@ -311,9 +303,7 @@ describe("golden vectors — Phase 3 builders reproduce captured hashes", () => 
         reason: p.cancelation.reason,
       },
     };
-    const built = new SimplifiedCreditNoteBuilder(input).build(
-      readPhase3Keys(),
-    );
+    const built = new SimplifiedCreditNoteBuilder(input).build(readPhase3Keys());
     expect(built.invoiceHash).toBe(expectedHash);
   });
 });

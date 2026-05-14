@@ -3,20 +3,17 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { SimplifiedCreditNoteBuilder } from "../invoices/simplified-credit-note.js";
 import type { EGSUnitInfo } from "../types/egs.js";
+import { ZatcaValidationError } from "../types/errors.js";
 import type { SimplifiedCreditNoteInput } from "../types/invoice.js";
 import type { StorageAdapter, TenantScope } from "../types/storage.js";
-import { ZatcaValidationError } from "../types/errors.js";
-import { SimplifiedCreditNoteBuilder } from "../invoices/simplified-credit-note.js";
 import type { IssuedInvoice } from "./issue-simplified-invoice.js";
 
 export interface IssueSimplifiedCreditNoteArgs {
   input: Omit<
     SimplifiedCreditNoteInput,
-    | "egsInfo"
-    | "invoiceCounterNumber"
-    | "invoiceSerialNumber"
-    | "previousInvoiceHash"
+    "egsInfo" | "invoiceCounterNumber" | "invoiceSerialNumber" | "previousInvoiceHash"
   >;
   egsInfo: EGSUnitInfo;
   storage: StorageAdapter;
@@ -45,9 +42,7 @@ export async function issueSimplifiedCreditNote(
   args: IssueSimplifiedCreditNoteArgs,
 ): Promise<IssuedInvoice> {
   assertScope(args.egsInfo, args.scope);
-  const { sequence, invoiceNumber } = await args.storage.incrementCounter(
-    args.scope,
-  );
+  const { sequence, invoiceNumber } = await args.storage.incrementCounter(args.scope);
   const previousInvoiceHash = await args.storage.getPreviousHash(
     args.scope,
     "simplified-credit-note",

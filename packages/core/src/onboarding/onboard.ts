@@ -32,35 +32,26 @@
  * leave it undefined and rely on the real implementations.
  */
 
-import type { EGSUnitInfo } from "../types/egs.js";
-import type { ZatcaEnvironment } from "../types/api.js";
-import type {
-  HttpClientOptions,
-  RetryOptions,
-} from "../api/http-client.js";
-import { ZatcaOnboardingError } from "../types/errors.js";
+import type { HttpClientOptions, RetryOptions } from "../api/http-client.js";
+import { issueComplianceCertificate } from "../api/issue-compliance-cert.js";
+import { issueCSIDS } from "../api/issue-csids.js";
+import { type ComplianceTestReport, runComplianceTests } from "../compliance/run-tests.js";
 import {
-  generateCSR as defaultGenerateCSR,
   type CSRGenerationEgsInfo,
+  generateCSR as defaultGenerateCSR,
 } from "../crypto/generate-csr.js";
 import { generateSecp256k1KeyPair as defaultGenerateKeyPair } from "../crypto/generate-keys.js";
 import { ensureOpenssl } from "../crypto/openssl-probe.js";
-import { issueComplianceCertificate } from "../api/issue-compliance-cert.js";
-import { issueCSIDS } from "../api/issue-csids.js";
-import {
-  runComplianceTests,
-  type ComplianceTestReport,
-} from "../compliance/run-tests.js";
+import type { ZatcaEnvironment } from "../types/api.js";
+import type { EGSUnitInfo } from "../types/egs.js";
+import { ZatcaOnboardingError } from "../types/errors.js";
 
 /**
  * The slice of {@link EGSUnitInfo} the caller must supply at
  * onboarding time. The certificate artifacts are excluded — those are
  * what the onboarding flow produces.
  */
-export type OnboardingEgsInfo = Omit<
-  EGSUnitInfo,
-  "certificate"
->;
+export type OnboardingEgsInfo = Omit<EGSUnitInfo, "certificate">;
 
 /**
  * Inputs to {@link onboard}.
@@ -127,10 +118,7 @@ export interface OnboardingResult {
  * Translates the public camelCase {@link OnboardingEgsInfo} into the
  * snake_case shape the {@link generateCSR} helper expects.
  */
-function toCsrEgsInfo(
-  info: OnboardingEgsInfo,
-  privateKey: string,
-): CSRGenerationEgsInfo {
+function toCsrEgsInfo(info: OnboardingEgsInfo, privateKey: string): CSRGenerationEgsInfo {
   return {
     custom_id: info.customId,
     model: info.model,
@@ -181,7 +169,6 @@ function withComplianceCertificate(
   // `runComplianceTests` via its `apiCredentials.binarySecurityToken`
   // argument; we accept it here for symmetry but do not store it on
   // the type itself.)
-  void complianceBinarySecurityToken;
 }
 
 /**
@@ -243,16 +230,12 @@ export async function onboard(args: OnboardArgs): Promise<OnboardingResult> {
   }
 
   // Step 2 — generate the secp256k1 keypair.
-  const generateKeyPair =
-    args.crypto?.generateKeyPair ?? defaultGenerateKeyPair;
+  const generateKeyPair = args.crypto?.generateKeyPair ?? defaultGenerateKeyPair;
   let privateKey: string;
   try {
     privateKey = await generateKeyPair();
   } catch (cause) {
-    throw new ZatcaOnboardingError(
-      "Failed to generate the secp256k1 keypair.",
-      cause,
-    );
+    throw new ZatcaOnboardingError("Failed to generate the secp256k1 keypair.", cause);
   }
 
   // Step 3 — generate the CSR bound to the private key. The CSR
@@ -278,9 +261,7 @@ export async function onboard(args: OnboardArgs): Promise<OnboardingResult> {
     csr,
     otp: args.otp,
     environment: args.environment,
-    ...(args.httpClientOptions !== undefined
-      ? { httpOptions: args.httpClientOptions }
-      : {}),
+    ...(args.httpClientOptions !== undefined ? { httpOptions: args.httpClientOptions } : {}),
   });
 
   // Step 5 — run the six compliance scenarios. The environment is
@@ -304,9 +285,7 @@ export async function onboard(args: OnboardArgs): Promise<OnboardingResult> {
       binarySecurityToken: complianceResult.binarySecurityToken,
       apiSecret: complianceResult.apiSecret,
     },
-    ...(args.httpClientOptions !== undefined
-      ? { httpClientOptions: args.httpClientOptions }
-      : {}),
+    ...(args.httpClientOptions !== undefined ? { httpClientOptions: args.httpClientOptions } : {}),
   });
 
   if (complianceTestReport.overallStatus === "failed") {
@@ -325,9 +304,7 @@ export async function onboard(args: OnboardArgs): Promise<OnboardingResult> {
     binarySecurityToken: complianceResult.binarySecurityToken,
     apiSecret: complianceResult.apiSecret,
     environment: args.environment,
-    ...(args.httpClientOptions !== undefined
-      ? { httpOptions: args.httpClientOptions }
-      : {}),
+    ...(args.httpClientOptions !== undefined ? { httpOptions: args.httpClientOptions } : {}),
   });
 
   return {

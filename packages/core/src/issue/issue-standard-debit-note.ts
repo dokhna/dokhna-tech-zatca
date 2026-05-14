@@ -3,20 +3,17 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { StandardDebitNoteBuilder } from "../invoices/standard-debit-note.js";
 import type { EGSUnitInfo } from "../types/egs.js";
+import { ZatcaValidationError } from "../types/errors.js";
 import type { StandardDebitNoteInput } from "../types/invoice.js";
 import type { StorageAdapter, TenantScope } from "../types/storage.js";
-import { ZatcaValidationError } from "../types/errors.js";
-import { StandardDebitNoteBuilder } from "../invoices/standard-debit-note.js";
 import type { IssuedInvoice } from "./issue-simplified-invoice.js";
 
 export interface IssueStandardDebitNoteArgs {
   input: Omit<
     StandardDebitNoteInput,
-    | "egsInfo"
-    | "invoiceCounterNumber"
-    | "invoiceSerialNumber"
-    | "previousInvoiceHash"
+    "egsInfo" | "invoiceCounterNumber" | "invoiceSerialNumber" | "previousInvoiceHash"
   >;
   egsInfo: EGSUnitInfo;
   storage: StorageAdapter;
@@ -45,13 +42,8 @@ export async function issueStandardDebitNote(
   args: IssueStandardDebitNoteArgs,
 ): Promise<IssuedInvoice> {
   assertScope(args.egsInfo, args.scope);
-  const { sequence, invoiceNumber } = await args.storage.incrementCounter(
-    args.scope,
-  );
-  const previousInvoiceHash = await args.storage.getPreviousHash(
-    args.scope,
-    "standard-debit-note",
-  );
+  const { sequence, invoiceNumber } = await args.storage.incrementCounter(args.scope);
+  const previousInvoiceHash = await args.storage.getPreviousHash(args.scope, "standard-debit-note");
   const fullInput: StandardDebitNoteInput = {
     ...args.input,
     kind: "standard-debit-note",

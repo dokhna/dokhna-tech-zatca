@@ -79,9 +79,7 @@ const TEMPLATE = /* XML */ `
 /**
  * Fills the standard credit note template with values from `input`.
  */
-export function populateStandardCreditNoteTemplate(
-  input: StandardCreditNoteInput,
-): string {
+export function populateStandardCreditNoteTemplate(input: StandardCreditNoteInput): string {
   const invoiceType = input.cancelation
     ? input.cancelation.cancelationType
     : ZATCA_INVOICE_TYPES.INVOICE;

@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { probeOpenssl, ensureOpenssl, resetOpensslProbeCache } from "./openssl-probe.js";
+import { ensureOpenssl, probeOpenssl, resetOpensslProbeCache } from "./openssl-probe.js";
 
 describe("probeOpenssl", () => {
   it("reports OpenSSL as available on the dev machine", async () => {

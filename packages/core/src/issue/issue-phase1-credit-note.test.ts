@@ -3,14 +3,14 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import type { TenantScope } from "../types/storage.js";
 import {
   makeTestCancelation,
   makeTestEgsInfo,
   makeTestLineItem,
 } from "../invoices/_test-helpers.js";
-import { issuePhase1CreditNote } from "./issue-phase1-credit-note.js";
+import type { TenantScope } from "../types/storage.js";
 import { makeMemoryStorage } from "./_memory-storage.js";
+import { issuePhase1CreditNote } from "./issue-phase1-credit-note.js";
 
 describe("issuePhase1CreditNote", () => {
   const egsInfo = makeTestEgsInfo();

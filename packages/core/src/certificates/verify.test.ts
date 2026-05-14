@@ -22,9 +22,7 @@ describe("verifyCertificate", () => {
     expect(result.issuer).toContain("acme-egs-001");
     expect(result.validFrom).toBeInstanceOf(Date);
     expect(result.validTo).toBeInstanceOf(Date);
-    expect(result.validTo.getTime()).toBeGreaterThan(
-      result.validFrom.getTime(),
-    );
+    expect(result.validTo.getTime()).toBeGreaterThan(result.validFrom.getTime());
     expect(result.isValid).toBe(true);
     expect(result.publicKeyMatchesPrivateKey).toBeNull();
   });
@@ -68,8 +66,8 @@ describe("verifyCertificate", () => {
   });
 
   it("throws ZatcaCertificateError on malformed PEM", () => {
-    expect(() =>
-      verifyCertificate({ certificate: "not-a-cert" }),
-    ).toThrowError(ZatcaCertificateError);
+    expect(() => verifyCertificate({ certificate: "not-a-cert" })).toThrowError(
+      ZatcaCertificateError,
+    );
   });
 });

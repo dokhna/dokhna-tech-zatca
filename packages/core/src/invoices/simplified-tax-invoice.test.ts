@@ -10,13 +10,8 @@
 import { describe, expect, it } from "vitest";
 import type { SimplifiedTaxInvoiceInput } from "../types/invoice.js";
 import { XMLDocument } from "../xml/document.js";
+import { BASE_PIH, makeTestEgsInfo, makeTestLineItem, readTestKeys } from "./_test-helpers.js";
 import { SimplifiedTaxInvoiceBuilder } from "./simplified-tax-invoice.js";
-import {
-  BASE_PIH,
-  makeTestEgsInfo,
-  makeTestLineItem,
-  readTestKeys,
-} from "./_test-helpers.js";
 
 function makeInput(): SimplifiedTaxInvoiceInput {
   return {
@@ -50,7 +45,9 @@ describe("SimplifiedTaxInvoiceBuilder.build", () => {
   it("propagates the buyer name into AccountingCustomerParty", () => {
     const b = new SimplifiedTaxInvoiceBuilder(makeInput());
     const out = b.build(readTestKeys());
-    expect(out.invoiceXml).toContain("<cbc:RegistrationName>Walk-in Customer</cbc:RegistrationName>");
+    expect(out.invoiceXml).toContain(
+      "<cbc:RegistrationName>Walk-in Customer</cbc:RegistrationName>",
+    );
   });
 
   it("returns a 44-char base64 invoice hash", () => {

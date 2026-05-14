@@ -74,10 +74,7 @@ export async function generateSecp256k1KeyPair(): Promise<string> {
   try {
     result = await executeOpenSSL(["ecparam", "-name", "secp256k1", "-genkey"]);
   } catch (cause) {
-    throw new ZatcaOnboardingError(
-      "Failed to invoke openssl for EC key generation.",
-      cause,
-    );
+    throw new ZatcaOnboardingError("Failed to invoke openssl for EC key generation.", cause);
   }
 
   if (result.code !== 0) {
@@ -89,9 +86,7 @@ export async function generateSecp256k1KeyPair(): Promise<string> {
   const marker = "-----BEGIN EC PRIVATE KEY-----";
   const idx = result.stdout.indexOf(marker);
   if (idx === -1) {
-    throw new ZatcaOnboardingError(
-      "openssl ecparam produced no EC private key in its output.",
-    );
+    throw new ZatcaOnboardingError("openssl ecparam produced no EC private key in its output.");
   }
   return result.stdout.slice(idx).trim();
 }

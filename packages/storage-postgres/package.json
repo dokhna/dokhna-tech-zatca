@@ -14,12 +14,7 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE",
-    "migrations"
-  ],
+  "files": ["dist", "README.md", "LICENSE", "migrations"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

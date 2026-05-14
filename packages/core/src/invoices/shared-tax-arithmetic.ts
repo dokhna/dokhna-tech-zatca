@@ -19,13 +19,10 @@
  * golden vectors.
  */
 
-import type {
-  ZATCAInvoiceLineItem,
-  ZATCAInvoiceLineItemTax,
-} from "../types/invoice.js";
+import type { ZATCAInvoiceLineItem, ZATCAInvoiceLineItemTax } from "../types/invoice.js";
 import type { XMLObject } from "../xml/document.js";
-import { toFixedNoRounding } from "./fixed-no-rounding.js";
 import type { LineItemTotals } from "./base.js";
+import { toFixedNoRounding } from "./fixed-no-rounding.js";
 
 /**
  * Builds the per-line totals for a tax invoice / credit note line.
@@ -39,9 +36,7 @@ import type { LineItemTotals } from "./base.js";
  * - `cacTaxTotal` emits `<cbc:TaxAmount>` + `<cbc:RoundingAmount>`
  *   (no nested `<cac:TaxSubtotal>`).
  */
-export function buildInvoiceLineItemTotals(
-  lineItem: ZATCAInvoiceLineItem,
-): LineItemTotals {
+export function buildInvoiceLineItemTotals(lineItem: ZATCAInvoiceLineItem): LineItemTotals {
   let totalDiscounts = 0;
   let totalTaxes = 0;
   const allowanceCharges: XMLObject[] = [];
@@ -68,23 +63,18 @@ export function buildInvoiceLineItemTotals(
     });
   }
 
-  let lineSubtotal =
-    lineItem.taxExclusivePrice * lineItem.quantity - totalDiscounts;
+  let lineSubtotal = lineItem.taxExclusivePrice * lineItem.quantity - totalDiscounts;
   lineSubtotal = Number.parseFloat(toFixedNoRounding(lineSubtotal, 2));
 
   totalTaxes =
     Number.parseFloat(toFixedNoRounding(totalTaxes, 2)) +
-    Number.parseFloat(
-      toFixedNoRounding((lineSubtotal * lineItem.vatPercent) / 100, 2),
-    );
+    Number.parseFloat(toFixedNoRounding((lineSubtotal * lineItem.vatPercent) / 100, 2));
   totalTaxes = Number.parseFloat(toFixedNoRounding(totalTaxes, 2));
 
   for (const otherTax of lineItem.otherTaxes ?? []) {
     totalTaxes =
       Number.parseFloat(toFixedNoRounding(totalTaxes, 2)) +
-      Number.parseFloat(
-        toFixedNoRounding((otherTax.percentAmount * lineSubtotal) / 100, 2),
-      );
+      Number.parseFloat(toFixedNoRounding((otherTax.percentAmount * lineSubtotal) / 100, 2));
     totalTaxes = Number.parseFloat(toFixedNoRounding(totalTaxes, 2));
     classifiedTaxCategories.push({
       "cbc:ID": "S",
@@ -130,11 +120,7 @@ export function buildInvoiceTaxTotal(
 ): ReadonlyArray<XMLObject> {
   const taxSubtotals: XMLObject[] = [];
 
-  function pushSubtotal(
-    taxableAmount: number,
-    taxAmount: number,
-    taxPercent: number,
-  ): void {
+  function pushSubtotal(taxableAmount: number, taxAmount: number, taxPercent: number): void {
     taxSubtotals.push({
       "cbc:TaxableAmount": {
         "@_currencyID": "SAR",
@@ -151,9 +137,7 @@ export function buildInvoiceTaxTotal(
           "#text": taxPercent ? "S" : "O",
         },
         "cbc:Percent": toFixedNoRounding(taxPercent, 2),
-        ...(taxPercent
-          ? {}
-          : { "cbc:TaxExemptionReason": "Not subject to VAT" }),
+        ...(taxPercent ? {} : { "cbc:TaxExemptionReason": "Not subject to VAT" }),
         "cac:TaxScheme": {
           "cbc:ID": {
             "@_schemeAgencyID": "6",
@@ -167,10 +151,8 @@ export function buildInvoiceTaxTotal(
 
   let totalTaxes = 0;
   for (const lineItem of lineItems) {
-    const lineDiscounts =
-      lineItem.discounts?.reduce<number>((p, c) => p + c.amount, 0) ?? 0;
-    const taxableAmount =
-      lineItem.taxExclusivePrice * lineItem.quantity - lineDiscounts;
+    const lineDiscounts = lineItem.discounts?.reduce<number>((p, c) => p + c.amount, 0) ?? 0;
+    const taxableAmount = lineItem.taxExclusivePrice * lineItem.quantity - lineDiscounts;
     let taxAmount = (lineItem.vatPercent * taxableAmount) / 100;
     pushSubtotal(taxableAmount, taxAmount, lineItem.vatPercent);
     totalTaxes += Number.parseFloat(toFixedNoRounding(taxAmount, 2));

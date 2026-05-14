@@ -7,15 +7,9 @@
  * block referencing the original document (validated in `schemas.ts`).
  */
 
-import type {
-  SimplifiedDebitNoteInput,
-  StandardDebitNoteInput,
-} from "./invoice.js";
+import type { SimplifiedDebitNoteInput, StandardDebitNoteInput } from "./invoice.js";
 
-export type {
-  SimplifiedDebitNoteInput,
-  StandardDebitNoteInput,
-};
+export type { SimplifiedDebitNoteInput, StandardDebitNoteInput };
 
 /**
  * Discriminated union of every debit-note variant accepted by the

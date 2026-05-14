@@ -25,11 +25,6 @@ const TEMPLATE = /* XML */ `
  *
  * @param canceledInvoiceNumber numeric serial of the original invoice.
  */
-export function generateInvoiceBillingReference(
-  canceledInvoiceNumber: number,
-): string {
-  return TEMPLATE.replace(
-    "SET_CANCELED_INVOICE_NUMBER",
-    canceledInvoiceNumber.toString(),
-  );
+export function generateInvoiceBillingReference(canceledInvoiceNumber: number): string {
+  return TEMPLATE.replace("SET_CANCELED_INVOICE_NUMBER", canceledInvoiceNumber.toString());
 }

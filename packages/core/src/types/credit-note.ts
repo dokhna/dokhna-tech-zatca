@@ -13,11 +13,7 @@ import type {
   StandardCreditNoteInput,
 } from "./invoice.js";
 
-export type {
-  Phase1CreditNoteInput,
-  SimplifiedCreditNoteInput,
-  StandardCreditNoteInput,
-};
+export type { Phase1CreditNoteInput, SimplifiedCreditNoteInput, StandardCreditNoteInput };
 
 /**
  * Discriminated union of every credit-note variant accepted by the

@@ -261,7 +261,7 @@ export class XMLDocument {
     }
     const new_path_query = path_tags.join("/");
     const walked = this.getElement(this.xml_object, new_path_query);
-    let xml_object = walked.xml_object;
+    const xml_object = walked.xml_object;
     let parent_xml_object = walked.parent_xml_object;
     let last_tag = walked.last_tag;
     if (isEmpty(xml_object)) {
@@ -277,9 +277,7 @@ export class XMLDocument {
       if (parent_xml_object && last_tag !== undefined) {
         const branch = parent_xml_object[last_tag] as XMLObject;
         if (Array.isArray(branch[tag])) {
-          branch[tag] = overwrite
-            ? set_xml
-            : [...(branch[tag] as unknown[]), set_xml];
+          branch[tag] = overwrite ? set_xml : [...(branch[tag] as unknown[]), set_xml];
         } else if (branch[tag] !== undefined) {
           branch[tag] = overwrite ? set_xml : [branch[tag], set_xml];
         } else {

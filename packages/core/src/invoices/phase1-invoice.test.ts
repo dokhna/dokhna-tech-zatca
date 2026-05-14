@@ -5,12 +5,8 @@
 import { describe, expect, it } from "vitest";
 import type { Phase1InvoiceInput } from "../types/invoice.js";
 import { XMLDocument } from "../xml/document.js";
+import { BASE_PIH, makeTestEgsInfo, makeTestLineItem } from "./_test-helpers.js";
 import { Phase1InvoiceBuilder } from "./phase1-invoice.js";
-import {
-  BASE_PIH,
-  makeTestEgsInfo,
-  makeTestLineItem,
-} from "./_test-helpers.js";
 
 function makeInput(): Phase1InvoiceInput {
   return {

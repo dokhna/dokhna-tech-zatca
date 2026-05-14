@@ -42,7 +42,7 @@ export function isBase64(value: unknown): value is Base64 {
 export function asBase64(value: string): Base64 {
   if (!BASE64_REGEX.test(value)) {
     throw new ZatcaValidationError(
-      `Invalid base64 string: contains characters outside the RFC 4648 alphabet or has malformed padding.`,
+      "Invalid base64 string: contains characters outside the RFC 4648 alphabet or has malformed padding.",
     );
   }
   return value as Base64;

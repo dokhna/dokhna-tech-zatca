@@ -6,11 +6,11 @@
  */
 
 import {
+  type EGSUnitInfo,
+  type TenantScope,
   asCommercialRegistrationNumber,
   asEGSUuid,
   asVATNumber,
-  type EGSUnitInfo,
-  type TenantScope,
 } from "@dokhna-tech/zatca";
 import { createMemoryStorageAdapter } from "@dokhna-tech/zatca-storage-memory";
 
@@ -22,8 +22,7 @@ const env = (key: string): string => {
   return value;
 };
 
-const envOptional = (key: string, fallback: string): string =>
-  process.env[key] ?? fallback;
+const envOptional = (key: string, fallback: string): string => process.env[key] ?? fallback;
 
 export function buildZatcaContext(): {
   storage: ReturnType<typeof createMemoryStorageAdapter>;

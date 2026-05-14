@@ -89,9 +89,7 @@ const TEMPLATE = /* XML */ `
  * after parsing, which keeps the template free of HTML-escape concerns
  * around free-text registration names.
  */
-export function populateStandardTaxInvoiceTemplate(
-  input: StandardTaxInvoiceInput,
-): string {
+export function populateStandardTaxInvoiceTemplate(input: StandardTaxInvoiceInput): string {
   const invoiceType = input.cancelation
     ? input.cancelation.cancelationType
     : ZATCA_INVOICE_TYPES.INVOICE;

@@ -277,9 +277,7 @@ describe("invoiceInputSchema (discriminated union)", () => {
   });
 
   it("rejects unknown kind discriminators", () => {
-    expect(() =>
-      invoiceInputSchema.parse({ kind: "not-a-real-kind", ...common }),
-    ).toThrow();
+    expect(() => invoiceInputSchema.parse({ kind: "not-a-real-kind", ...common })).toThrow();
   });
 
   it("covers every InvoiceKind literal (smoke test for completeness)", () => {
@@ -295,7 +293,9 @@ describe("invoiceInputSchema (discriminated union)", () => {
     ];
     for (const kind of allKinds) {
       const payload =
-        kind === "standard-tax-invoice" || kind === "standard-credit-note" || kind === "standard-debit-note"
+        kind === "standard-tax-invoice" ||
+        kind === "standard-credit-note" ||
+        kind === "standard-debit-note"
           ? { kind, ...common, buyerInfo, cancelation }
           : { kind, ...common, buyerName: "x", cancelation };
       // The bare base schemas (no .refine) inside the discriminated union

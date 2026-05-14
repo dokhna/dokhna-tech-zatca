@@ -78,7 +78,7 @@ describe("generatePhase2QR", () => {
       certificateSignature,
     });
     const tlv = decodeTLV(new Uint8Array(Buffer.from(qr, "base64")));
-    expect(Buffer.from(tlv[5]!.value).toString("utf8")).toBe(invoiceHash);
+    expect(Buffer.from(tlv[5]?.value).toString("utf8")).toBe(invoiceHash);
   });
 
   it("carries tag 7 = digital signature as the UTF-8 bytes of the base64 string", () => {
@@ -90,7 +90,7 @@ describe("generatePhase2QR", () => {
       certificateSignature,
     });
     const tlv = decodeTLV(new Uint8Array(Buffer.from(qr, "base64")));
-    expect(Buffer.from(tlv[6]!.value).toString("utf8")).toBe(digitalSignature);
+    expect(Buffer.from(tlv[6]?.value).toString("utf8")).toBe(digitalSignature);
   });
 
   it("carries tag 8 = public key bytes verbatim", () => {
@@ -102,7 +102,7 @@ describe("generatePhase2QR", () => {
       certificateSignature,
     });
     const tlv = decodeTLV(new Uint8Array(Buffer.from(qr, "base64")));
-    expect(Array.from(tlv[7]!.value)).toEqual(Array.from(publicKey));
+    expect(Array.from(tlv[7]?.value)).toEqual(Array.from(publicKey));
   });
 
   it("carries tag 9 = certificate signature bytes verbatim", () => {
@@ -114,15 +114,12 @@ describe("generatePhase2QR", () => {
       certificateSignature,
     });
     const tlv = decodeTLV(new Uint8Array(Buffer.from(qr, "base64")));
-    expect(Array.from(tlv[8]!.value)).toEqual(Array.from(certificateSignature));
+    expect(Array.from(tlv[8]?.value)).toEqual(Array.from(certificateSignature));
   });
 
   it("throws ZatcaSigningError when VAT number is missing", () => {
     const broken = new XMLDocument(
-      MINIMAL_INVOICE.replace(
-        "<cbc:CompanyID>301234567890003</cbc:CompanyID>",
-        "",
-      ),
+      MINIMAL_INVOICE.replace("<cbc:CompanyID>301234567890003</cbc:CompanyID>", ""),
     );
     expect(() =>
       generatePhase2QR({

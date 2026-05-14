@@ -78,17 +78,13 @@ function populate(template: string, params: SignedPropertiesParams): string {
  * Heavy-indent SignedProperties used to compute the digest reference
  * embedded in the UBL extension.
  */
-export function populateSignedPropertiesForSigning(
-  params: SignedPropertiesParams,
-): string {
+export function populateSignedPropertiesForSigning(params: SignedPropertiesParams): string {
   return populate(TEMPLATE_FOR_SIGNING, params);
 }
 
 /**
  * Light-indent SignedProperties used in the final signed XML body.
  */
-export function populateSignedPropertiesForOutput(
-  params: SignedPropertiesParams,
-): string {
+export function populateSignedPropertiesForOutput(params: SignedPropertiesParams): string {
   return populate(TEMPLATE_FOR_OUTPUT, params);
 }

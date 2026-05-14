@@ -3,13 +3,10 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
+import { makeTestEgsInfo, makeTestLineItem } from "../invoices/_test-helpers.js";
 import type { TenantScope } from "../types/storage.js";
-import {
-  makeTestEgsInfo,
-  makeTestLineItem,
-} from "../invoices/_test-helpers.js";
-import { issuePhase1Invoice } from "./issue-phase1-invoice.js";
 import { makeMemoryStorage } from "./_memory-storage.js";
+import { issuePhase1Invoice } from "./issue-phase1-invoice.js";
 
 describe("issuePhase1Invoice", () => {
   const egsInfo = makeTestEgsInfo();

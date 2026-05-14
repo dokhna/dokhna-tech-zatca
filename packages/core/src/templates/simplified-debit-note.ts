@@ -88,9 +88,7 @@ const TEMPLATE = /* XML */ `
  * Defaults `cbc:InvoiceTypeCode` to `383` (debit note) when no
  * cancelation override is supplied.
  */
-export function populateSimplifiedDebitNoteTemplate(
-  input: SimplifiedDebitNoteInput,
-): string {
+export function populateSimplifiedDebitNoteTemplate(input: SimplifiedDebitNoteInput): string {
   const invoiceType = input.cancelation
     ? input.cancelation.cancelationType
     : ZATCA_INVOICE_TYPES.DEBIT_NOTE;

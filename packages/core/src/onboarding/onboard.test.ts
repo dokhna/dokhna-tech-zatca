@@ -23,12 +23,9 @@ import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { ZATCA_ENDPOINTS } from "../api/endpoints.js";
-import {
-  makeTestEgsInfo,
-  readTestKeys,
-} from "../invoices/_test-helpers.js";
+import { makeTestEgsInfo, readTestKeys } from "../invoices/_test-helpers.js";
 import { ZatcaApiError, ZatcaOnboardingError } from "../types/errors.js";
-import { onboard, type OnboardArgs } from "./onboard.js";
+import { type OnboardArgs, onboard } from "./onboard.js";
 
 const ENV = "sandbox" as const;
 const COMPLIANCE_CERT_URL = `${ZATCA_ENDPOINTS[ENV].base}${ZATCA_ENDPOINTS[ENV].complianceCertificate}`;
@@ -115,12 +112,8 @@ describe("onboard — happy path", () => {
   it("returns compliance + production artifacts when every step succeeds", async () => {
     let csidsCalls = 0;
     server.use(
-      http.post(COMPLIANCE_CERT_URL, () =>
-        HttpResponse.json(complianceCertResponseBody()),
-      ),
-      http.post(COMPLIANCE_URL, () =>
-        HttpResponse.json(passingComplianceResponse()),
-      ),
+      http.post(COMPLIANCE_CERT_URL, () => HttpResponse.json(complianceCertResponseBody())),
+      http.post(COMPLIANCE_URL, () => HttpResponse.json(passingComplianceResponse())),
       http.post(CSIDS_URL, () => {
         csidsCalls += 1;
         return HttpResponse.json({
@@ -155,9 +148,7 @@ describe("onboard — failure paths", () => {
         HttpResponse.json(
           {
             validationResults: {
-              errorMessages: [
-                { code: "X", message: "bad otp", category: "ERROR" },
-              ],
+              errorMessages: [{ code: "X", message: "bad otp", category: "ERROR" }],
             },
           },
           { status: 400 },
@@ -169,9 +160,7 @@ describe("onboard — failure paths", () => {
       }),
     );
 
-    await expect(() => onboard(makeArgs())).rejects.toBeInstanceOf(
-      ZatcaApiError,
-    );
+    await expect(() => onboard(makeArgs())).rejects.toBeInstanceOf(ZatcaApiError);
     expect(csidsCalls).toBe(0);
   });
 
@@ -179,9 +168,7 @@ describe("onboard — failure paths", () => {
     let csidsCalls = 0;
     let complianceCalls = 0;
     server.use(
-      http.post(COMPLIANCE_CERT_URL, () =>
-        HttpResponse.json(complianceCertResponseBody()),
-      ),
+      http.post(COMPLIANCE_CERT_URL, () => HttpResponse.json(complianceCertResponseBody())),
       http.post(COMPLIANCE_URL, () => {
         complianceCalls += 1;
         if (complianceCalls === 2) {
@@ -206,26 +193,20 @@ describe("onboard — failure paths", () => {
       }),
     );
 
-    await expect(() => onboard(makeArgs())).rejects.toBeInstanceOf(
-      ZatcaOnboardingError,
-    );
+    await expect(() => onboard(makeArgs())).rejects.toBeInstanceOf(ZatcaOnboardingError);
     expect(csidsCalls).toBe(0);
   });
 
   it("throws ZatcaOnboardingError when environment='production' is supplied", async () => {
     server.use(
-      http.post(COMPLIANCE_CERT_URL, () =>
-        HttpResponse.json(complianceCertResponseBody()),
-      ),
+      http.post(COMPLIANCE_CERT_URL, () => HttpResponse.json(complianceCertResponseBody())),
     );
-    await expect(() =>
-      onboard(makeArgs({ environment: "production" })),
-    ).rejects.toBeInstanceOf(ZatcaOnboardingError);
+    await expect(() => onboard(makeArgs({ environment: "production" }))).rejects.toBeInstanceOf(
+      ZatcaOnboardingError,
+    );
   });
 
   it("throws ZatcaOnboardingError when otp is missing", async () => {
-    await expect(() =>
-      onboard(makeArgs({ otp: "" })),
-    ).rejects.toBeInstanceOf(ZatcaOnboardingError);
+    await expect(() => onboard(makeArgs({ otp: "" }))).rejects.toBeInstanceOf(ZatcaOnboardingError);
   });
 });

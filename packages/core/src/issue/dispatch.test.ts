@@ -9,10 +9,6 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { InvoiceInput } from "../types/invoice.js";
-import type { TenantScope } from "../types/storage.js";
-import type { InvoiceHash } from "../types/branded.js";
-import { XMLDocument } from "../xml/document.js";
 import {
   BASE_PIH,
   makeTestCancelation,
@@ -20,8 +16,12 @@ import {
   makeTestLineItem,
   readTestKeys,
 } from "../invoices/_test-helpers.js";
-import { issueInvoice } from "./dispatch.js";
+import type { InvoiceHash } from "../types/branded.js";
+import type { InvoiceInput } from "../types/invoice.js";
+import type { TenantScope } from "../types/storage.js";
+import { XMLDocument } from "../xml/document.js";
 import { makeMemoryStorage } from "./_memory-storage.js";
+import { issueInvoice } from "./dispatch.js";
 
 const egsInfo = makeTestEgsInfo();
 const scope: TenantScope = {
@@ -49,7 +49,9 @@ function makeAllVariants(): InvoiceInput[] {
     {
       ...PLACEHOLDER_CTX,
       kind: "standard-tax-invoice",
-      lineItems: [{ ...makeTestLineItem(), quantity: 1, taxExclusivePrice: 100, name: "Service Fee" }],
+      lineItems: [
+        { ...makeTestLineItem(), quantity: 1, taxExclusivePrice: 100, name: "Service Fee" },
+      ],
       buyerInfo: {
         registrationName: "Acme Buyer Co.",
         identityScheme: "CRN",
@@ -82,7 +84,9 @@ function makeAllVariants(): InvoiceInput[] {
     {
       ...PLACEHOLDER_CTX,
       kind: "standard-debit-note",
-      lineItems: [{ ...makeTestLineItem(), quantity: 1, taxExclusivePrice: 50, name: "Adjustment" }],
+      lineItems: [
+        { ...makeTestLineItem(), quantity: 1, taxExclusivePrice: 50, name: "Adjustment" },
+      ],
       buyerInfo: {
         registrationName: "Acme Buyer Co.",
         identityScheme: "CRN",
@@ -113,9 +117,7 @@ interface InvoiceTypeCodeNode {
 
 function readInvoiceTypeCode(xml: string): InvoiceTypeCodeNode {
   const doc = new XMLDocument(xml);
-  const node = doc.get("Invoice/cbc:InvoiceTypeCode")?.[0] as
-    | InvoiceTypeCodeNode
-    | undefined;
+  const node = doc.get("Invoice/cbc:InvoiceTypeCode")?.[0] as InvoiceTypeCodeNode | undefined;
   return node ?? {};
 }
 

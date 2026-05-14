@@ -79,8 +79,7 @@ function readAmountText(invoice: XMLDocument, path: string, label: string): stri
  * UBL emitted an attribute on the tag.
  */
 function readVatNumber(invoice: XMLDocument): string {
-  const VAT_PATH =
-    "Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID";
+  const VAT_PATH = "Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID";
   return readLeaf(invoice, VAT_PATH, "VAT number");
 }
 
@@ -127,16 +126,12 @@ export function generatePhase1QR(invoice: XMLDocument): string {
   const vatTotal = (() => {
     const taxTotals = invoice.get("Invoice/cac:TaxTotal");
     if (!taxTotals || taxTotals.length === 0) {
-      throw new ZatcaSigningError(
-        "Cannot generate QR: missing required invoice field TaxTotal.",
-      );
+      throw new ZatcaSigningError("Cannot generate QR: missing required invoice field TaxTotal.");
     }
     const first = taxTotals[0] as { "cbc:TaxAmount"?: { "#text"?: unknown } };
     const text = first["cbc:TaxAmount"]?.["#text"];
     if (text === undefined || text === null) {
-      throw new ZatcaSigningError(
-        "Cannot generate QR: TaxTotal has no cbc:TaxAmount/#text value.",
-      );
+      throw new ZatcaSigningError("Cannot generate QR: TaxTotal has no cbc:TaxAmount/#text value.");
     }
     return String(text);
   })();

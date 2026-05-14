@@ -33,7 +33,10 @@
  * The six concrete builder classes end up < 100 LOC each.
  */
 
+import { type SignedXMLResult, generateSignedXMLString } from "../crypto/sign.js";
+import { buildBuyerInfoXml } from "../issue/build-parties.js";
 import type { Base64, InvoiceHash } from "../types/branded.js";
+import { ZatcaSigningError } from "../types/errors.js";
 import type {
   Phase1CreditNoteInput,
   Phase1InvoiceInput,
@@ -46,12 +49,9 @@ import type {
   ZATCAInvoiceLineItem,
   ZatcaInvoiceType,
 } from "../types/invoice.js";
-import { ZatcaSigningError } from "../types/errors.js";
-import { generateSignedXMLString } from "../crypto/sign.js";
 import { XMLDocument } from "../xml/document.js";
 import type { XMLObject } from "../xml/document.js";
 import { toFixedNoRounding } from "./fixed-no-rounding.js";
-import { buildBuyerInfoXml } from "../issue/build-parties.js";
 
 /** Union of every Phase 2 input shape the abstract supports. */
 export type Phase2InvoiceInput =
@@ -136,9 +136,7 @@ export abstract class BaseInvoiceBuilder<TInput extends Phase2InvoiceInput> {
    * standard debit note) or nest a `<cac:TaxSubtotal>` (simplified +
    * standard debit notes).
    */
-  protected abstract buildLineItemTotals(
-    lineItem: ZATCAInvoiceLineItem,
-  ): LineItemTotals;
+  protected abstract buildLineItemTotals(lineItem: ZATCAInvoiceLineItem): LineItemTotals;
 
   /**
    * Returns the invoice-level `<cac:TaxTotal>` value — typically a
@@ -156,10 +154,7 @@ export abstract class BaseInvoiceBuilder<TInput extends Phase2InvoiceInput> {
    * debit notes use `toFixedNoRounding(2)` strings. The override on
    * each builder mirrors the legacy class's behaviour byte-for-byte.
    */
-  protected abstract buildLegalMonetaryTotal(
-    totalSubtotal: number,
-    totalTaxes: number,
-  ): XMLObject;
+  protected abstract buildLegalMonetaryTotal(totalSubtotal: number, totalTaxes: number): XMLObject;
 
   /**
    * Whether `cbc:InvoicedQuantity` should be formatted with
@@ -228,12 +223,8 @@ export abstract class BaseInvoiceBuilder<TInput extends Phase2InvoiceInput> {
       const totals = this.buildLineItemTotals(lineItem);
       const lineXml = this.assembleLineItemXml(lineItem, totals);
       lineItemXmlList.push(lineXml);
-      totalSubtotal += Number.parseFloat(
-        toFixedNoRounding(totals.lineItemTotalTaxExclusive, 2),
-      );
-      totalTaxes += Number.parseFloat(
-        toFixedNoRounding(totals.lineItemTotalTaxes, 2),
-      );
+      totalSubtotal += Number.parseFloat(toFixedNoRounding(totals.lineItemTotalTaxExclusive, 2));
+      totalTaxes += Number.parseFloat(toFixedNoRounding(totals.lineItemTotalTaxes, 2));
     }
 
     totalSubtotal = Number.parseFloat(totalSubtotal.toFixed(2));
@@ -263,7 +254,7 @@ export abstract class BaseInvoiceBuilder<TInput extends Phase2InvoiceInput> {
 
     const invoiceXml = doc.toString({ no_header: false });
 
-    let signed;
+    let signed: SignedXMLResult;
     try {
       signed = generateSignedXMLString({
         invoice_xml: doc,
@@ -303,12 +294,8 @@ export abstract class BaseInvoiceBuilder<TInput extends Phase2InvoiceInput> {
       const totals = this.buildLineItemTotals(lineItem);
       const lineXml = this.assembleLineItemXml(lineItem, totals);
       lineItemXmlList.push(lineXml);
-      totalSubtotal += Number.parseFloat(
-        toFixedNoRounding(totals.lineItemTotalTaxExclusive, 2),
-      );
-      totalTaxes += Number.parseFloat(
-        toFixedNoRounding(totals.lineItemTotalTaxes, 2),
-      );
+      totalSubtotal += Number.parseFloat(toFixedNoRounding(totals.lineItemTotalTaxExclusive, 2));
+      totalTaxes += Number.parseFloat(toFixedNoRounding(totals.lineItemTotalTaxes, 2));
     }
 
     totalSubtotal = Number.parseFloat(totalSubtotal.toFixed(2));
@@ -363,10 +350,7 @@ export abstract class BaseInvoiceBuilder<TInput extends Phase2InvoiceInput> {
    * conditional allowance placement) can be expressed without
    * duplicating the entire method.
    */
-  private assembleLineItemXml(
-    lineItem: ZATCAInvoiceLineItem,
-    totals: LineItemTotals,
-  ): XMLObject {
+  private assembleLineItemXml(lineItem: ZATCAInvoiceLineItem, totals: LineItemTotals): XMLObject {
     const quantityText = this.includeInvoiceQuantityFraction()
       ? toFixedNoRounding(lineItem.quantity, 2)
       : lineItem.quantity;
@@ -413,10 +397,7 @@ export abstract class BaseInvoiceBuilder<TInput extends Phase2InvoiceInput> {
       "cac:Price": price,
     };
 
-    if (
-      this.allowanceChargeAtLineTop() &&
-      totals.cacAllowanceCharges.length > 0
-    ) {
+    if (this.allowanceChargeAtLineTop() && totals.cacAllowanceCharges.length > 0) {
       lineXml["cac:AllowanceCharge"] = totals.cacAllowanceCharges;
     }
 

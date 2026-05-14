@@ -12,11 +12,7 @@ import type { ZatcaEnvironment } from "../types/api.js";
 import { ZatcaApiError } from "../types/errors.js";
 import { getZatcaEndpoints } from "./endpoints.js";
 import { buildAuthHeaders } from "./headers.js";
-import {
-  type HttpClientOptions,
-  type RetryOptions,
-  request,
-} from "./http-client.js";
+import { type HttpClientOptions, type RetryOptions, request } from "./http-client.js";
 
 /**
  * Inputs to {@link cancelInvoice}.
@@ -63,9 +59,7 @@ interface CancelRequestBody {
  * Returns the parsed cancellation result. Throws `ZatcaApiError` on
  * any non-2xx status.
  */
-export async function cancelInvoice(
-  params: CancelInvoiceParams,
-): Promise<ZatcaCancellationResult> {
+export async function cancelInvoice(params: CancelInvoiceParams): Promise<ZatcaCancellationResult> {
   if (!params.invoiceId) {
     throw new ZatcaApiError("invoiceId is required for cancel", 0);
   }
@@ -76,10 +70,7 @@ export async function cancelInvoice(
     throw new ZatcaApiError("reason is required for cancel", 0);
   }
   if (!params.binarySecurityToken) {
-    throw new ZatcaApiError(
-      "binarySecurityToken is required for cancel",
-      0,
-    );
+    throw new ZatcaApiError("binarySecurityToken is required for cancel", 0);
   }
   if (!params.apiSecret) {
     throw new ZatcaApiError("apiSecret is required for cancel", 0);
@@ -90,22 +81,16 @@ export async function cancelInvoice(
     baseUrl: endpoints.base,
     ...(params.httpOptions ?? {}),
   };
-  const headers = buildAuthHeaders(
-    params.binarySecurityToken,
-    params.apiSecret,
-  );
+  const headers = buildAuthHeaders(params.binarySecurityToken, params.apiSecret);
   const body: CancelRequestBody = {
     clearanceNumber: params.clearanceNumber,
     reason: params.reason,
   };
 
-  return await request<ZatcaCancellationResult, CancelRequestBody>(
-    clientOptions,
-    {
-      method: "POST",
-      path: `${endpoints.cancelInvoice}/${encodeURIComponent(params.invoiceId)}`,
-      headers,
-      body,
-    },
-  );
+  return await request<ZatcaCancellationResult, CancelRequestBody>(clientOptions, {
+    method: "POST",
+    path: `${endpoints.cancelInvoice}/${encodeURIComponent(params.invoiceId)}`,
+    headers,
+    body,
+  });
 }

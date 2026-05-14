@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ZatcaValidationError } from "../types/errors.js";
-import {
-  asCommercialRegistrationNumber,
-  isCommercialRegistrationNumber,
-} from "./crn.js";
+import { asCommercialRegistrationNumber, isCommercialRegistrationNumber } from "./crn.js";
 
 describe("asCommercialRegistrationNumber", () => {
   it("accepts a 10-digit value", () => {
@@ -13,18 +10,12 @@ describe("asCommercialRegistrationNumber", () => {
   });
 
   it("throws ZatcaValidationError on wrong length", () => {
-    expect(() => asCommercialRegistrationNumber("123")).toThrow(
-      ZatcaValidationError,
-    );
-    expect(() => asCommercialRegistrationNumber("12345678901")).toThrow(
-      ZatcaValidationError,
-    );
+    expect(() => asCommercialRegistrationNumber("123")).toThrow(ZatcaValidationError);
+    expect(() => asCommercialRegistrationNumber("12345678901")).toThrow(ZatcaValidationError);
   });
 
   it("rejects non-digit characters", () => {
-    expect(() => asCommercialRegistrationNumber("12345ABCDE")).toThrow(
-      ZatcaValidationError,
-    );
+    expect(() => asCommercialRegistrationNumber("12345ABCDE")).toThrow(ZatcaValidationError);
   });
 
   it("error has the right name and includes the bad value", () => {

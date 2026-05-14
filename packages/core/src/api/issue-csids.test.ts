@@ -49,11 +49,9 @@ describe("issueCSIDS — happy path", () => {
       }),
     );
     const out = await issueCSIDS(INPUT);
-    const expectedAuth =
-      "Basic " +
-      Buffer.from(
-        `${INPUT.binarySecurityToken}:${INPUT.apiSecret}`,
-      ).toString("base64");
+    const expectedAuth = `Basic ${Buffer.from(
+      `${INPUT.binarySecurityToken}:${INPUT.apiSecret}`,
+    ).toString("base64")}`;
     expect(authHeader).toBe(expectedAuth);
     expect(body).toEqual({ compliance_request_id: INPUT.complianceRequestId });
     expect(out.binarySecurityToken).toBe(PROD_TOKEN_B64);
@@ -79,11 +77,7 @@ describe("issueCSIDS — error paths (no mock fallback)", () => {
   });
 
   it("throws on 500 without a `simulated-prod-*` fallback", async () => {
-    server.use(
-      http.post(URL, () =>
-        HttpResponse.json({ message: "down" }, { status: 500 }),
-      ),
-    );
+    server.use(http.post(URL, () => HttpResponse.json({ message: "down" }, { status: 500 })));
     try {
       await issueCSIDS({
         ...INPUT,
@@ -98,7 +92,7 @@ describe("issueCSIDS — error paths (no mock fallback)", () => {
       const e = err as ZatcaApiError;
       const raw = e.rawResponse as Record<string, unknown> | undefined;
       if (raw && typeof raw === "object") {
-        const reqId = raw["requestID"];
+        const reqId = raw.requestID;
         if (typeof reqId === "string") {
           expect(reqId).not.toMatch(/^simulated-prod-/);
         }
@@ -137,20 +131,18 @@ describe("issueCSIDS — error paths (no mock fallback)", () => {
   });
 
   it("rejects when complianceRequestId is missing", async () => {
-    await expect(
-      issueCSIDS({ ...INPUT, complianceRequestId: "" }),
-    ).rejects.toBeInstanceOf(ZatcaApiError);
+    await expect(issueCSIDS({ ...INPUT, complianceRequestId: "" })).rejects.toBeInstanceOf(
+      ZatcaApiError,
+    );
   });
 
   it("rejects when binarySecurityToken is missing (no dev fallback)", async () => {
-    await expect(
-      issueCSIDS({ ...INPUT, binarySecurityToken: "" }),
-    ).rejects.toBeInstanceOf(ZatcaApiError);
+    await expect(issueCSIDS({ ...INPUT, binarySecurityToken: "" })).rejects.toBeInstanceOf(
+      ZatcaApiError,
+    );
   });
 
   it("rejects when apiSecret is missing (no dev fallback)", async () => {
-    await expect(
-      issueCSIDS({ ...INPUT, apiSecret: "" }),
-    ).rejects.toBeInstanceOf(ZatcaApiError);
+    await expect(issueCSIDS({ ...INPUT, apiSecret: "" })).rejects.toBeInstanceOf(ZatcaApiError);
   });
 });

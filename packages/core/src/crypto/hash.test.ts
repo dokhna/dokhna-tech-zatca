@@ -82,9 +82,9 @@ describe("getCertificateHash", () => {
     // base64 of that 64-char hex string = 88 chars.
     expect(hash).toHaveLength(88);
     expect(hash).toBe(
-      Buffer.from(
-        "e0bebd22819993425814866b62701e2919ea26f1370499c1037b53b9d49c2c8a",
-      ).toString("base64"),
+      Buffer.from("e0bebd22819993425814866b62701e2919ea26f1370499c1037b53b9d49c2c8a").toString(
+        "base64",
+      ),
     );
   });
 });

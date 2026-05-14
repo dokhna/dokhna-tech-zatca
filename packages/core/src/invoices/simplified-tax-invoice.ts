@@ -6,6 +6,7 @@
  * populator + the shared tax-invoice arithmetic helpers.
  */
 
+import { populateSimplifiedTaxInvoiceTemplate } from "../templates/simplified-tax-invoice.js";
 import type {
   SimplifiedTaxInvoiceInput,
   ZATCAInvoiceLineItem,
@@ -13,11 +14,7 @@ import type {
 } from "../types/invoice.js";
 import { ZATCA_INVOICE_TYPES } from "../types/invoice.js";
 import type { XMLObject } from "../xml/document.js";
-import { populateSimplifiedTaxInvoiceTemplate } from "../templates/simplified-tax-invoice.js";
-import {
-  BaseInvoiceBuilder,
-  type LineItemTotals,
-} from "./base.js";
+import { BaseInvoiceBuilder, type LineItemTotals } from "./base.js";
 import {
   buildInvoiceLegalMonetaryTotal,
   buildInvoiceLineItemTotals,
@@ -29,9 +26,7 @@ export class SimplifiedTaxInvoiceBuilder extends BaseInvoiceBuilder<SimplifiedTa
     return populateSimplifiedTaxInvoiceTemplate(input);
   }
 
-  protected override buildLineItemTotals(
-    lineItem: ZATCAInvoiceLineItem,
-  ): LineItemTotals {
+  protected override buildLineItemTotals(lineItem: ZATCAInvoiceLineItem): LineItemTotals {
     return buildInvoiceLineItemTotals(lineItem);
   }
 
@@ -41,10 +36,7 @@ export class SimplifiedTaxInvoiceBuilder extends BaseInvoiceBuilder<SimplifiedTa
     return buildInvoiceTaxTotal(lineItems);
   }
 
-  protected override buildLegalMonetaryTotal(
-    totalSubtotal: number,
-    totalTaxes: number,
-  ): XMLObject {
+  protected override buildLegalMonetaryTotal(totalSubtotal: number, totalTaxes: number): XMLObject {
     return buildInvoiceLegalMonetaryTotal(totalSubtotal, totalTaxes);
   }
 
