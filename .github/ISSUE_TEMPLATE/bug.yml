@@ -1,0 +1,75 @@
+name: Bug report
+description: Report a defect in the library
+title: 'bug: '
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug.
+
+        **Security issues:** if this is a security vulnerability, do NOT open this issue.
+        See [SECURITY.md](../blob/main/SECURITY.md) and email `security@dokhna.tech`.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: This is not a security vulnerability (those go to security@dokhna.tech).
+          required: true
+        - label: I am on the latest published version, or I can reproduce on `main`.
+          required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: '0.x.y or main@<commit-sha>'
+    validations:
+      required: true
+
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: 'output of `node -v`'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: Minimal reproducer
+      description: Smallest code snippet or repo link that reproduces the issue.
+      render: typescript
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / errors
+      render: shell
