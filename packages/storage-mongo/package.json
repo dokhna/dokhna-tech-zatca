@@ -1,8 +1,17 @@
 {
   "name": "@dokhna-tech/zatca-storage-mongo",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "MongoDB (Mongoose) storage adapter for @dokhna-tech/zatca.",
   "license": "BUSL-1.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dokhna/dokhna-tech-zatca.git",
+    "directory": "packages/storage-mongo"
+  },
+  "homepage": "https://github.com/dokhna/dokhna-tech-zatca#readme",
+  "bugs": {
+    "url": "https://github.com/dokhna/dokhna-tech-zatca/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

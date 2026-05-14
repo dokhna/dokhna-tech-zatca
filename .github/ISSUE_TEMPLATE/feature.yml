@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest a new feature or enhancement
+title: 'feat: '
+labels: ['enhancement', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project is in alpha with a multi-phase roadmap in [`plan/`](../blob/main/plan/README.md).
+        Please check the active plan before proposing major changes.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I searched existing issues and discussions for prior art.
+          required: true
+        - label: I checked `plan/PROGRESS.md` to see if this is already scheduled.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem does this solve? Who is affected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How should the library behave? API sketch is welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds, other library APIs, or designs you rejected.
+
+  - type: textarea
+    id: zatca-context
+    attributes:
+      label: ZATCA / compliance context
+      description: Quote the relevant ZATCA spec section or regulation if applicable.
