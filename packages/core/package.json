@@ -1,8 +1,17 @@
 {
   "name": "@dokhna-tech/zatca",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Saudi Arabia ZATCA Phase 2 e-invoicing core library — XML build, signing, hashing, QR, and ZATCA API client.",
   "license": "BUSL-1.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dokhna/dokhna-tech-zatca.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/dokhna/dokhna-tech-zatca#readme",
+  "bugs": {
+    "url": "https://github.com/dokhna/dokhna-tech-zatca/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
