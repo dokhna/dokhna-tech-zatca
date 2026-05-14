@@ -1,12 +1,12 @@
 # @dokhna-tech/zatca
 
-[![CI](https://github.com/dokhna-tech/zatca/actions/workflows/ci.yml/badge.svg)](https://github.com/dokhna-tech/zatca/actions)
+[![CI](https://github.com/dokhna/dokhna-tech-zatca/actions/workflows/ci.yml/badge.svg)](https://github.com/dokhna/dokhna-tech-zatca/actions)
 [![npm](https://img.shields.io/npm/v/@dokhna-tech/zatca.svg)](https://www.npmjs.com/package/@dokhna-tech/zatca)
-[![license](https://img.shields.io/badge/license-BUSL--1.1-blue.svg)](./LICENSE)
+[![license](https://img.shields.io/badge/license-BUSL--1.1-blue.svg)](https://github.com/dokhna/dokhna-tech-zatca/blob/main/LICENSE)
 
 A TypeScript-first ZATCA Phase 2 e-invoicing library for Saudi Arabia. Build, sign, hash, generate QR codes, and submit invoices to the ZATCA Fatoora system. Supports single-VAT and multi-VAT (multi-tenant SaaS) deployments with a bring-your-own storage adapter pattern.
 
-> **Status: v2.0.2 — first lockstep-versioned release across all four packages.** See [`plan/`](./plan/README.md) for the multi-phase roadmap and [`CHANGELOG.md`](./CHANGELOG.md) for release notes.
+> **Status: v2.0.2 — first lockstep-versioned release across all four packages.** See [`plan/`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/plan/README.md) for the multi-phase roadmap and [`CHANGELOG.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/CHANGELOG.md) for release notes.
 
 ## Table of contents
 
@@ -100,26 +100,26 @@ const issued = await issueSimplifiedTaxInvoice({
 // issued.signedXml / .invoiceHash / .qrCode / .invoiceNumber / .sequence
 ```
 
-To get the certificate + key in the first place, run [`onboard()`](./docs/onboarding.md). For the full 15-minute path, see [`docs/getting-started.md`](./docs/getting-started.md).
+To get the certificate + key in the first place, run [`onboard()`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/onboarding.md). For the full 15-minute path, see [`docs/getting-started.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/getting-started.md).
 
 ## Packages
 
 | Package | What it is |
 |---------|------------|
-| [`@dokhna-tech/zatca`](./packages/core) | Core: XML build, signing, QR, ZATCA API client, onboarding |
-| [`@dokhna-tech/zatca-storage-memory`](./packages/storage-memory) | In-memory adapter (testing/dev) |
-| [`@dokhna-tech/zatca-storage-mongo`](./packages/storage-mongo) | MongoDB adapter (Mongoose peer-dep) |
-| [`@dokhna-tech/zatca-storage-postgres`](./packages/storage-postgres) | PostgreSQL adapter (pg peer-dep) |
+| [`@dokhna-tech/zatca`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/core) | Core: XML build, signing, QR, ZATCA API client, onboarding |
+| [`@dokhna-tech/zatca-storage-memory`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-memory) | In-memory adapter (testing/dev) |
+| [`@dokhna-tech/zatca-storage-mongo`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-mongo) | MongoDB adapter (Mongoose peer-dep) |
+| [`@dokhna-tech/zatca-storage-postgres`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-postgres) | PostgreSQL adapter (pg peer-dep) |
 
 ## Examples
 
-Three runnable example projects under [`examples/`](./examples/):
+Three runnable example projects under [`examples/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples):
 
 | Example | Demonstrates |
 |---------|--------------|
-| [`single-vat-express/`](./examples/single-vat-express) | Express server, one VAT, in-memory storage, full onboarding + issuance flow. |
-| [`multi-vat-saas/`](./examples/multi-vat-saas) | Fastify server, multiple tenants, per-tenant scoping, MongoDB. |
-| [`byo-storage-prisma/`](./examples/byo-storage-prisma) | Custom `StorageAdapter` against Prisma + SQLite. |
+| [`single-vat-express/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/single-vat-express) | Express server, one VAT, in-memory storage, full onboarding + issuance flow. |
+| [`multi-vat-saas/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/multi-vat-saas) | Fastify server, multiple tenants, per-tenant scoping, MongoDB. |
+| [`byo-storage-prisma/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/byo-storage-prisma) | Custom `StorageAdapter` against Prisma + SQLite. |
 
 From the repo root:
 
@@ -130,40 +130,40 @@ pnpm --filter @dokhna-tech-examples/single-vat-express start
 
 ## Documentation
 
-- [Getting started](./docs/getting-started.md) — 15-minute path to a signed invoice.
-- [Single VAT deployment](./docs/single-vat.md) — Express wire-up.
-- [Multi-VAT SaaS](./docs/multi-vat-saas.md) — per-tenant scoping, certificate isolation.
-- [Storage adapters](./docs/storage-adapters.md) — interface contract + custom adapter.
-- [Onboarding](./docs/onboarding.md) — CSR, OTP, compliance certs, production CSID.
-- [Compliance tests](./docs/compliance-tests.md) — `runComplianceTests` + interpreting results.
-- [Migration from an existing helper](./docs/migration-from-existing-helper.md) — function-by-function table.
-- [Troubleshooting](./docs/troubleshooting.md) — ZATCA error codes + Lambda OpenSSL recipe.
-- [Security](./docs/security.md) — secret classification, rotation, zero-logging policy.
-- [API reference](./docs/api-reference.md) — links to the TypeDoc-generated HTML at `docs/typedoc/index.html`.
+- [Getting started](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/getting-started.md) — 15-minute path to a signed invoice.
+- [Single VAT deployment](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/single-vat.md) — Express wire-up.
+- [Multi-VAT SaaS](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/multi-vat-saas.md) — per-tenant scoping, certificate isolation.
+- [Storage adapters](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/storage-adapters.md) — interface contract + custom adapter.
+- [Onboarding](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/onboarding.md) — CSR, OTP, compliance certs, production CSID.
+- [Compliance tests](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/compliance-tests.md) — `runComplianceTests` + interpreting results.
+- [Migration from an existing helper](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/migration-from-existing-helper.md) — function-by-function table.
+- [Troubleshooting](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/troubleshooting.md) — ZATCA error codes + Lambda OpenSSL recipe.
+- [Security](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/security.md) — secret classification, rotation, zero-logging policy.
+- [API reference](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/api-reference.md) — links to the TypeDoc-generated HTML at `docs/typedoc/index.html`.
 
 Regenerate the API reference with `pnpm docs:api`.
 
 ## Storage adapters
 
-This package does not lock you into a database. The `StorageAdapter` interface has five methods (atomic counter increment, previous-hash lookup, record invoice, load invoice, update status). We ship three reference implementations; writing your own takes ~80 lines. See [`docs/storage-adapters.md`](./docs/storage-adapters.md).
+This package does not lock you into a database. The `StorageAdapter` interface has five methods (atomic counter increment, previous-hash lookup, record invoice, load invoice, update status). We ship three reference implementations; writing your own takes ~80 lines. See [`docs/storage-adapters.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/storage-adapters.md).
 
 ## Multi-VAT / multi-tenant
 
-Pass a `TenantScope = { vatNumber, egsUuid }` into every storage call. Counters and hash chains are scoped per-tenant. Certificates are passed as parameters, never read from a global. See [`docs/multi-vat-saas.md`](./docs/multi-vat-saas.md).
+Pass a `TenantScope = { vatNumber, egsUuid }` into every storage call. Counters and hash chains are scoped per-tenant. Certificates are passed as parameters, never read from a global. See [`docs/multi-vat-saas.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/multi-vat-saas.md).
 
 ## Requirements
 
 - Node.js 20+
 - pnpm 9+ (for monorepo development)
-- OpenSSL CLI installed in the runtime environment (used for CSR generation during EGS onboarding). See [troubleshooting.md](./docs/troubleshooting.md#openssl-not-found) for Lambda / Alpine recipes.
+- OpenSSL CLI installed in the runtime environment (used for CSR generation during EGS onboarding). See [troubleshooting.md](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/troubleshooting.md#openssl-not-found) for Lambda / Alpine recipes.
 - TypeScript 5.6+ for consumers
 
 ## License
 
 This package is dual-licensed:
 
-- **Free for non-SaaS use** under the [Business Source License 1.1](./LICENSE). On 2030-05-13 (four years from the first release), the license automatically converts to Apache License 2.0.
-- **Commercial license required for SaaS / multi-tenant production use.** See [`LICENSES/COMMERCIAL.md`](./LICENSES/COMMERCIAL.md).
+- **Free for non-SaaS use** under the [Business Source License 1.1](https://github.com/dokhna/dokhna-tech-zatca/blob/main/LICENSE). On 2030-05-13 (four years from the first release), the license automatically converts to Apache License 2.0.
+- **Commercial license required for SaaS / multi-tenant production use.** See [`LICENSES/COMMERCIAL.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/LICENSES/COMMERCIAL.md).
 
 If you are unsure which applies to your use case, read the LICENSE file's "Additional Use Grant" section or contact `licensing@dokhna.tech`.
 
@@ -171,4 +171,4 @@ The BSL model is used by MariaDB, Sentry, CockroachDB, and Couchbase. It is a so
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md). Security issues: see [`SECURITY.md`](./SECURITY.md).
+See [`CONTRIBUTING.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/CONTRIBUTING.md). Security issues: see [`SECURITY.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/SECURITY.md).
