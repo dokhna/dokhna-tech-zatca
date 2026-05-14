@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/dokhna/dokhna-tech-zatca/security/policy
+    about: Do NOT open a public issue. Email security@dokhna.tech instead.
+  - name: Question or discussion
+    url: https://github.com/dokhna/dokhna-tech-zatca/discussions
+    about: Use Discussions for usage questions and open-ended ideas.
