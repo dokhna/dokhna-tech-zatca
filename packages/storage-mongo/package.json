@@ -1,6 +1,6 @@
 {
   "name": "@dokhna-tech/zatca-storage-mongo",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "description": "MongoDB (Mongoose) storage adapter for @dokhna-tech/zatca.",
   "license": "BUSL-1.1",
   "type": "module",

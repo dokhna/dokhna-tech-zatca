@@ -4,7 +4,9 @@ All notable changes to the `@dokhna-tech/zatca` family of packages are documente
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The project adheres to [Semantic Versioning](https://semver.org/) starting at `1.0.0`.
 
-## [2.0.0] — 2026-05-14
+## [2.0.1] — 2026-05-14
+
+First publicly released version under the `@dokhna-tech` scope. (`1.0.0` and `2.0.0` existed in source as drafts but were never published to npm.) All four packages publish in lockstep at this version going forward — see `### Changed` below.
 
 ### BREAKING
 
@@ -16,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The
 ### Changed
 
 - Brand spelling normalised across docs, package metadata, source, examples, and generated TypeDoc HTML: `dokhna-tach` → `dokhna-tech` (also fixed the stray `dokhna.tach` in `CODE_OF_CONDUCT.md`).
+- **Version harmonisation:** all four publishable packages (`@dokhna-tech/zatca`, `…-storage-memory`, `…-storage-mongo`, `…-storage-postgres`) are now bumped in lockstep to a single shared version (`2.0.1` here). The Changesets config moved from `linked` to `fixed` so every release bumps the whole group together, even packages with no changeset — preventing the version drift that existed before this release (core `2.0.0` while adapters were `1.0.0`).
 
 ### Fixed
 
