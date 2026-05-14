@@ -28,11 +28,11 @@
  */
 
 import { createHash, createSign } from "node:crypto";
+import { generatePhase2QR } from "../qr/phase2.js";
 import type { Base64, InvoiceHash } from "../types/branded.js";
 import { ZatcaSigningError } from "../types/errors.js";
 import { formatSignTimestamp } from "../utils/datetime.js";
 import { XMLDocument } from "../xml/document.js";
-import { generatePhase2QR } from "../qr/phase2.js";
 import { cleanUpCertificateString, extractCertificateInfo } from "./cert-info.js";
 import { getInvoiceHash } from "./hash.js";
 
@@ -158,10 +158,7 @@ const SIGNED_PROPERTIES_AFTER_SIGNING = `<xades:SignedProperties xmlns:xades="ht
                                 </xades:SignedSignatureProperties>
                             </xades:SignedProperties>`;
 
-function populateSignedProperties(
-  template: string,
-  props: SignedPropertiesProps,
-): string {
+function populateSignedProperties(template: string, props: SignedPropertiesProps): string {
   return template
     .replace("SET_SIGN_TIMESTAMP", props.sign_timestamp)
     .replace("SET_CERTIFICATE_HASH", props.certificate_hash)
@@ -271,17 +268,12 @@ function signedPropertiesIndentationFix(signed_invoice_string: string): string {
     return fixer;
   }
   const signed_props_lines = innerSegments[0].split("\n");
-  const fixed_lines: string[] = signed_props_lines.map((line) =>
-    line.slice(4, line.length),
-  );
+  const fixed_lines: string[] = signed_props_lines.map((line) => line.slice(4, line.length));
 
   const trimmed_signed_props_lines = signed_props_lines.slice(0, -1);
   const trimmed_fixed_lines = fixed_lines.slice(0, -1);
 
-  fixer = fixer.replace(
-    trimmed_signed_props_lines.join("\n"),
-    trimmed_fixed_lines.join("\n"),
-  );
+  fixer = fixer.replace(trimmed_signed_props_lines.join("\n"), trimmed_fixed_lines.join("\n"));
   return fixer;
 }
 
@@ -292,9 +284,7 @@ function signedPropertiesIndentationFix(signed_invoice_string: string): string {
  * and `SET_QR_CODE_DATA` placeholder strings in its serialised form —
  * these are produced by the Phase 3 invoice builders.
  */
-export function generateSignedXMLString(
-  params: GenerateSignatureXMLParams,
-): SignedXMLResult {
+export function generateSignedXMLString(params: GenerateSignatureXMLParams): SignedXMLResult {
   const { invoice_xml, certificate_string, private_key_string } = params;
   const invoice_copy = new XMLDocument(invoice_xml.toString({ no_header: false }));
 
@@ -305,10 +295,7 @@ export function generateSignedXMLString(
   const cert_info = extractCertificateInfo(certificate_string);
 
   // 3: Digital signature.
-  const digital_signature = createInvoiceDigitalSignature(
-    invoice_hash,
-    private_key_string,
-  );
+  const digital_signature = createInvoiceDigitalSignature(invoice_hash, private_key_string);
 
   // 4: Phase 2 QR.
   const qr = generatePhase2QR({
@@ -350,9 +337,7 @@ export function generateSignedXMLString(
 
   // 6: SignedProperties digest (sha256, hex, then base64).
   const signed_properties_hash = Buffer.from(
-    createHash("sha256")
-      .update(Buffer.from(ubl_signed_properties_for_signing))
-      .digest("hex"),
+    createHash("sha256").update(Buffer.from(ubl_signed_properties_for_signing)).digest("hex"),
   ).toString("base64");
 
   // 7: UBL extension wrapper.

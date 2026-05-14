@@ -14,8 +14,7 @@ import { ZatcaValidationError } from "../types/errors.js";
  * UUID v4 regex — 8-4-4-4-12 hex, with the version nibble fixed at
  * `4` and the variant nibble in the `[89ab]` set. Case-insensitive.
  */
-const UUID_V4_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /** Type guard — does `value` look like a v4 UUID? */
 export function isUuidV4(value: unknown): value is string {

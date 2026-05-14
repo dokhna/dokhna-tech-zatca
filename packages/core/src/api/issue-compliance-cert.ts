@@ -20,11 +20,7 @@ import type { ZatcaEnvironment } from "../types/api.js";
 import { ZatcaApiError } from "../types/errors.js";
 import { getZatcaEndpoints } from "./endpoints.js";
 import { buildOtpHeaders } from "./headers.js";
-import {
-  type HttpClientOptions,
-  type RetryOptions,
-  request,
-} from "./http-client.js";
+import { type HttpClientOptions, type RetryOptions, request } from "./http-client.js";
 
 /**
  * Inputs to {@link issueComplianceCertificate}.
@@ -91,16 +87,10 @@ export async function issueComplianceCertificate(
   params: IssueComplianceCertificateParams,
 ): Promise<IssueComplianceCertificateResult> {
   if (!params.csr) {
-    throw new ZatcaApiError(
-      "csr is required to issue a compliance certificate",
-      0,
-    );
+    throw new ZatcaApiError("csr is required to issue a compliance certificate", 0);
   }
   if (!params.otp) {
-    throw new ZatcaApiError(
-      "otp is required to issue a compliance certificate",
-      0,
-    );
+    throw new ZatcaApiError("otp is required to issue a compliance certificate", 0);
   }
 
   const endpoints = getZatcaEndpoints(params.environment);
@@ -113,10 +103,7 @@ export async function issueComplianceCertificate(
     csr: Buffer.from(params.csr).toString("base64"),
   };
 
-  const raw = await request<
-    ComplianceCertResponseBody,
-    ComplianceCertRequestBody
-  >(clientOptions, {
+  const raw = await request<ComplianceCertResponseBody, ComplianceCertRequestBody>(clientOptions, {
     method: "POST",
     path: endpoints.complianceCertificate,
     headers,
@@ -156,9 +143,7 @@ export async function issueComplianceCertificate(
     binarySecurityToken: raw.binarySecurityToken,
     apiSecret: raw.secret,
     requestId: raw.requestID,
-    ...(raw.dispositionMessage !== undefined
-      ? { dispositionMessage: raw.dispositionMessage }
-      : {}),
+    ...(raw.dispositionMessage !== undefined ? { dispositionMessage: raw.dispositionMessage } : {}),
   };
   return result;
 }

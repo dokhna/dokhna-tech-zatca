@@ -61,9 +61,7 @@ describe("cancelInvoice — error paths", () => {
       },
     };
     server.use(
-      http.post(`${BASE}/invoices/cancel/:id`, () =>
-        HttpResponse.json(envelope, { status: 400 }),
-      ),
+      http.post(`${BASE}/invoices/cancel/:id`, () => HttpResponse.json(envelope, { status: 400 })),
     );
     try {
       await cancelInvoice(INPUT);
@@ -105,8 +103,6 @@ describe("cancelInvoice — error paths", () => {
   });
 
   it("rejects when invoiceId is empty", async () => {
-    await expect(
-      cancelInvoice({ ...INPUT, invoiceId: "" }),
-    ).rejects.toBeInstanceOf(ZatcaApiError);
+    await expect(cancelInvoice({ ...INPUT, invoiceId: "" })).rejects.toBeInstanceOf(ZatcaApiError);
   });
 });

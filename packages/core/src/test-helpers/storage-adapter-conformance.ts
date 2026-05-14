@@ -54,22 +54,15 @@ export const ZATCA_BASE_INVOICE_HASH =
   "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==" as InvoiceHash;
 
 /** Sample 44-char base64 SHA-256 — `base64(sha256("a"))`. */
-const SAMPLE_HASH_A =
-  "ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=" as InvoiceHash;
+const SAMPLE_HASH_A = "ypeBEsobvcr6wjGzmiPcTaeG7/gUfE5yuYB3ha/uSLs=" as InvoiceHash;
 
 /** Sample 44-char base64 SHA-256 — `base64(sha256("b"))`. */
-const SAMPLE_HASH_B =
-  "PiPoFgA5WUoziU9lZOGxNIu9egCI1CxKy3PurtWcAJ0=" as InvoiceHash;
+const SAMPLE_HASH_B = "PiPoFgA5WUoziU9lZOGxNIu9egCI1CxKy3PurtWcAJ0=" as InvoiceHash;
 
 /** Sample 44-char base64 SHA-256 — `base64(sha256("c"))`. */
-const SAMPLE_HASH_C =
-  "Ky7AAuiTUiHQ8eiwaHEgcaGoFE6cv2P+8utR2QwHl7g=" as InvoiceHash;
+const SAMPLE_HASH_C = "Ky7AAuiTUiHQ8eiwaHEgcaGoFE6cv2P+8utR2QwHl7g=" as InvoiceHash;
 
-const SAMPLE_HASHES: ReadonlyArray<InvoiceHash> = [
-  SAMPLE_HASH_A,
-  SAMPLE_HASH_B,
-  SAMPLE_HASH_C,
-];
+const SAMPLE_HASHES: ReadonlyArray<InvoiceHash> = [SAMPLE_HASH_A, SAMPLE_HASH_B, SAMPLE_HASH_C];
 
 /**
  * Fixture helpers exposed to per-`it` blocks. Each call to
@@ -79,10 +72,7 @@ const SAMPLE_HASHES: ReadonlyArray<InvoiceHash> = [
  */
 export interface ConformanceFixtures {
   newScope(): TenantScope;
-  newInvoiceRecord(
-    scope: TenantScope,
-    overrides?: Partial<InvoiceRecord>,
-  ): InvoiceRecord;
+  newInvoiceRecord(scope: TenantScope, overrides?: Partial<InvoiceRecord>): InvoiceRecord;
 }
 
 /**
@@ -139,7 +129,7 @@ function nextScopeSeed(): number {
   scopeSeq += 1;
   // Wide spread so concurrent suites in the same process don't share
   // VATs even if scopeSeq is reset by hot-reload.
-  return Date.now() % 1_000_000_000 + scopeSeq;
+  return (Date.now() % 1_000_000_000) + scopeSeq;
 }
 
 function buildFixtures(): ConformanceFixtures {
@@ -151,10 +141,7 @@ function buildFixtures(): ConformanceFixtures {
         egsUuid: makeUuid() as EGSUuid,
       };
     },
-    newInvoiceRecord(
-      scope: TenantScope,
-      overrides?: Partial<InvoiceRecord>,
-    ): InvoiceRecord {
+    newInvoiceRecord(scope: TenantScope, overrides?: Partial<InvoiceRecord>): InvoiceRecord {
       const base: InvoiceRecord = {
         invoiceId: makeUuid(),
         kind: "simplified-tax-invoice" satisfies InvoiceKind,
@@ -238,9 +225,7 @@ export function runStorageAdapterConformance(
     it("incrementCounter is atomic under concurrent calls", async () => {
       const scope = fixtures.newScope();
       const results = await Promise.all(
-        Array.from({ length: concurrency }, () =>
-          adapter.incrementCounter(scope),
-        ),
+        Array.from({ length: concurrency }, () => adapter.incrementCounter(scope)),
       );
       const sequences = results.map((r) => r.sequence).sort((a, b) => a - b);
       const distinct = new Set(sequences);
@@ -371,11 +356,7 @@ export function runStorageAdapterConformance(
     // ---------------------------------------------------------------------
 
     it("handles multi-VAT concurrent traffic without collisions", async () => {
-      const scopes = [
-        fixtures.newScope(),
-        fixtures.newScope(),
-        fixtures.newScope(),
-      ];
+      const scopes = [fixtures.newScope(), fixtures.newScope(), fixtures.newScope()];
       const perScope = concurrency;
       // Fire perScope `incrementCounter` calls per scope, all in
       // parallel. After settlement, each scope must have seen exactly

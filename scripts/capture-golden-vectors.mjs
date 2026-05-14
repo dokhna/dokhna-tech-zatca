@@ -39,9 +39,7 @@ const FIXTURES_DIR = resolve(REPO_ROOT, "packages/core/src/fixtures");
 const KEYS_DIR = join(FIXTURES_DIR, "_keys");
 
 if (!existsSync(RWIQHA_SRC)) {
-  process.stderr.write(
-    `Rwiqha source not found at ${RWIQHA_SRC}. Skipping capture.\n`,
-  );
+  process.stderr.write(`Rwiqha source not found at ${RWIQHA_SRC}. Skipping capture.\n`);
   process.exit(2);
 }
 
@@ -115,9 +113,7 @@ try {
   ));
 } catch (err) {
   process.stderr.write(
-    `Failed to import rwiqha helper sources via tsx. ` +
-      `Run with: pnpm tsx scripts/capture-golden-vectors.mjs\n` +
-      `Underlying error: ${err.message}\n`,
+    `Failed to import rwiqha helper sources via tsx. Run with: pnpm tsx scripts/capture-golden-vectors.mjs\nUnderlying error: ${err.message}\n`,
   );
   process.exit(3);
 }
@@ -262,9 +258,7 @@ for (const scenario of SCENARIOS) {
   try {
     signed = invoice.sign(CERTIFICATE, PRIVATE_KEY);
   } catch (err) {
-    process.stderr.write(
-      `Sign step failed for ${scenario.name}: ${err.message}\n`,
-    );
+    process.stderr.write(`Sign step failed for ${scenario.name}: ${err.message}\n`);
     continue;
   }
 

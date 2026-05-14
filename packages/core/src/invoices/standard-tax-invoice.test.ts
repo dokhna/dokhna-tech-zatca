@@ -3,17 +3,10 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type {
-  StandardTaxInvoiceInput,
-} from "../types/invoice.js";
+import type { StandardTaxInvoiceInput } from "../types/invoice.js";
 import { XMLDocument } from "../xml/document.js";
+import { BASE_PIH, makeTestEgsInfo, makeTestLineItem, readTestKeys } from "./_test-helpers.js";
 import { StandardTaxInvoiceBuilder } from "./standard-tax-invoice.js";
-import {
-  BASE_PIH,
-  makeTestEgsInfo,
-  makeTestLineItem,
-  readTestKeys,
-} from "./_test-helpers.js";
 
 function makeInput(): StandardTaxInvoiceInput {
   return {

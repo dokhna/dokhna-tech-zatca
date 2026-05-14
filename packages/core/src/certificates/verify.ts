@@ -11,12 +11,7 @@
  * out of scope for a v1 helper and would require network access.
  */
 
-import {
-  X509Certificate,
-  createPrivateKey,
-  createPublicKey,
-  type KeyObject,
-} from "node:crypto";
+import { type KeyObject, X509Certificate, createPrivateKey, createPublicKey } from "node:crypto";
 import { ZatcaCertificateError } from "../types/errors.js";
 
 /**

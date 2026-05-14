@@ -11,35 +11,17 @@
  */
 
 import type { EGSUnitInfo } from "../types/egs.js";
+import { ZatcaValidationError } from "../types/errors.js";
 import type { InvoiceInput } from "../types/invoice.js";
 import type { StorageAdapter, TenantScope } from "../types/storage.js";
-import { ZatcaValidationError } from "../types/errors.js";
-import {
-  issuePhase1CreditNote,
-} from "./issue-phase1-credit-note.js";
-import {
-  issuePhase1Invoice,
-  type IssuedPhase1Invoice,
-} from "./issue-phase1-invoice.js";
-import {
-  issueSimplifiedCreditNote,
-} from "./issue-simplified-credit-note.js";
-import {
-  issueSimplifiedDebitNote,
-} from "./issue-simplified-debit-note.js";
-import {
-  issueSimplifiedTaxInvoice,
-  type IssuedInvoice,
-} from "./issue-simplified-invoice.js";
-import {
-  issueStandardCreditNote,
-} from "./issue-standard-credit-note.js";
-import {
-  issueStandardDebitNote,
-} from "./issue-standard-debit-note.js";
-import {
-  issueStandardTaxInvoice,
-} from "./issue-standard-invoice.js";
+import { issuePhase1CreditNote } from "./issue-phase1-credit-note.js";
+import { type IssuedPhase1Invoice, issuePhase1Invoice } from "./issue-phase1-invoice.js";
+import { issueSimplifiedCreditNote } from "./issue-simplified-credit-note.js";
+import { issueSimplifiedDebitNote } from "./issue-simplified-debit-note.js";
+import { type IssuedInvoice, issueSimplifiedTaxInvoice } from "./issue-simplified-invoice.js";
+import { issueStandardCreditNote } from "./issue-standard-credit-note.js";
+import { issueStandardDebitNote } from "./issue-standard-debit-note.js";
+import { issueStandardTaxInvoice } from "./issue-standard-invoice.js";
 
 /**
  * Inputs to {@link issueInvoice}.
@@ -61,9 +43,7 @@ export interface IssueInvoiceArgs {
  * {@link issueInvoice} causes this call to flag a type error.
  */
 function assertNever(value: never): never {
-  throw new ZatcaValidationError(
-    `Unhandled invoice kind: ${JSON.stringify(value)}`,
-  );
+  throw new ZatcaValidationError(`Unhandled invoice kind: ${JSON.stringify(value)}`);
 }
 
 /**
@@ -104,10 +84,7 @@ export async function issueInvoice(
     input: T,
   ): Omit<
     T,
-    | "invoiceCounterNumber"
-    | "invoiceSerialNumber"
-    | "previousInvoiceHash"
-    | "egsInfo"
+    "invoiceCounterNumber" | "invoiceSerialNumber" | "previousInvoiceHash" | "egsInfo"
   > => {
     const {
       invoiceCounterNumber: _ic,

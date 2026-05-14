@@ -96,8 +96,7 @@ function readIssueTimestamp(invoice: XMLDocument): string {
  * causes "invalid QR data" errors in the sandbox.
  */
 export function generatePhase2QR(params: Phase2QRParams): string {
-  const { invoice, invoiceHash, digitalSignature, publicKey, certificateSignature } =
-    params;
+  const { invoice, invoiceHash, digitalSignature, publicKey, certificateSignature } = params;
 
   const sellerName = readLeaf(
     invoice,
@@ -118,16 +117,12 @@ export function generatePhase2QR(params: Phase2QRParams): string {
 
   const taxTotals = invoice.get("Invoice/cac:TaxTotal");
   if (!taxTotals || taxTotals.length === 0) {
-    throw new ZatcaSigningError(
-      "Cannot generate QR: missing required invoice field TaxTotal.",
-    );
+    throw new ZatcaSigningError("Cannot generate QR: missing required invoice field TaxTotal.");
   }
   const firstTaxTotal = taxTotals[0] as { "cbc:TaxAmount"?: { "#text"?: unknown } };
   const taxAmountText = firstTaxTotal["cbc:TaxAmount"]?.["#text"];
   if (taxAmountText === undefined || taxAmountText === null) {
-    throw new ZatcaSigningError(
-      "Cannot generate QR: TaxTotal has no cbc:TaxAmount/#text value.",
-    );
+    throw new ZatcaSigningError("Cannot generate QR: TaxTotal has no cbc:TaxAmount/#text value.");
   }
   const vatTotal = String(taxAmountText);
 

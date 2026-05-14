@@ -20,7 +20,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runStorageAdapterConformance } from "@dokhna-tech/zatca/test-helpers";
 import { newDb } from "pg-mem";
-import { createPostgresStorageAdapter, type PgQueryable } from "./adapter.js";
+import { type PgQueryable, createPostgresStorageAdapter } from "./adapter.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -30,10 +30,7 @@ runStorageAdapterConformance(
   async () => {
     const db = newDb({ autoCreateForeignKeyIndices: true });
     // pg-mem's BIGSERIAL maps via `serial` — no special config needed.
-    const migration = readFileSync(
-      join(__dirname, "..", "migrations", "001_initial.sql"),
-      "utf8",
-    );
+    const migration = readFileSync(join(__dirname, "..", "migrations", "001_initial.sql"), "utf8");
     db.public.none(migration);
     const pgAdapter = db.adapters.createPg() as {
       Pool: new () => PgQueryable & { end: () => Promise<void> };

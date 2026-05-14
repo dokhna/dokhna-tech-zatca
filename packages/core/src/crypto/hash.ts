@@ -65,10 +65,7 @@ export function getInvoiceHash(invoice_xml: XMLDocument): InvoiceHash {
   // Whitespace fixups required by the ZATCA hash oracle. Removing
   // them yields a digest the sandbox rejects with
   // "Hash mismatch" — preserve verbatim from the source helper.
-  pure_invoice_string = pure_invoice_string.replace(
-    "<cbc:ProfileID>",
-    "\n    <cbc:ProfileID>",
-  );
+  pure_invoice_string = pure_invoice_string.replace("<cbc:ProfileID>", "\n    <cbc:ProfileID>");
   pure_invoice_string = pure_invoice_string.replace(
     "<cac:AccountingSupplierParty>",
     "\n    \n    <cac:AccountingSupplierParty>",
@@ -84,7 +81,7 @@ export function getInvoiceHash(invoice_xml: XMLDocument): InvoiceHash {
  * @param certificate_string base64 certificate body (no PEM headers).
  */
 export function getCertificateHash(certificate_string: string): string {
-  return Buffer.from(
-    createHash("sha256").update(certificate_string).digest("hex"),
-  ).toString("base64");
+  return Buffer.from(createHash("sha256").update(certificate_string).digest("hex")).toString(
+    "base64",
+  );
 }

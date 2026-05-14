@@ -11,10 +11,7 @@
  * `SellerInfo` input type by design.
  */
 
-import type {
-  CommercialRegistrationNumber,
-  VATNumber,
-} from "./branded.js";
+import type { CommercialRegistrationNumber, VATNumber } from "./branded.js";
 
 /**
  * Identity scheme codes accepted by ZATCA for buyer identification.

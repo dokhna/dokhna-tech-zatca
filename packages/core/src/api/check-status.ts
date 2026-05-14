@@ -12,11 +12,7 @@ import type { ZatcaEnvironment } from "../types/api.js";
 import { ZatcaApiError } from "../types/errors.js";
 import { getZatcaEndpoints } from "./endpoints.js";
 import { buildAuthHeaders } from "./headers.js";
-import {
-  type HttpClientOptions,
-  type RetryOptions,
-  request,
-} from "./http-client.js";
+import { type HttpClientOptions, type RetryOptions, request } from "./http-client.js";
 
 /**
  * Inputs to {@link checkInvoiceStatus}.
@@ -64,16 +60,10 @@ export async function checkInvoiceStatus(
     throw new ZatcaApiError("invoiceId is required for status lookup", 0);
   }
   if (!params.clearanceNumber) {
-    throw new ZatcaApiError(
-      "clearanceNumber is required for status lookup",
-      0,
-    );
+    throw new ZatcaApiError("clearanceNumber is required for status lookup", 0);
   }
   if (!params.binarySecurityToken) {
-    throw new ZatcaApiError(
-      "binarySecurityToken is required for status lookup",
-      0,
-    );
+    throw new ZatcaApiError("binarySecurityToken is required for status lookup", 0);
   }
   if (!params.apiSecret) {
     throw new ZatcaApiError("apiSecret is required for status lookup", 0);
@@ -84,10 +74,7 @@ export async function checkInvoiceStatus(
     baseUrl: endpoints.base,
     ...(params.httpOptions ?? {}),
   };
-  const headers = buildAuthHeaders(
-    params.binarySecurityToken,
-    params.apiSecret,
-  );
+  const headers = buildAuthHeaders(params.binarySecurityToken, params.apiSecret);
 
   return await request<ZatcaInvoiceStatusResult>(clientOptions, {
     method: "GET",

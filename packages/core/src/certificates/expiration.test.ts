@@ -10,9 +10,7 @@ import { getCertificateExpirationDate } from "./expiration.js";
 describe("getCertificateExpirationDate", () => {
   it("returns the notAfter date for the fixture certificate", () => {
     const keys = readTestKeys();
-    const expirationDate = getCertificateExpirationDate(
-      keys.signingCertificatePem,
-    );
+    const expirationDate = getCertificateExpirationDate(keys.signingCertificatePem);
     expect(expirationDate).toBeInstanceOf(Date);
     // The fixture cert was generated with a 10-year validity window —
     // assert it expires in the future relative to a reasonable lower
@@ -25,8 +23,6 @@ describe("getCertificateExpirationDate", () => {
   });
 
   it("throws ZatcaCertificateError on malformed PEM", () => {
-    expect(() => getCertificateExpirationDate("not-a-cert")).toThrowError(
-      ZatcaCertificateError,
-    );
+    expect(() => getCertificateExpirationDate("not-a-cert")).toThrowError(ZatcaCertificateError);
   });
 });

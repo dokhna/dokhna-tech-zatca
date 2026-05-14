@@ -47,8 +47,7 @@ export const crnSchema = z
   .transform((s): CommercialRegistrationNumber => s as CommercialRegistrationNumber);
 
 /** UUID v4 (lowercase or uppercase). */
-const UUID_V4_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export const egsUuidSchema = z
   .string()
@@ -218,8 +217,7 @@ export const simplifiedTaxInvoiceInputSchema = z
   })
   // BR-KSA-71: simplified summary invoices require buyerName.
   .refine((v) => typeof v.buyerName === "string" && v.buyerName.length > 0, {
-    message:
-      "Simplified tax invoice requires buyerName (BR-KSA-71 for summary invoices).",
+    message: "Simplified tax invoice requires buyerName (BR-KSA-71 for summary invoices).",
     path: ["buyerName"],
   });
 
@@ -240,8 +238,7 @@ export const simplifiedCreditNoteInputSchema = z
     ...invoiceCommonShape,
   })
   .refine((v) => v.cancelation !== undefined, {
-    message:
-      "Credit notes require a cancelation block referencing the original invoice.",
+    message: "Credit notes require a cancelation block referencing the original invoice.",
     path: ["cancelation"],
   });
 
@@ -251,8 +248,7 @@ export const standardCreditNoteInputSchema = z
     ...invoiceCommonShape,
   })
   .refine((v) => v.cancelation !== undefined, {
-    message:
-      "Credit notes require a cancelation block referencing the original invoice.",
+    message: "Credit notes require a cancelation block referencing the original invoice.",
     path: ["cancelation"],
   })
   .refine((v) => v.buyerInfo !== undefined, {
@@ -266,8 +262,7 @@ export const simplifiedDebitNoteInputSchema = z
     ...invoiceCommonShape,
   })
   .refine((v) => v.cancelation !== undefined, {
-    message:
-      "Debit notes require a cancelation block referencing the original invoice.",
+    message: "Debit notes require a cancelation block referencing the original invoice.",
     path: ["cancelation"],
   });
 
@@ -277,8 +272,7 @@ export const standardDebitNoteInputSchema = z
     ...invoiceCommonShape,
   })
   .refine((v) => v.cancelation !== undefined, {
-    message:
-      "Debit notes require a cancelation block referencing the original invoice.",
+    message: "Debit notes require a cancelation block referencing the original invoice.",
     path: ["cancelation"],
   })
   .refine((v) => v.buyerInfo !== undefined, {
@@ -297,8 +291,7 @@ export const phase1CreditNoteInputSchema = z
     ...invoiceCommonShape,
   })
   .refine((v) => v.cancelation !== undefined, {
-    message:
-      "Phase 1 credit notes require a cancelation block referencing the original invoice.",
+    message: "Phase 1 credit notes require a cancelation block referencing the original invoice.",
     path: ["cancelation"],
   });
 
@@ -360,26 +353,12 @@ export const invoiceInputSchema = z.discriminatedUnion("kind", [
 // Inferred types (for tests and downstream consumers)
 // ---------------------------------------------------------------------------
 
-export type SimplifiedTaxInvoiceInputParsed = z.infer<
-  typeof simplifiedTaxInvoiceInputSchema
->;
-export type StandardTaxInvoiceInputParsed = z.infer<
-  typeof standardTaxInvoiceInputSchema
->;
-export type SimplifiedCreditNoteInputParsed = z.infer<
-  typeof simplifiedCreditNoteInputSchema
->;
-export type StandardCreditNoteInputParsed = z.infer<
-  typeof standardCreditNoteInputSchema
->;
-export type SimplifiedDebitNoteInputParsed = z.infer<
-  typeof simplifiedDebitNoteInputSchema
->;
-export type StandardDebitNoteInputParsed = z.infer<
-  typeof standardDebitNoteInputSchema
->;
+export type SimplifiedTaxInvoiceInputParsed = z.infer<typeof simplifiedTaxInvoiceInputSchema>;
+export type StandardTaxInvoiceInputParsed = z.infer<typeof standardTaxInvoiceInputSchema>;
+export type SimplifiedCreditNoteInputParsed = z.infer<typeof simplifiedCreditNoteInputSchema>;
+export type StandardCreditNoteInputParsed = z.infer<typeof standardCreditNoteInputSchema>;
+export type SimplifiedDebitNoteInputParsed = z.infer<typeof simplifiedDebitNoteInputSchema>;
+export type StandardDebitNoteInputParsed = z.infer<typeof standardDebitNoteInputSchema>;
 export type Phase1InvoiceInputParsed = z.infer<typeof phase1InvoiceInputSchema>;
-export type Phase1CreditNoteInputParsed = z.infer<
-  typeof phase1CreditNoteInputSchema
->;
+export type Phase1CreditNoteInputParsed = z.infer<typeof phase1CreditNoteInputSchema>;
 export type InvoiceInputParsed = z.infer<typeof invoiceInputSchema>;

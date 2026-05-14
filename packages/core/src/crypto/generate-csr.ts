@@ -170,9 +170,7 @@ export async function generateCSR(params: CSRGenerationParams): Promise<string> 
     const marker = "-----BEGIN CERTIFICATE REQUEST-----";
     const idx = result.stdout.indexOf(marker);
     if (idx === -1) {
-      throw new ZatcaOnboardingError(
-        "openssl req produced no CSR in its output.",
-      );
+      throw new ZatcaOnboardingError("openssl req produced no CSR in its output.");
     }
     return result.stdout.slice(idx).trim();
   } catch (cause) {

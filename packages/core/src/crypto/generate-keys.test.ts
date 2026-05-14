@@ -7,8 +7,8 @@
  * openssl-probe sibling test).
  */
 
-import { describe, expect, it } from "vitest";
 import { createPrivateKey } from "node:crypto";
+import { describe, expect, it } from "vitest";
 import { generateSecp256k1KeyPair } from "./generate-keys.js";
 
 describe("generateSecp256k1KeyPair", () => {

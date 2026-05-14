@@ -9,21 +9,18 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { Phase1CreditNoteBuilder } from "../invoices/phase1-credit-note.js";
 import type { InvoiceHash } from "../types/branded.js";
 import type { EGSUnitInfo } from "../types/egs.js";
+import { ZatcaValidationError } from "../types/errors.js";
 import type { Phase1CreditNoteInput } from "../types/invoice.js";
 import type { StorageAdapter, TenantScope } from "../types/storage.js";
-import { ZatcaValidationError } from "../types/errors.js";
-import { Phase1CreditNoteBuilder } from "../invoices/phase1-credit-note.js";
 import type { IssuedPhase1Invoice } from "./issue-phase1-invoice.js";
 
 export interface IssuePhase1CreditNoteArgs {
   input: Omit<
     Phase1CreditNoteInput,
-    | "egsInfo"
-    | "invoiceCounterNumber"
-    | "invoiceSerialNumber"
-    | "previousInvoiceHash"
+    "egsInfo" | "invoiceCounterNumber" | "invoiceSerialNumber" | "previousInvoiceHash"
   >;
   egsInfo: EGSUnitInfo;
   storage: StorageAdapter;
@@ -59,9 +56,7 @@ export async function issuePhase1CreditNote(
   args: IssuePhase1CreditNoteArgs,
 ): Promise<IssuedPhase1Invoice> {
   assertScope(args.egsInfo, args.scope);
-  const { sequence, invoiceNumber } = await args.storage.incrementCounter(
-    args.scope,
-  );
+  const { sequence, invoiceNumber } = await args.storage.incrementCounter(args.scope);
 
   const BASE_PIH =
     "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==" as InvoiceHash;

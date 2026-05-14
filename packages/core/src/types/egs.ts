@@ -9,12 +9,7 @@
  * XML expects.
  */
 
-import type {
-  Base64,
-  CommercialRegistrationNumber,
-  EGSUuid,
-  VATNumber,
-} from "./branded.js";
+import type { Base64, CommercialRegistrationNumber, EGSUuid, VATNumber } from "./branded.js";
 
 /**
  * Postal address of the EGS unit. All fields are required by ZATCA.

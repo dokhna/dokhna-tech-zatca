@@ -8,12 +8,12 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { Phase1InvoiceBuilder } from "../invoices/phase1-invoice.js";
 import type { Base64, InvoiceHash } from "../types/branded.js";
 import type { EGSUnitInfo } from "../types/egs.js";
+import { ZatcaValidationError } from "../types/errors.js";
 import type { Phase1InvoiceInput } from "../types/invoice.js";
 import type { StorageAdapter, TenantScope } from "../types/storage.js";
-import { ZatcaValidationError } from "../types/errors.js";
-import { Phase1InvoiceBuilder } from "../invoices/phase1-invoice.js";
 
 /**
  * Result returned by Phase 1 issuers.
@@ -28,10 +28,7 @@ export interface IssuedPhase1Invoice {
 export interface IssuePhase1InvoiceArgs {
   input: Omit<
     Phase1InvoiceInput,
-    | "egsInfo"
-    | "invoiceCounterNumber"
-    | "invoiceSerialNumber"
-    | "previousInvoiceHash"
+    "egsInfo" | "invoiceCounterNumber" | "invoiceSerialNumber" | "previousInvoiceHash"
   >;
   egsInfo: EGSUnitInfo;
   storage: StorageAdapter;
@@ -67,9 +64,7 @@ export async function issuePhase1Invoice(
   args: IssuePhase1InvoiceArgs,
 ): Promise<IssuedPhase1Invoice> {
   assertScope(args.egsInfo, args.scope);
-  const { sequence, invoiceNumber } = await args.storage.incrementCounter(
-    args.scope,
-  );
+  const { sequence, invoiceNumber } = await args.storage.incrementCounter(args.scope);
 
   const BASE_PIH =
     "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==" as InvoiceHash;

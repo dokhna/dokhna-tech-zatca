@@ -88,9 +88,7 @@ describe("XMLDocument — delete", () => {
 
   it("deletes a predicate-matched array element", () => {
     const doc = new XMLDocument(SAMPLE_INVOICE_XML);
-    expect(
-      doc.delete("Invoice/cac:AdditionalDocumentReference", { "cbc:ID": "QR" }),
-    ).toBe(true);
+    expect(doc.delete("Invoice/cac:AdditionalDocumentReference", { "cbc:ID": "QR" })).toBe(true);
     const remaining = doc.get("Invoice/cac:AdditionalDocumentReference");
     expect(remaining?.length).toBe(1);
     expect((remaining?.[0] as { "cbc:ID": string })["cbc:ID"]).toBe("ICV");
@@ -110,13 +108,11 @@ describe("XMLDocument — toString", () => {
 
   it("strips the XML header when no_header is true", () => {
     const doc = new XMLDocument(SAMPLE_INVOICE_XML);
-    expect(doc.toString({ no_header: true })).not.toContain('<?xml ');
+    expect(doc.toString({ no_header: true })).not.toContain("<?xml ");
   });
 
   it("converts &apos; back to a literal single quote", () => {
-    const doc = new XMLDocument(
-      `<root><cbc:Name>it's a name</cbc:Name></root>`,
-    );
+    const doc = new XMLDocument(`<root><cbc:Name>it's a name</cbc:Name></root>`);
     const out = doc.toString({ no_header: true });
     expect(out).toContain("it's a name");
     expect(out).not.toContain("&apos;");

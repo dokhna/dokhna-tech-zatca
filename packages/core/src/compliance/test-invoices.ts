@@ -56,35 +56,17 @@ type IssuerOverlaid =
   | "previousInvoiceHash";
 
 /** Input for {@link issueSimplifiedTaxInvoice} (issuer fields removed). */
-export type SimplifiedInvoiceScenarioInput = Omit<
-  SimplifiedTaxInvoiceInput,
-  IssuerOverlaid
->;
+export type SimplifiedInvoiceScenarioInput = Omit<SimplifiedTaxInvoiceInput, IssuerOverlaid>;
 /** Input for {@link issueStandardTaxInvoice} (issuer fields removed). */
-export type StandardInvoiceScenarioInput = Omit<
-  StandardTaxInvoiceInput,
-  IssuerOverlaid
->;
+export type StandardInvoiceScenarioInput = Omit<StandardTaxInvoiceInput, IssuerOverlaid>;
 /** Input for {@link issueSimplifiedCreditNote}. */
-export type SimplifiedCreditNoteScenarioInput = Omit<
-  SimplifiedCreditNoteInput,
-  IssuerOverlaid
->;
+export type SimplifiedCreditNoteScenarioInput = Omit<SimplifiedCreditNoteInput, IssuerOverlaid>;
 /** Input for {@link issueStandardCreditNote}. */
-export type StandardCreditNoteScenarioInput = Omit<
-  StandardCreditNoteInput,
-  IssuerOverlaid
->;
+export type StandardCreditNoteScenarioInput = Omit<StandardCreditNoteInput, IssuerOverlaid>;
 /** Input for {@link issueSimplifiedDebitNote}. */
-export type SimplifiedDebitNoteScenarioInput = Omit<
-  SimplifiedDebitNoteInput,
-  IssuerOverlaid
->;
+export type SimplifiedDebitNoteScenarioInput = Omit<SimplifiedDebitNoteInput, IssuerOverlaid>;
 /** Input for {@link issueStandardDebitNote}. */
-export type StandardDebitNoteScenarioInput = Omit<
-  StandardDebitNoteInput,
-  IssuerOverlaid
->;
+export type StandardDebitNoteScenarioInput = Omit<StandardDebitNoteInput, IssuerOverlaid>;
 
 /**
  * Optional date overrides applied to every scenario factory.

@@ -5,7 +5,6 @@
 import { describe, expect, it } from "vitest";
 import type { SimplifiedDebitNoteInput } from "../types/invoice.js";
 import { XMLDocument } from "../xml/document.js";
-import { SimplifiedDebitNoteBuilder } from "./simplified-debit-note.js";
 import {
   BASE_PIH,
   makeTestCancelation,
@@ -13,6 +12,7 @@ import {
   makeTestLineItem,
   readTestKeys,
 } from "./_test-helpers.js";
+import { SimplifiedDebitNoteBuilder } from "./simplified-debit-note.js";
 
 function makeInput(): SimplifiedDebitNoteInput {
   return {

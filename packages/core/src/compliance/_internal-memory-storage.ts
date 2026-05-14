@@ -16,13 +16,13 @@
  */
 
 import type { InvoiceHash } from "../types/branded.js";
+import { ZatcaStorageError } from "../types/errors.js";
 import type {
   InvoiceRecord,
   InvoiceStatus,
   StorageAdapter,
   TenantScope,
 } from "../types/storage.js";
-import { ZatcaStorageError } from "../types/errors.js";
 
 const BASE_PIH =
   "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==" as InvoiceHash;
@@ -59,16 +59,10 @@ export function createInternalMemoryStorage(): StorageAdapter {
     async loadInvoice(scope: TenantScope, invoiceId: string) {
       return records.get(`${scopeKey(scope)}:${invoiceId}`) ?? null;
     },
-    async updateInvoiceStatus(
-      scope: TenantScope,
-      invoiceId: string,
-      status: InvoiceStatus,
-    ) {
+    async updateInvoiceStatus(scope: TenantScope, invoiceId: string, status: InvoiceStatus) {
       const existing = records.get(`${scopeKey(scope)}:${invoiceId}`);
       if (existing === undefined) {
-        throw new ZatcaStorageError(
-          `updateInvoiceStatus called for unknown invoice ${invoiceId}.`,
-        );
+        throw new ZatcaStorageError(`updateInvoiceStatus called for unknown invoice ${invoiceId}.`);
       }
       records.set(`${scopeKey(scope)}:${invoiceId}`, { ...existing, status });
     },

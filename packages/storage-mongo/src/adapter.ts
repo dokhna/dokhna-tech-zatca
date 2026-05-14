@@ -14,8 +14,6 @@
  *   matches; conflicting payloads throw `ZatcaStorageError`.
  */
 
-import debug from "debug";
-import type { Connection } from "mongoose";
 import type {
   InvoiceHash,
   InvoiceKind,
@@ -25,7 +23,9 @@ import type {
   TenantScope,
 } from "@dokhna-tech/zatca";
 import { ZatcaStorageError } from "@dokhna-tech/zatca";
-import { buildModels, type CounterDoc, type InvoiceDoc } from "./schema.js";
+import debug from "debug";
+import type { Connection } from "mongoose";
+import { type CounterDoc, type InvoiceDoc, buildModels } from "./schema.js";
 
 const log = debug("zatca:storage:mongo");
 
@@ -116,9 +116,7 @@ function recordsEqual(a: InvoiceRecord, b: InvoiceRecord): boolean {
  * The adapter never owns the connection. Callers are responsible for
  * `mongoose.connect` / `disconnect` lifecycle.
  */
-export function createMongoStorageAdapter(
-  options: MongoStorageAdapterOptions,
-): StorageAdapter {
+export function createMongoStorageAdapter(options: MongoStorageAdapterOptions): StorageAdapter {
   const { connection } = options;
   const formatInvoiceNumber = options.formatInvoiceNumber ?? defaultFormatter;
   const clock = options.now ?? (() => new Date());
@@ -216,12 +214,7 @@ export function createMongoStorageAdapter(
           insert.validationResults = record.validationResults;
         }
         await InvoiceModel.create(insert);
-        log(
-          "recordInvoice scope=%s/%s id=%s",
-          scope.vatNumber,
-          scope.egsUuid,
-          record.invoiceId,
-        );
+        log("recordInvoice scope=%s/%s id=%s", scope.vatNumber, scope.egsUuid, record.invoiceId);
       } catch (err) {
         // Duplicate key (race between our lookup + create) — re-resolve
         // by reading the existing row and applying the same equality
@@ -264,9 +257,7 @@ export function createMongoStorageAdapter(
         { $set: { status } },
       );
       if (result.matchedCount === 0) {
-        throw new ZatcaStorageError(
-          `updateInvoiceStatus called for unknown invoice ${invoiceId}.`,
-        );
+        throw new ZatcaStorageError(`updateInvoiceStatus called for unknown invoice ${invoiceId}.`);
       }
       log(
         "updateInvoiceStatus scope=%s/%s id=%s status=%s",

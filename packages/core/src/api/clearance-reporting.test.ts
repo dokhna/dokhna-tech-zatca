@@ -125,16 +125,10 @@ describe("singleInvoiceReportingOrClearanceStatus — error paths", () => {
   it("surfaces validation envelope on 400 (clearance)", async () => {
     const envelope = {
       validationResults: {
-        errorMessages: [
-          { code: "X", message: "bad", category: "ERROR-INVOICE", status: "ERROR" },
-        ],
+        errorMessages: [{ code: "X", message: "bad", category: "ERROR-INVOICE", status: "ERROR" }],
       },
     };
-    server.use(
-      http.post(CLEARANCE_URL, () =>
-        HttpResponse.json(envelope, { status: 400 }),
-      ),
-    );
+    server.use(http.post(CLEARANCE_URL, () => HttpResponse.json(envelope, { status: 400 })));
     try {
       await singleInvoiceReportingOrClearanceStatus({
         ...INPUT_BASE,

@@ -12,9 +12,9 @@
  * decoupled from `IInvoice`.
  */
 
+import { generatePhase1QR } from "../qr/phase1.js";
 import type { Base64 } from "../types/branded.js";
 import type { Phase1InvoiceInput } from "../types/invoice.js";
-import { generatePhase1QR } from "../qr/phase1.js";
 import { XMLDocument } from "../xml/document.js";
 
 /**

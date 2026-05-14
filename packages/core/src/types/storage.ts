@@ -41,12 +41,7 @@ export interface TenantScope {
  * - `cancelled` — explicitly cancelled by the user (rare; ZATCA
  *                  prefers credit notes for amendment).
  */
-export type InvoiceStatus =
-  | "pending"
-  | "submitted"
-  | "accepted"
-  | "rejected"
-  | "cancelled";
+export type InvoiceStatus = "pending" | "submitted" | "accepted" | "rejected" | "cancelled";
 
 /**
  * Persistent counter row.
@@ -127,21 +122,9 @@ export interface InvoiceRecord {
  * - `updateInvoiceStatus`  — transition the lifecycle state.
  */
 export interface StorageAdapter {
-  incrementCounter(
-    scope: TenantScope,
-  ): Promise<{ sequence: number; invoiceNumber: string }>;
-  getPreviousHash(
-    scope: TenantScope,
-    invoiceKind?: InvoiceKind,
-  ): Promise<InvoiceHash>;
+  incrementCounter(scope: TenantScope): Promise<{ sequence: number; invoiceNumber: string }>;
+  getPreviousHash(scope: TenantScope, invoiceKind?: InvoiceKind): Promise<InvoiceHash>;
   recordInvoice(scope: TenantScope, record: InvoiceRecord): Promise<void>;
-  loadInvoice(
-    scope: TenantScope,
-    invoiceId: string,
-  ): Promise<InvoiceRecord | null>;
-  updateInvoiceStatus(
-    scope: TenantScope,
-    invoiceId: string,
-    status: InvoiceStatus,
-  ): Promise<void>;
+  loadInvoice(scope: TenantScope, invoiceId: string): Promise<InvoiceRecord | null>;
+  updateInvoiceStatus(scope: TenantScope, invoiceId: string, status: InvoiceStatus): Promise<void>;
 }

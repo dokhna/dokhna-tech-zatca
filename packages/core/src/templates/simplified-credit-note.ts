@@ -94,9 +94,7 @@ const TEMPLATE = /* XML */ `
  * (the credit-note variant should always carry one in practice, but
  * the legacy fallback is preserved for parity).
  */
-export function populateSimplifiedCreditNoteTemplate(
-  input: SimplifiedCreditNoteInput,
-): string {
+export function populateSimplifiedCreditNoteTemplate(input: SimplifiedCreditNoteInput): string {
   const invoiceType = input.cancelation
     ? input.cancelation.cancelationType
     : ZATCA_INVOICE_TYPES.INVOICE;

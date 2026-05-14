@@ -89,9 +89,7 @@ const TEMPLATE = /* XML */ `
  * legacy behaviour where an "invoice cancellation" can be encoded as
  * a tax invoice rather than a credit / debit note).
  */
-export function populateSimplifiedTaxInvoiceTemplate(
-  input: SimplifiedTaxInvoiceInput,
-): string {
+export function populateSimplifiedTaxInvoiceTemplate(input: SimplifiedTaxInvoiceInput): string {
   const invoiceType = input.cancelation
     ? input.cancelation.cancelationType
     : ZATCA_INVOICE_TYPES.INVOICE;

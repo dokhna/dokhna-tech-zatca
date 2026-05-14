@@ -46,7 +46,7 @@ describe("issueComplianceCertificate — happy path", () => {
     );
     const out = await issueComplianceCertificate(INPUT);
     expect(otp).toBe("123456");
-    expect(body["csr"]).toBe(Buffer.from(FAKE_CSR).toString("base64"));
+    expect(body.csr).toBe(Buffer.from(FAKE_CSR).toString("base64"));
     expect(out.binarySecurityToken).toBe(FAKE_TOKEN_B64);
     expect(out.apiSecret).toBe("SECRET-XYZ");
     expect(out.requestId).toBe("REQ-1");
@@ -60,9 +60,7 @@ describe("issueComplianceCertificate — happy path", () => {
 describe("issueComplianceCertificate — error paths", () => {
   it("throws ZatcaApiError(400) when OTP is rejected", async () => {
     server.use(
-      http.post(URL, () =>
-        HttpResponse.json({ message: "invalid otp" }, { status: 400 }),
-      ),
+      http.post(URL, () => HttpResponse.json({ message: "invalid otp" }, { status: 400 })),
     );
     try {
       await issueComplianceCertificate(INPUT);
@@ -106,25 +104,19 @@ describe("issueComplianceCertificate — error paths", () => {
   });
 
   it("rejects 200-response missing binarySecurityToken", async () => {
-    server.use(
-      http.post(URL, () =>
-        HttpResponse.json({ secret: "S", requestID: "R" }),
-      ),
-    );
-    await expect(issueComplianceCertificate(INPUT)).rejects.toBeInstanceOf(
+    server.use(http.post(URL, () => HttpResponse.json({ secret: "S", requestID: "R" })));
+    await expect(issueComplianceCertificate(INPUT)).rejects.toBeInstanceOf(ZatcaApiError);
+  });
+
+  it("rejects when csr is missing", async () => {
+    await expect(issueComplianceCertificate({ ...INPUT, csr: "" })).rejects.toBeInstanceOf(
       ZatcaApiError,
     );
   });
 
-  it("rejects when csr is missing", async () => {
-    await expect(
-      issueComplianceCertificate({ ...INPUT, csr: "" }),
-    ).rejects.toBeInstanceOf(ZatcaApiError);
-  });
-
   it("rejects when otp is missing", async () => {
-    await expect(
-      issueComplianceCertificate({ ...INPUT, otp: "" }),
-    ).rejects.toBeInstanceOf(ZatcaApiError);
+    await expect(issueComplianceCertificate({ ...INPUT, otp: "" })).rejects.toBeInstanceOf(
+      ZatcaApiError,
+    );
   });
 });

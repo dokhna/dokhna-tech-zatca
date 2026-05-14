@@ -22,8 +22,6 @@
  *   so the hash-chain head and the records map stay consistent.
  */
 
-import { Mutex } from "async-mutex";
-import debug from "debug";
 import type {
   InvoiceHash,
   InvoiceKind,
@@ -33,6 +31,8 @@ import type {
   TenantScope,
 } from "@dokhna-tech/zatca";
 import { ZatcaStorageError } from "@dokhna-tech/zatca";
+import { Mutex } from "async-mutex";
+import debug from "debug";
 
 const log = debug("zatca:storage:memory");
 
@@ -193,12 +193,7 @@ export function createMemoryStorageAdapter(
         cell.records.set(record.invoiceId, record);
         cell.chainHead.set("__any__", record.invoiceHash);
         cell.chainHead.set(record.kind, record.invoiceHash);
-        log(
-          "recordInvoice scope=%s id=%s kind=%s",
-          scopeKey(scope),
-          record.invoiceId,
-          record.kind,
-        );
+        log("recordInvoice scope=%s id=%s kind=%s", scopeKey(scope), record.invoiceId, record.kind);
       });
     },
 
@@ -211,9 +206,7 @@ export function createMemoryStorageAdapter(
     async updateInvoiceStatus(scope, invoiceId, status: InvoiceStatus) {
       const cell = scopes.get(scopeKey(scope));
       if (cell === undefined) {
-        throw new ZatcaStorageError(
-          `updateInvoiceStatus called for unknown invoice ${invoiceId}.`,
-        );
+        throw new ZatcaStorageError(`updateInvoiceStatus called for unknown invoice ${invoiceId}.`);
       }
       await cell.mutex.runExclusive(() => {
         const existing = cell.records.get(invoiceId);
@@ -223,12 +216,7 @@ export function createMemoryStorageAdapter(
           );
         }
         cell.records.set(invoiceId, { ...existing, status });
-        log(
-          "updateInvoiceStatus scope=%s id=%s status=%s",
-          scopeKey(scope),
-          invoiceId,
-          status,
-        );
+        log("updateInvoiceStatus scope=%s id=%s status=%s", scopeKey(scope), invoiceId, status);
       });
     },
   };

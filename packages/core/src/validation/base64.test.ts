@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ZatcaValidationError } from "../types/errors.js";
-import {
-  asBase64,
-  asInvoiceHash,
-  isBase64,
-  isInvoiceHash,
-} from "./base64.js";
+import { asBase64, asInvoiceHash, isBase64, isInvoiceHash } from "./base64.js";
 
 describe("asBase64", () => {
   it("accepts unpadded base64", () => {
@@ -44,8 +39,7 @@ describe("isBase64", () => {
 
 describe("asInvoiceHash", () => {
   // 32 bytes of base64 is 44 chars ending with '='. Build a stable one.
-  const VALID_HASH =
-    "OWNiNzFlYmEzMGE1MDA0MGFhM2UwMzRhMzU1ZWUzMmI=";
+  const VALID_HASH = "OWNiNzFlYmEzMGE1MDA0MGFhM2UwMzRhMzU1ZWUzMmI=";
 
   it("accepts a 44-char base64 hash ending with '='", () => {
     expect(asInvoiceHash(VALID_HASH)).toBe(VALID_HASH);
@@ -57,17 +51,15 @@ describe("asInvoiceHash", () => {
 
   it("rejects hashes without trailing '='", () => {
     // 44 chars but no '=' at end.
-    expect(() =>
-      asInvoiceHash("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqr"),
-    ).toThrow(ZatcaValidationError);
+    expect(() => asInvoiceHash("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqr")).toThrow(
+      ZatcaValidationError,
+    );
   });
 });
 
 describe("isInvoiceHash", () => {
   it("validates the same shape", () => {
-    expect(isInvoiceHash("OWNiNzFlYmEzMGE1MDA0MGFhM2UwMzRhMzU1ZWUzMmI=")).toBe(
-      true,
-    );
+    expect(isInvoiceHash("OWNiNzFlYmEzMGE1MDA0MGFhM2UwMzRhMzU1ZWUzMmI=")).toBe(true);
     expect(isInvoiceHash("nope")).toBe(false);
   });
 });

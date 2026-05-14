@@ -99,5 +99,4 @@ export const ZATCA_ENVIRONMENTS = {
 } as const;
 
 /** Literal union of supported ZATCA environment names. */
-export type ZatcaEnvironment =
-  (typeof ZATCA_ENVIRONMENTS)[keyof typeof ZATCA_ENVIRONMENTS];
+export type ZatcaEnvironment = (typeof ZATCA_ENVIRONMENTS)[keyof typeof ZATCA_ENVIRONMENTS];

@@ -13,12 +13,12 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { SimplifiedTaxInvoiceBuilder } from "../invoices/simplified-tax-invoice.js";
 import type { Base64, InvoiceHash } from "../types/branded.js";
 import type { EGSUnitInfo } from "../types/egs.js";
+import { ZatcaValidationError } from "../types/errors.js";
 import type { SimplifiedTaxInvoiceInput } from "../types/invoice.js";
 import type { StorageAdapter, TenantScope } from "../types/storage.js";
-import { ZatcaValidationError } from "../types/errors.js";
-import { SimplifiedTaxInvoiceBuilder } from "../invoices/simplified-tax-invoice.js";
 
 /**
  * Result returned by every Phase 2 issuer function.
@@ -49,10 +49,7 @@ export interface IssuedInvoice {
 export interface IssueSimplifiedTaxInvoiceArgs {
   input: Omit<
     SimplifiedTaxInvoiceInput,
-    | "egsInfo"
-    | "invoiceCounterNumber"
-    | "invoiceSerialNumber"
-    | "previousInvoiceHash"
+    "egsInfo" | "invoiceCounterNumber" | "invoiceSerialNumber" | "previousInvoiceHash"
   >;
   egsInfo: EGSUnitInfo;
   storage: StorageAdapter;
@@ -126,9 +123,7 @@ export async function issueSimplifiedTaxInvoice(
   args: IssueSimplifiedTaxInvoiceArgs,
 ): Promise<IssuedInvoice> {
   assertScope(args.egsInfo, args.scope);
-  const { sequence, invoiceNumber } = await args.storage.incrementCounter(
-    args.scope,
-  );
+  const { sequence, invoiceNumber } = await args.storage.incrementCounter(args.scope);
   const previousInvoiceHash = await args.storage.getPreviousHash(
     args.scope,
     "simplified-tax-invoice",

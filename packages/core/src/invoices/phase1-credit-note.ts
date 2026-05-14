@@ -10,9 +10,9 @@
  * `zatca.generate.phase1.credit.note.function.ts`.
  */
 
+import { generatePhase1QR } from "../qr/phase1.js";
 import type { Base64 } from "../types/branded.js";
 import type { Phase1CreditNoteInput } from "../types/invoice.js";
-import { generatePhase1QR } from "../qr/phase1.js";
 import { XMLDocument } from "../xml/document.js";
 
 export interface BuiltPhase1CreditNote {
@@ -46,8 +46,7 @@ export class Phase1CreditNoteBuilder {
     const { subtotal, vatAmount, total } = computeTotals(this.input);
     const seller = this.input.egsInfo;
     const buyerName = this.input.buyerName ?? "Customer";
-    const originalInvoiceNumber =
-      this.input.cancelation?.canceledInvoiceNumber.toString() ?? "";
+    const originalInvoiceNumber = this.input.cancelation?.canceledInvoiceNumber.toString() ?? "";
 
     const linesXml = this.input.lineItems
       .map((item, index) => {

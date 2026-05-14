@@ -92,25 +92,17 @@ const DEFAULT_RETRY: RetryOptions = {
 const SUCCESS_STATUSES: ReadonlySet<number> = new Set([200, 202]);
 
 /** Pluck the `requestId`-like field out of a parsed body or response. */
-function extractRequestId(
-  response: Response,
-  parsed: unknown,
-): string | undefined {
+function extractRequestId(response: Response, parsed: unknown): string | undefined {
   // ZATCA's gateway surfaces a request identifier in a few different
   // shapes across endpoints. Check the common ones.
-  const headerCandidates = [
-    "x-request-id",
-    "x-requestid",
-    "request-id",
-    "dxaddress",
-  ];
+  const headerCandidates = ["x-request-id", "x-requestid", "request-id", "dxaddress"];
   for (const name of headerCandidates) {
     const value = response.headers.get(name);
     if (value) return value;
   }
   if (parsed && typeof parsed === "object") {
     const body = parsed as Record<string, unknown>;
-    const id = body["requestID"] ?? body["requestId"] ?? body["request_id"];
+    const id = body.requestID ?? body.requestId ?? body.request_id;
     if (typeof id === "string") return id;
     if (typeof id === "number") return String(id);
   }
@@ -121,7 +113,7 @@ function extractRequestId(
 function extractValidationResults(parsed: unknown): unknown {
   if (parsed && typeof parsed === "object") {
     const body = parsed as Record<string, unknown>;
-    if ("validationResults" in body) return body["validationResults"];
+    if ("validationResults" in body) return body.validationResults;
   }
   return undefined;
 }
@@ -172,11 +164,7 @@ function isRetryableError(error: unknown): boolean {
 /**
  * Build the full URL for a request. `query` keys are encoded.
  */
-function buildUrl(
-  baseUrl: string,
-  path: string,
-  query?: Readonly<Record<string, string>>,
-): string {
+function buildUrl(baseUrl: string, path: string, query?: Readonly<Record<string, string>>): string {
   const url = `${baseUrl}${path}`;
   if (!query) return url;
   const params = new URLSearchParams();
@@ -213,8 +201,7 @@ export async function request<TResponse, TBody = unknown>(
     ...(args.headers ?? {}),
   };
 
-  const bodyString =
-    args.body === undefined ? undefined : JSON.stringify(args.body);
+  const bodyString = args.body === undefined ? undefined : JSON.stringify(args.body);
 
   let lastError: unknown;
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
@@ -257,12 +244,7 @@ export async function request<TResponse, TBody = unknown>(
       const parsed = await readBody(response);
       const requestId = extractRequestId(response, parsed);
       const validationResults = extractValidationResults(parsed);
-      debug(
-        "fail %s %s -> %d (terminal)",
-        args.method,
-        args.path,
-        response.status,
-      );
+      debug("fail %s %s -> %d (terminal)", args.method, args.path, response.status);
       throw new ZatcaApiError(
         `ZATCA API request failed with status ${response.status}`,
         response.status,

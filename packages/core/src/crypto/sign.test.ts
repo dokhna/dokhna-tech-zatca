@@ -79,11 +79,9 @@ beforeAll(async () => {
   const dir = tmpdir();
   const keyPath = join(dir, `${randomUUID()}.pem`);
   const certPath = join(dir, `${randomUUID()}.pem`);
-  spawnSync(
-    "openssl",
-    ["ecparam", "-name", "secp256k1", "-genkey", "-noout", "-out", keyPath],
-    { stdio: "ignore" },
-  );
+  spawnSync("openssl", ["ecparam", "-name", "secp256k1", "-genkey", "-noout", "-out", keyPath], {
+    stdio: "ignore",
+  });
   spawnSync(
     "openssl",
     [
@@ -118,7 +116,7 @@ afterAll(async () => {
 
 describe("cleanUpPrivateKeyString", () => {
   it("strips PEM framing", () => {
-    const pem = `-----BEGIN EC PRIVATE KEY-----\nABC123\n-----END EC PRIVATE KEY-----`;
+    const pem = "-----BEGIN EC PRIVATE KEY-----\nABC123\n-----END EC PRIVATE KEY-----";
     expect(cleanUpPrivateKeyString(pem)).toBe("ABC123");
   });
 });

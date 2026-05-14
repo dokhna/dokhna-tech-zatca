@@ -16,10 +16,7 @@ import type {
   VATNumber,
 } from "../types/branded.js";
 import type { EGSUnitInfo } from "../types/egs.js";
-import type {
-  ZATCAInvoiceCancelation,
-  ZATCAInvoiceLineItem,
-} from "../types/invoice.js";
+import type { ZATCAInvoiceCancelation, ZATCAInvoiceLineItem } from "../types/invoice.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -32,14 +29,8 @@ export function readTestKeys(): {
   signingPrivateKeyPem: string;
 } {
   return {
-    signingCertificatePem: readFileSync(
-      join(KEYS_DIR, "test-cert.pem"),
-      "utf8",
-    ),
-    signingPrivateKeyPem: readFileSync(
-      join(KEYS_DIR, "test-key.pem"),
-      "utf8",
-    ),
+    signingCertificatePem: readFileSync(join(KEYS_DIR, "test-cert.pem"), "utf8"),
+    signingPrivateKeyPem: readFileSync(join(KEYS_DIR, "test-key.pem"), "utf8"),
   };
 }
 

@@ -7,6 +7,7 @@
  * the `<cac:BillingReference>` substitution in the template.
  */
 
+import { populateSimplifiedCreditNoteTemplate } from "../templates/simplified-credit-note.js";
 import type {
   SimplifiedCreditNoteInput,
   ZATCAInvoiceLineItem,
@@ -14,11 +15,7 @@ import type {
 } from "../types/invoice.js";
 import { ZATCA_INVOICE_TYPES } from "../types/invoice.js";
 import type { XMLObject } from "../xml/document.js";
-import { populateSimplifiedCreditNoteTemplate } from "../templates/simplified-credit-note.js";
-import {
-  BaseInvoiceBuilder,
-  type LineItemTotals,
-} from "./base.js";
+import { BaseInvoiceBuilder, type LineItemTotals } from "./base.js";
 import {
   buildInvoiceLegalMonetaryTotal,
   buildInvoiceLineItemTotals,
@@ -30,9 +27,7 @@ export class SimplifiedCreditNoteBuilder extends BaseInvoiceBuilder<SimplifiedCr
     return populateSimplifiedCreditNoteTemplate(input);
   }
 
-  protected override buildLineItemTotals(
-    lineItem: ZATCAInvoiceLineItem,
-  ): LineItemTotals {
+  protected override buildLineItemTotals(lineItem: ZATCAInvoiceLineItem): LineItemTotals {
     return buildInvoiceLineItemTotals(lineItem);
   }
 
@@ -42,10 +37,7 @@ export class SimplifiedCreditNoteBuilder extends BaseInvoiceBuilder<SimplifiedCr
     return buildInvoiceTaxTotal(lineItems);
   }
 
-  protected override buildLegalMonetaryTotal(
-    totalSubtotal: number,
-    totalTaxes: number,
-  ): XMLObject {
+  protected override buildLegalMonetaryTotal(totalSubtotal: number, totalTaxes: number): XMLObject {
     return buildInvoiceLegalMonetaryTotal(totalSubtotal, totalTaxes);
   }
 

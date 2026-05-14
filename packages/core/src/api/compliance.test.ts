@@ -63,11 +63,9 @@ describe("checkInvoiceCompliance — happy path", () => {
       }),
     );
     await checkInvoiceCompliance(VALID_INPUT);
-    expect(received["uuid"]).toBe(VALID_INPUT.egsUuid);
-    expect(received["invoiceHash"]).toBe(VALID_INPUT.invoiceHash);
-    expect(received["invoice"]).toBe(
-      Buffer.from(VALID_INPUT.signedInvoiceXml).toString("base64"),
-    );
+    expect(received.uuid).toBe(VALID_INPUT.egsUuid);
+    expect(received.invoiceHash).toBe(VALID_INPUT.invoiceHash);
+    expect(received.invoice).toBe(Buffer.from(VALID_INPUT.signedInvoiceXml).toString("base64"));
   });
 
   it("sets Authorization to HTTP Basic of token:secret", async () => {
@@ -79,11 +77,9 @@ describe("checkInvoiceCompliance — happy path", () => {
       }),
     );
     await checkInvoiceCompliance(VALID_INPUT);
-    const expected =
-      "Basic " +
-      Buffer.from(
-        `${VALID_INPUT.binarySecurityToken}:${VALID_INPUT.apiSecret}`,
-      ).toString("base64");
+    const expected = `Basic ${Buffer.from(
+      `${VALID_INPUT.binarySecurityToken}:${VALID_INPUT.apiSecret}`,
+    ).toString("base64")}`;
     expect(authHeader).toBe(expected);
   });
 });
@@ -105,11 +101,7 @@ describe("checkInvoiceCompliance — error envelope", () => {
         status: "ERROR",
       },
     };
-    server.use(
-      http.post(COMPLIANCE_URL, () =>
-        HttpResponse.json(envelope, { status: 400 }),
-      ),
-    );
+    server.use(http.post(COMPLIANCE_URL, () => HttpResponse.json(envelope, { status: 400 })));
     try {
       await checkInvoiceCompliance(VALID_INPUT);
       expect.unreachable("should have thrown");
@@ -160,8 +152,8 @@ describe("checkInvoiceCompliance — input validation", () => {
   });
 
   it("throws ZatcaApiError(0) when apiSecret is missing", async () => {
-    await expect(
-      checkInvoiceCompliance({ ...VALID_INPUT, apiSecret: "" }),
-    ).rejects.toBeInstanceOf(ZatcaApiError);
+    await expect(checkInvoiceCompliance({ ...VALID_INPUT, apiSecret: "" })).rejects.toBeInstanceOf(
+      ZatcaApiError,
+    );
   });
 });

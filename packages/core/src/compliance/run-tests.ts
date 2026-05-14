@@ -17,36 +17,30 @@
  * the error message in `errors`.
  */
 
+import { checkInvoiceCompliance } from "../api/compliance.js";
+import type { HttpClientOptions, RetryOptions } from "../api/http-client.js";
+import { issueSimplifiedCreditNote } from "../issue/issue-simplified-credit-note.js";
+import { issueSimplifiedDebitNote } from "../issue/issue-simplified-debit-note.js";
+import { issueSimplifiedTaxInvoice } from "../issue/issue-simplified-invoice.js";
+import { issueStandardCreditNote } from "../issue/issue-standard-credit-note.js";
+import { issueStandardDebitNote } from "../issue/issue-standard-debit-note.js";
+import { issueStandardTaxInvoice } from "../issue/issue-standard-invoice.js";
+import type { ZatcaComplianceResult } from "../types/api.js";
 import type { InvoiceHash } from "../types/branded.js";
 import type { EGSUnitInfo } from "../types/egs.js";
-import type { InvoiceKind } from "../types/invoice.js";
-import type {
-  HttpClientOptions,
-  RetryOptions,
-} from "../api/http-client.js";
-import type {
-  StorageAdapter,
-  TenantScope,
-} from "../types/storage.js";
 import { ZatcaApiError, ZatcaOnboardingError } from "../types/errors.js";
-import type { ZatcaComplianceResult } from "../types/api.js";
-import { checkInvoiceCompliance } from "../api/compliance.js";
-import { issueSimplifiedTaxInvoice } from "../issue/issue-simplified-invoice.js";
-import { issueStandardTaxInvoice } from "../issue/issue-standard-invoice.js";
-import { issueSimplifiedCreditNote } from "../issue/issue-simplified-credit-note.js";
-import { issueStandardCreditNote } from "../issue/issue-standard-credit-note.js";
-import { issueSimplifiedDebitNote } from "../issue/issue-simplified-debit-note.js";
-import { issueStandardDebitNote } from "../issue/issue-standard-debit-note.js";
+import type { InvoiceKind } from "../types/invoice.js";
+import type { StorageAdapter, TenantScope } from "../types/storage.js";
+import { createInternalMemoryStorage } from "./_internal-memory-storage.js";
 import {
+  type ScenarioDateOverrides,
   makeSimplifiedCreditNoteScenario,
   makeSimplifiedDebitNoteScenario,
   makeSimplifiedInvoiceScenario,
   makeStandardCreditNoteScenario,
   makeStandardDebitNoteScenario,
   makeStandardInvoiceScenario,
-  type ScenarioDateOverrides,
 } from "./test-invoices.js";
-import { createInternalMemoryStorage } from "./_internal-memory-storage.js";
 
 /**
  * Compliance-runner inputs.
@@ -175,10 +169,7 @@ export async function runComplianceTests(
       "runComplianceTests requires `signing.certificate` + `signing.privateKey`.",
     );
   }
-  if (
-    !args.apiCredentials.binarySecurityToken ||
-    !args.apiCredentials.apiSecret
-  ) {
+  if (!args.apiCredentials.binarySecurityToken || !args.apiCredentials.apiSecret) {
     throw new ZatcaOnboardingError(
       "runComplianceTests requires `apiCredentials.binarySecurityToken` + `apiCredentials.apiSecret`.",
     );
@@ -188,17 +179,14 @@ export async function runComplianceTests(
     vatNumber: args.egsInfo.vatNumber,
     egsUuid: args.egsInfo.uuid,
   };
-  const storage: StorageAdapter =
-    args.storage ?? createInternalMemoryStorage();
+  const storage: StorageAdapter = args.storage ?? createInternalMemoryStorage();
 
   const submitOptions = {
     egsUuid: args.egsInfo.uuid,
     binarySecurityToken: args.apiCredentials.binarySecurityToken,
     apiSecret: args.apiCredentials.apiSecret,
     environment: args.environment,
-    ...(args.httpClientOptions !== undefined
-      ? { httpOptions: args.httpClientOptions }
-      : {}),
+    ...(args.httpClientOptions !== undefined ? { httpOptions: args.httpClientOptions } : {}),
   } as const;
 
   const results: ComplianceTestScenarioResult[] = [];

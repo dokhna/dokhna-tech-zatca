@@ -17,9 +17,9 @@
  * credit notes can still import a tight type.
  */
 
-import type { BuyerInfo } from "./parties.js";
-import type { EGSUnitInfo } from "./egs.js";
 import type { InvoiceHash } from "./branded.js";
+import type { EGSUnitInfo } from "./egs.js";
+import type { BuyerInfo } from "./parties.js";
 
 // ---------------------------------------------------------------------------
 // Const literal sets
@@ -48,8 +48,7 @@ export const ZATCA_PAYMENT_METHODS = {
  * const m: ZatcaPaymentMethod = ZATCA_PAYMENT_METHODS.CASH;
  * ```
  */
-export type ZatcaPaymentMethod =
-  (typeof ZATCA_PAYMENT_METHODS)[keyof typeof ZATCA_PAYMENT_METHODS];
+export type ZatcaPaymentMethod = (typeof ZATCA_PAYMENT_METHODS)[keyof typeof ZATCA_PAYMENT_METHODS];
 
 /**
  * UN/CEFACT-coded invoice document types.
@@ -65,8 +64,7 @@ export const ZATCA_INVOICE_TYPES = {
 } as const;
 
 /** Literal union of ZATCA document-type codes. */
-export type ZatcaInvoiceType =
-  (typeof ZATCA_INVOICE_TYPES)[keyof typeof ZATCA_INVOICE_TYPES];
+export type ZatcaInvoiceType = (typeof ZATCA_INVOICE_TYPES)[keyof typeof ZATCA_INVOICE_TYPES];
 
 // ---------------------------------------------------------------------------
 // Line items

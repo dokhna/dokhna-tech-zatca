@@ -66,22 +66,22 @@ describe("generatePhase1QR", () => {
     const tlv = decodeTLV(new Uint8Array(Buffer.from(qr, "base64")));
     expect(tlv.length).toBe(5);
     expect(tlv[0]?.tag).toBe(1);
-    expect(Buffer.from(tlv[0]!.value).toString("utf8")).toBe("Acme LLC");
+    expect(Buffer.from(tlv[0]?.value).toString("utf8")).toBe("Acme LLC");
     expect(tlv[1]?.tag).toBe(2);
-    expect(Buffer.from(tlv[1]!.value).toString("utf8")).toBe("301234567890003");
+    expect(Buffer.from(tlv[1]?.value).toString("utf8")).toBe("301234567890003");
     expect(tlv[2]?.tag).toBe(3);
-    expect(Buffer.from(tlv[2]!.value).toString("utf8")).toBe("2024-01-15T14:30:45Z");
+    expect(Buffer.from(tlv[2]?.value).toString("utf8")).toBe("2024-01-15T14:30:45Z");
     expect(tlv[3]?.tag).toBe(4);
-    expect(Buffer.from(tlv[3]!.value).toString("utf8")).toBe("115.00");
+    expect(Buffer.from(tlv[3]?.value).toString("utf8")).toBe("115.00");
     expect(tlv[4]?.tag).toBe(5);
-    expect(Buffer.from(tlv[4]!.value).toString("utf8")).toBe("15.00");
+    expect(Buffer.from(tlv[4]?.value).toString("utf8")).toBe("15.00");
   });
 
   it("appends Z to IssueTime if it is missing", () => {
     const noZ = MINIMAL_INVOICE.replace("14:30:45Z", "14:30:45");
     const qr = generatePhase1QR(new XMLDocument(noZ));
     const tlv = decodeTLV(new Uint8Array(Buffer.from(qr, "base64")));
-    expect(Buffer.from(tlv[2]!.value).toString("utf8")).toBe("2024-01-15T14:30:45Z");
+    expect(Buffer.from(tlv[2]?.value).toString("utf8")).toBe("2024-01-15T14:30:45Z");
   });
 
   it("throws ZatcaSigningError when seller name is missing", () => {
@@ -93,10 +93,7 @@ describe("generatePhase1QR", () => {
   });
 
   it("throws ZatcaSigningError when TaxTotal is missing", () => {
-    const broken = MINIMAL_INVOICE.replace(
-      /<cac:TaxTotal>[\s\S]*?<\/cac:TaxTotal>/,
-      "",
-    );
+    const broken = MINIMAL_INVOICE.replace(/<cac:TaxTotal>[\s\S]*?<\/cac:TaxTotal>/, "");
     expect(() => generatePhase1QR(new XMLDocument(broken))).toThrow(ZatcaSigningError);
   });
 });

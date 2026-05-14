@@ -18,7 +18,6 @@
  * The adapter never owns the `pg.Pool` — the host app passes one in.
  */
 
-import debug from "debug";
 import type {
   InvoiceHash,
   InvoiceKind,
@@ -28,6 +27,7 @@ import type {
   TenantScope,
 } from "@dokhna-tech/zatca";
 import { ZatcaStorageError } from "@dokhna-tech/zatca";
+import debug from "debug";
 
 const log = debug("zatca:storage:postgres");
 
@@ -178,9 +178,7 @@ export function createPostgresStorageAdapter(
       );
       const firstRow = result.rows[0];
       if (firstRow === undefined) {
-        throw new ZatcaStorageError(
-          "incrementCounter: upsert returned no row",
-        );
+        throw new ZatcaStorageError("incrementCounter: upsert returned no row");
       }
       const sequence = Number(firstRow.sequence);
       const invoiceNumber = formatInvoiceNumber({
@@ -235,9 +233,7 @@ export function createPostgresStorageAdapter(
         return;
       }
       const validationJson =
-        record.validationResults === undefined
-          ? null
-          : JSON.stringify(record.validationResults);
+        record.validationResults === undefined ? null : JSON.stringify(record.validationResults);
       try {
         await pool.query(
           `INSERT INTO zatca_invoices (
@@ -268,12 +264,7 @@ export function createPostgresStorageAdapter(
             validationJson,
           ],
         );
-        log(
-          "recordInvoice scope=%s/%s id=%s",
-          scope.vatNumber,
-          scope.egsUuid,
-          record.invoiceId,
-        );
+        log("recordInvoice scope=%s/%s id=%s", scope.vatNumber, scope.egsUuid, record.invoiceId);
       } catch (err) {
         if (isUniqueViolation(err)) {
           // Race: another caller won. Re-read + compare.
@@ -319,9 +310,7 @@ export function createPostgresStorageAdapter(
         [scope.vatNumber, scope.egsUuid, invoiceId, status],
       );
       if (result.rowCount === 0 || result.rowCount === null) {
-        throw new ZatcaStorageError(
-          `updateInvoiceStatus called for unknown invoice ${invoiceId}.`,
-        );
+        throw new ZatcaStorageError(`updateInvoiceStatus called for unknown invoice ${invoiceId}.`);
       }
       log(
         "updateInvoiceStatus scope=%s/%s id=%s status=%s",

@@ -56,9 +56,7 @@ describe("formatZatcaTime", () => {
 
 describe("formatZatcaDateTime", () => {
   it("formats as YYYY-MM-DDTHH:mm:ss (no trailing Z)", () => {
-    expect(formatZatcaDateTime(new Date("2024-01-15T14:30:45.123Z"))).toBe(
-      "2024-01-15T14:30:45",
-    );
+    expect(formatZatcaDateTime(new Date("2024-01-15T14:30:45.123Z"))).toBe("2024-01-15T14:30:45");
   });
 
   it("preserves UTC even when given a Date constructed locally", () => {
@@ -73,9 +71,7 @@ describe("formatSignTimestamp", () => {
   });
 
   it("strips milliseconds", () => {
-    expect(formatSignTimestamp("2024-01-15T14:30:45.999Z")).toBe(
-      "2024-01-15T14:30:45Z",
-    );
+    expect(formatSignTimestamp("2024-01-15T14:30:45.999Z")).toBe("2024-01-15T14:30:45Z");
   });
 });
 

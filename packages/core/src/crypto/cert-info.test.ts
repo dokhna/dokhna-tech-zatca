@@ -40,11 +40,9 @@ beforeAll(async () => {
   const keyPath = join(dir, `${randomUUID()}.pem`);
   const certPath = join(dir, `${randomUUID()}.pem`);
   // Generate EC key with secp256k1.
-  spawnSync(
-    "openssl",
-    ["ecparam", "-name", "secp256k1", "-genkey", "-noout", "-out", keyPath],
-    { stdio: "ignore" },
-  );
+  spawnSync("openssl", ["ecparam", "-name", "secp256k1", "-genkey", "-noout", "-out", keyPath], {
+    stdio: "ignore",
+  });
   // Self-signed cert with a stable subject.
   spawnSync(
     "openssl",
@@ -81,7 +79,7 @@ afterAll(async () => {
 
 describe("cleanUpCertificateString", () => {
   it("strips the BEGIN / END framing", () => {
-    const pem = `-----BEGIN CERTIFICATE-----\nABCDEF\n-----END CERTIFICATE-----`;
+    const pem = "-----BEGIN CERTIFICATE-----\nABCDEF\n-----END CERTIFICATE-----";
     expect(cleanUpCertificateString(pem)).toBe("ABCDEF");
   });
 });
@@ -117,8 +115,6 @@ describe("extractCertificateInfo", () => {
   });
 
   it("throws ZatcaCertificateError for malformed PEM", () => {
-    expect(() => extractCertificateInfo("not-a-cert")).toThrow(
-      ZatcaCertificateError,
-    );
+    expect(() => extractCertificateInfo("not-a-cert")).toThrow(ZatcaCertificateError);
   });
 });

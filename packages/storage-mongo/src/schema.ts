@@ -100,23 +100,19 @@ export function buildSchemas(): {
   invoiceSchema: SchemaType<InvoiceDoc>;
 } {
   // `_id: false` on sub-document not needed — _id is the composite key.
-  const counterSchema = new mongoose.Schema<CounterDoc>(
-    CounterSchemaDefinition,
-    { _id: false, versionKey: false },
-  );
-  const invoiceSchema = new mongoose.Schema<InvoiceDoc>(
-    InvoiceSchemaDefinition,
-    { versionKey: false },
-  );
+  const counterSchema = new mongoose.Schema<CounterDoc>(CounterSchemaDefinition, {
+    _id: false,
+    versionKey: false,
+  });
+  const invoiceSchema = new mongoose.Schema<InvoiceDoc>(InvoiceSchemaDefinition, {
+    versionKey: false,
+  });
   // Hash-chain head read: most recent by scope.
   invoiceSchema.index({ vatNumber: 1, egsUuid: 1, createdAt: -1 });
   // Hash-chain head read partitioned by kind (multi-stream).
   invoiceSchema.index({ vatNumber: 1, egsUuid: 1, kind: 1, createdAt: -1 });
   // Idempotency lookup + uniqueness.
-  invoiceSchema.index(
-    { vatNumber: 1, egsUuid: 1, invoiceId: 1 },
-    { unique: true },
-  );
+  invoiceSchema.index({ vatNumber: 1, egsUuid: 1, invoiceId: 1 }, { unique: true });
   return { counterSchema, invoiceSchema };
 }
 
@@ -131,10 +127,10 @@ export function buildModels(connection: Connection): {
 } {
   const { counterSchema, invoiceSchema } = buildSchemas();
   const CounterModel =
-    (connection.models["ZatcaCounter"] as Model<CounterDoc> | undefined) ??
+    (connection.models.ZatcaCounter as Model<CounterDoc> | undefined) ??
     connection.model<CounterDoc>("ZatcaCounter", counterSchema, "zatca_counters");
   const InvoiceModel =
-    (connection.models["ZatcaInvoice"] as Model<InvoiceDoc> | undefined) ??
+    (connection.models.ZatcaInvoice as Model<InvoiceDoc> | undefined) ??
     connection.model<InvoiceDoc>("ZatcaInvoice", invoiceSchema, "zatca_invoices");
   return { CounterModel, InvoiceModel };
 }

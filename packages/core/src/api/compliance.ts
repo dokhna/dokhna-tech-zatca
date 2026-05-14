@@ -12,18 +12,11 @@
  *   - HTTP goes through the new fetch-based client (timeout + retry).
  */
 
-import type {
-  ZatcaComplianceResult,
-  ZatcaEnvironment,
-} from "../types/api.js";
+import type { ZatcaComplianceResult, ZatcaEnvironment } from "../types/api.js";
 import { ZatcaApiError } from "../types/errors.js";
 import { getZatcaEndpoints } from "./endpoints.js";
 import { buildAuthHeaders } from "./headers.js";
-import {
-  type HttpClientOptions,
-  type RetryOptions,
-  request,
-} from "./http-client.js";
+import { type HttpClientOptions, type RetryOptions, request } from "./http-client.js";
 
 /**
  * Inputs to {@link checkInvoiceCompliance}. The signed XML and its
@@ -67,25 +60,16 @@ export async function checkInvoiceCompliance(
   params: CheckInvoiceComplianceParams,
 ): Promise<ZatcaComplianceResult> {
   if (!params.signedInvoiceXml) {
-    throw new ZatcaApiError(
-      "signedInvoiceXml is required for compliance check",
-      0,
-    );
+    throw new ZatcaApiError("signedInvoiceXml is required for compliance check", 0);
   }
   if (!params.invoiceHash) {
-    throw new ZatcaApiError(
-      "invoiceHash is required for compliance check",
-      0,
-    );
+    throw new ZatcaApiError("invoiceHash is required for compliance check", 0);
   }
   if (!params.egsUuid) {
     throw new ZatcaApiError("egsUuid is required for compliance check", 0);
   }
   if (!params.binarySecurityToken) {
-    throw new ZatcaApiError(
-      "binarySecurityToken is required for compliance check",
-      0,
-    );
+    throw new ZatcaApiError("binarySecurityToken is required for compliance check", 0);
   }
   if (!params.apiSecret) {
     throw new ZatcaApiError("apiSecret is required for compliance check", 0);
@@ -96,23 +80,17 @@ export async function checkInvoiceCompliance(
     baseUrl: endpoints.base,
     ...(params.httpOptions ?? {}),
   };
-  const headers = buildAuthHeaders(
-    params.binarySecurityToken,
-    params.apiSecret,
-  );
+  const headers = buildAuthHeaders(params.binarySecurityToken, params.apiSecret);
   const body: ComplianceRequestBody = {
     invoiceHash: params.invoiceHash,
     uuid: params.egsUuid,
     invoice: Buffer.from(params.signedInvoiceXml).toString("base64"),
   };
 
-  return await request<ZatcaComplianceResult, ComplianceRequestBody>(
-    clientOptions,
-    {
-      method: "POST",
-      path: endpoints.compliance,
-      headers,
-      body,
-    },
-  );
+  return await request<ZatcaComplianceResult, ComplianceRequestBody>(clientOptions, {
+    method: "POST",
+    path: endpoints.compliance,
+    headers,
+    body,
+  });
 }

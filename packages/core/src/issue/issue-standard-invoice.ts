@@ -6,20 +6,17 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { StandardTaxInvoiceBuilder } from "../invoices/standard-tax-invoice.js";
 import type { EGSUnitInfo } from "../types/egs.js";
+import { ZatcaValidationError } from "../types/errors.js";
 import type { StandardTaxInvoiceInput } from "../types/invoice.js";
 import type { StorageAdapter, TenantScope } from "../types/storage.js";
-import { ZatcaValidationError } from "../types/errors.js";
-import { StandardTaxInvoiceBuilder } from "../invoices/standard-tax-invoice.js";
 import type { IssuedInvoice } from "./issue-simplified-invoice.js";
 
 export interface IssueStandardTaxInvoiceArgs {
   input: Omit<
     StandardTaxInvoiceInput,
-    | "egsInfo"
-    | "invoiceCounterNumber"
-    | "invoiceSerialNumber"
-    | "previousInvoiceHash"
+    "egsInfo" | "invoiceCounterNumber" | "invoiceSerialNumber" | "previousInvoiceHash"
   >;
   egsInfo: EGSUnitInfo;
   storage: StorageAdapter;
@@ -48,9 +45,7 @@ export async function issueStandardTaxInvoice(
   args: IssueStandardTaxInvoiceArgs,
 ): Promise<IssuedInvoice> {
   assertScope(args.egsInfo, args.scope);
-  const { sequence, invoiceNumber } = await args.storage.incrementCounter(
-    args.scope,
-  );
+  const { sequence, invoiceNumber } = await args.storage.incrementCounter(args.scope);
   const previousInvoiceHash = await args.storage.getPreviousHash(
     args.scope,
     "standard-tax-invoice",

@@ -19,19 +19,12 @@
  *   - HTTP via the new client.
  */
 
-import { XMLDocument } from "../xml/document.js";
-import type {
-  ZatcaClearanceResult,
-  ZatcaEnvironment,
-} from "../types/api.js";
+import type { ZatcaClearanceResult, ZatcaEnvironment } from "../types/api.js";
 import { ZatcaApiError } from "../types/errors.js";
+import { XMLDocument } from "../xml/document.js";
 import { getZatcaEndpoints } from "./endpoints.js";
 import { buildClearanceHeaders } from "./headers.js";
-import {
-  type HttpClientOptions,
-  type RetryOptions,
-  request,
-} from "./http-client.js";
+import { type HttpClientOptions, type RetryOptions, request } from "./http-client.js";
 
 /**
  * Inputs to {@link singleInvoiceReportingOrClearanceStatus}.
@@ -118,31 +111,19 @@ export async function singleInvoiceReportingOrClearanceStatus(
   params: SingleInvoiceSubmissionParams,
 ): Promise<SingleInvoiceSubmissionResult> {
   if (!params.signedInvoiceXml) {
-    throw new ZatcaApiError(
-      "signedInvoiceXml is required for invoice submission",
-      0,
-    );
+    throw new ZatcaApiError("signedInvoiceXml is required for invoice submission", 0);
   }
   if (!params.invoiceHash) {
-    throw new ZatcaApiError(
-      "invoiceHash is required for invoice submission",
-      0,
-    );
+    throw new ZatcaApiError("invoiceHash is required for invoice submission", 0);
   }
   if (!params.egsUuid) {
     throw new ZatcaApiError("egsUuid is required for invoice submission", 0);
   }
   if (!params.binarySecurityToken) {
-    throw new ZatcaApiError(
-      "binarySecurityToken is required for invoice submission",
-      0,
-    );
+    throw new ZatcaApiError("binarySecurityToken is required for invoice submission", 0);
   }
   if (!params.apiSecret) {
-    throw new ZatcaApiError(
-      "apiSecret is required for invoice submission",
-      0,
-    );
+    throw new ZatcaApiError("apiSecret is required for invoice submission", 0);
   }
 
   const simplified = isSimplifiedInvoice(params.signedInvoiceXml);
@@ -152,25 +133,19 @@ export async function singleInvoiceReportingOrClearanceStatus(
     baseUrl: endpoints.base,
     ...(params.httpOptions ?? {}),
   };
-  const headers = buildClearanceHeaders(
-    params.binarySecurityToken,
-    params.apiSecret,
-  );
+  const headers = buildClearanceHeaders(params.binarySecurityToken, params.apiSecret);
   const body: SubmissionRequestBody = {
     invoiceHash: params.invoiceHash,
     uuid: params.egsUuid,
     invoice: Buffer.from(params.signedInvoiceXml).toString("base64"),
   };
 
-  const response = await request<ZatcaClearanceResult, SubmissionRequestBody>(
-    clientOptions,
-    {
-      method: "POST",
-      path,
-      headers,
-      body,
-    },
-  );
+  const response = await request<ZatcaClearanceResult, SubmissionRequestBody>(clientOptions, {
+    method: "POST",
+    path,
+    headers,
+    body,
+  });
 
   return {
     endpoint: simplified ? "reporting" : "clearance",
