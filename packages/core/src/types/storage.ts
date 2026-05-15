@@ -60,7 +60,7 @@ export interface CounterRecord {
 /**
  * Persistent invoice row.
  *
- * Distilled from the rwiqha `IZatcaInvoice` / `IZatcaCreditNote`
+ * Distilled from the legacy `IZatcaInvoice` / `IZatcaCreditNote`
  * model interfaces, but framework-agnostic and without any host-
  * specific fields (no Mongoose `_id`, no PDF URLs, no GCS keys —
  * those stay on the caller's own model).

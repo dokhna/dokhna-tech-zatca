@@ -1,7 +1,7 @@
 /**
  * Simplified credit note UBL template + populator.
  *
- * Ported verbatim from rwiqha-backend's
+ * Ported verbatim from the legacy helper's
  * `simplified.credit.note.template.ts`. Structure is identical to
  * the simplified tax invoice template; the only differences are:
  *

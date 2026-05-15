@@ -3,7 +3,7 @@
  *
  * The legacy `Number.prototype.toFixedNoRounding` helper has been
  * lifted to a free function. Behaviour must remain byte-identical to
- * the rwiqha implementation for the ZATCA fixtures to round-trip.
+ * the legacy implementation for the ZATCA fixtures to round-trip.
  */
 
 import { describe, expect, it } from "vitest";

@@ -10,7 +10,7 @@
  * `storage` to use a real adapter (useful for end-to-end rehearsal
  * before going live).
  *
- * Pass criterion (matches rwiqha): a scenario passes iff ZATCA
+ * Pass criterion (matches the legacy helper): a scenario passes iff ZATCA
  * returns no `errorMessages` in `validationResults`. Any non-2xx
  * status surfaces as a `ZatcaApiError` from the underlying client —
  * the runner catches those and records them as `passed: false` with
@@ -102,7 +102,7 @@ export interface ComplianceTestReport {
 /**
  * Evaluate ZATCA's response against the pass criterion.
  *
- * Per rwiqha + the ZATCA spec, a compliance call passes iff the
+ * Per the legacy helper + the ZATCA spec, a compliance call passes iff the
  * response carries no `errorMessages`. Warnings are surfaced but do
  * not flip the pass flag.
  */

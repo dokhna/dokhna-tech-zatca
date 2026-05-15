@@ -1,7 +1,7 @@
 /**
  * Simplified debit note UBL template + populator.
  *
- * Ported verbatim from rwiqha-backend's
+ * Ported verbatim from the legacy helper's
  * `simplified.debit.note.template.ts`. Differs from the simplified
  * credit note only in the `cbc:InvoiceTypeCode` default — debit
  * notes default to `383` instead of `388` when no cancelation is

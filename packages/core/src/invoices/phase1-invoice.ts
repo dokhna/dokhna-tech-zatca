@@ -6,7 +6,7 @@
  * registrants under the Phase 1 (Dec 2021) mandate and as a fallback
  * when Phase 2 onboarding has not yet completed.
  *
- * Ported from rwiqha-backend's
+ * Ported from the legacy helper's
  * `zatca.generate.phase1.invoice.function.ts`. The output XML
  * structure is preserved verbatim; only the input-type plumbing is
  * decoupled from `IInvoice`.
@@ -52,7 +52,7 @@ function computeTotals(input: Phase1InvoiceInput): {
  * Builds the minimal Phase 1 invoice XML for a given input.
  *
  * The `name="0100000"` literal on `cbc:InvoiceTypeCode` is preserved
- * from the rwiqha source — it is the standard-invoice subtype literal,
+ * from the legacy source — it is the standard-invoice subtype literal,
  * but the Phase 1 spec does not care about the subtype string (only
  * the 388 / 381 / 383 code in element text matters for QR generation).
  */

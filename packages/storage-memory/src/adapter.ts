@@ -47,7 +47,7 @@ const ZATCA_BASE_INVOICE_HASH =
 /**
  * Format the printable invoice number from a counter sequence.
  *
- * Default mirrors the rwiqha implementation: `YYYYMM######` (year
+ * Default mirrors the legacy implementation: `YYYYMM######` (year
  * concatenated with two-digit month and six-digit zero-padded
  * sequence). Override via constructor option.
  */
@@ -68,7 +68,7 @@ const defaultFormatter: InvoiceNumberFormatter = ({ year, month, sequence }) =>
 export interface MemoryStorageAdapterOptions {
   /**
    * Override the printable invoice-number format. Default mirrors the
-   * rwiqha-backend production format: `YYYYMM######`.
+   * legacy helper's production format: `YYYYMM######`.
    */
   formatInvoiceNumber?: InvoiceNumberFormatter;
   /**

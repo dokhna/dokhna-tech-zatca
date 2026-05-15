@@ -6,7 +6,7 @@
  * BR-KSA-56 requires the original document's invoice number to be
  * referenced here.
  *
- * Ported verbatim from rwiqha-backend's
+ * Ported verbatim from the legacy helper's
  * `invoice.billing.reference.template.ts`. The XML string is
  * whitespace-sensitive (the trailing newline matters at template
  * substitution time) — do not reformat.

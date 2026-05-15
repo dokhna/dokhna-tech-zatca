@@ -93,7 +93,7 @@ If you see two invoices with the same `counterNumber` on the same `(vatNumber, e
 
 That's fine. The submission was recorded; ZATCA is informing you of a non-fatal finding. Inspect `validationResults.warningMessages` and decide whether to surface to your operators.
 
-### Why does my hash differ from rwiqha/another helper?
+### Why does my hash differ from another helper?
 
 Two common causes:
 

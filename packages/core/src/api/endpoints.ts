@@ -2,7 +2,7 @@
  * ZATCA gateway base URLs and endpoint paths for sandbox /
  * simulation / production environments.
  *
- * Rwiqha's helper hard-codes two base URLs:
+ * The legacy helper hard-codes two base URLs:
  *   - `https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation` (used
  *     for both pre-prod sandbox and ZATCA's simulation onboarding flow)
  *   - `https://gw-fatoora.zatca.gov.sa/e-invoicing/core` (production)
@@ -13,7 +13,7 @@
  *   - **sandbox** — the "developer-portal" gateway, used during onboarding
  *     test runs and the compliance test pack.
  *   - **simulation** — the "simulation" gateway, mirrored on the same
- *     infrastructure as sandbox; rwiqha aliases this to the simulation
+ *     infrastructure as sandbox; the legacy helper aliases this to the simulation
  *     base URL.
  *   - **production** — the "core" gateway for live invoicing.
  *
@@ -51,7 +51,7 @@ export interface ZatcaEnvironmentEndpoints {
  * The full ZATCA endpoint matrix, keyed by environment name.
  *
  * Sandbox and simulation share the same upstream gateway prefix in
- * rwiqha; we keep them as separate entries so callers can document
+ * the legacy helper; we keep them as separate entries so callers can document
  * intent (and so we can repoint either independently if ZATCA splits
  * them later).
  */

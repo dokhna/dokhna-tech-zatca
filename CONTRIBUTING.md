@@ -1,13 +1,11 @@
 # Contributing
 
-Thank you for considering a contribution. This project is in alpha — see [`plan/`](./plan/README.md) for the active multi-phase development plan. Most large changes are already scheduled.
+Thank you for considering a contribution. See [`CHANGELOG.md`](./CHANGELOG.md) for the project's release history.
 
 ## Before you start
 
-1. Read [`plan/PROGRESS.md`](./plan/PROGRESS.md) to see what phase is currently active.
-2. Read the phase's MD file under [`plan/PHASES/`](./plan/PHASES/) to understand the scope.
-3. For new ideas, open an issue first to discuss.
-4. **Security issues never go in a public issue.** See [`SECURITY.md`](./SECURITY.md).
+1. For new ideas or non-trivial changes, open an issue first to discuss.
+2. **Security issues never go in a public issue.** See [`SECURITY.md`](./SECURITY.md).
 
 ## Local development
 

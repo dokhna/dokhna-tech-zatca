@@ -1,7 +1,7 @@
 /**
  * ZATCA invoice status lookup client.
  *
- * Rwiqha's host application overlays a database-update side effect on
+ * The legacy helper's host application overlays a database-update side effect on
  * top of this HTTP call (mapping ZATCA statuses to internal statuses,
  * persisting validation messages). That orchestration is outside the
  * scope of a portable library — this module returns the parsed

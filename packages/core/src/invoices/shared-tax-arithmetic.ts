@@ -4,7 +4,7 @@
  * The four "invoice-like" Phase 2 variants (simplified / standard tax
  * invoice, simplified / standard credit note) compute line-item
  * totals, invoice-level `<cac:TaxTotal>` arrays, and the legal
- * monetary total identically — the rwiqha source files are
+ * monetary total identically — the legacy source files are
  * byte-equal modulo the template + class names. Extracted here.
  *
  * The two debit-note variants share a *different* arithmetic shape
@@ -27,7 +27,7 @@ import { toFixedNoRounding } from "./fixed-no-rounding.js";
 /**
  * Builds the per-line totals for a tax invoice / credit note line.
  *
- * Matches rwiqha's `constructLineItemTotals` for the four
+ * Matches the legacy helper's `constructLineItemTotals` for the four
  * "invoice-like" classes:
  *
  * - `cac:ClassifiedTaxCategory` is an array starting with the VAT
@@ -112,7 +112,7 @@ export function buildInvoiceLineItemTotals(lineItem: ZATCAInvoiceLineItem): Line
  * credit notes. Returns a 2-element array: the first carries the
  * sub-total breakdown, the second is the KSA-VAT roll-up.
  *
- * Matches rwiqha's `constructTaxTotal` for the four "invoice-like"
+ * Matches the legacy helper's `constructTaxTotal` for the four "invoice-like"
  * classes.
  */
 export function buildInvoiceTaxTotal(

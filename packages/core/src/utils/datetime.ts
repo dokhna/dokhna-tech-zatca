@@ -1,7 +1,7 @@
 /**
  * ZATCA-compliant datetime formatting helpers.
  *
- * These replace rwiqha-backend's legacy date-format helpers with
+ * These replace the legacy helper's legacy date-format helpers with
  * pure native-`Date` arithmetic. Every value is treated as UTC;
  * ZATCA's UBL invoices encode dates / times as UTC-zoned strings
  * and the QR timestamp is explicitly `YYYY-MM-DDTHH:mm:ssZ`.
@@ -57,7 +57,7 @@ export function formatZatcaTime(input: Date | string): string {
  *
  * Used inside the XML for fields where ZATCA's hash oracle compares
  * the canonical XML byte-for-byte and the spec omits the trailing `Z`.
- * See `zatca.xml.signing.ts` in the rwiqha source — the legacy
+ * See `zatca.xml.signing.ts` in the legacy source — the legacy
  * date-format helper was configured with `format('YYYY-MM-DDTHH:mm:ss')`
  * (no `Z`) for these call sites.
  */
@@ -70,7 +70,7 @@ export function formatZatcaDateTime(input: Date | string): string {
  * Sign-timestamp format used inside the XAdES `SigningTime` element:
  * `YYYY-MM-DDTHH:mm:ssZ`.
  *
- * Trailing `Z` is required by the XAdES schema. The rwiqha source
+ * Trailing `Z` is required by the XAdES schema. The legacy source
  * concatenates this manually as `` `${...format('YYYY-MM-DDTHH:mm:ss')}Z` ``;
  * this helper just consolidates that.
  */
@@ -82,7 +82,7 @@ export function formatSignTimestamp(input: Date | string): string {
  * Helper for invoice ingestion: derive the canonical ZATCA
  * `IssueDate` / `IssueTime` pair from a single `Date` (or ISO string).
  *
- * Mirrors the rwiqha `extractZatcaDateTime` helper one-to-one so any
+ * Mirrors the legacy `extractZatcaDateTime` helper one-to-one so any
  * downstream code that builds invoice props can swap drop-in.
  */
 export function extractZatcaDateTime(input: Date | string): {

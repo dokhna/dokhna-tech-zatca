@@ -6,7 +6,7 @@
  * supports `secp256k1` in modern releases, but the *output PEM
  * exactly matches* what OpenSSL produces only when shelling out to
  * the CLI — and the ZATCA validator was historically picky about
- * the EC key encoding. The rwiqha helper shells out, and we
+ * the EC key encoding. The legacy helper shells out, and we
  * preserve that to keep parity until v2.
  *
  * Command equivalent:

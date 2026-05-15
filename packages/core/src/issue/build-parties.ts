@@ -1,7 +1,7 @@
 /**
  * Framework-neutral party builders.
  *
- * Replaces rwiqha-backend's Mongoose-coupled `buildSellerInfo` /
+ * Replaces the legacy helper's Mongoose-coupled `buildSellerInfo` /
  * `buildBuyerInfo` helpers. The Phase 1 types (`EGSUnitInfo`,
  * `BuyerInfo`) carry every field these helpers need; there are no
  * database reads, no `_id` quirks, and no `lean()` calls.
@@ -69,7 +69,7 @@ export function buildSellerSummary(egsInfo: EGSUnitInfo): SellerSummary {
 /**
  * Builds the structured `<cac:AccountingCustomerParty>` content for
  * a UBL invoice. The returned `XMLObject` matches what
- * `fast-xml-parser`'s `XMLBuilder` re-serialises in the rwiqha
+ * `fast-xml-parser`'s `XMLBuilder` re-serialises in the legacy
  * golden vectors.
  *
  * Optional fields (`vatNumber`, `address`) are omitted from the

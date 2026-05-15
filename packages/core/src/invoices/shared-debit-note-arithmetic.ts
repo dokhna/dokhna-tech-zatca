@@ -2,7 +2,7 @@
  * Shared arithmetic helpers for simplified + standard debit notes.
  *
  * Debit notes differ from tax invoices / credit notes in three
- * places (verbatim from the rwiqha source classes):
+ * places (verbatim from the legacy source classes):
  *
  * 1. Line-item `<cac:TaxTotal>` *nests* a `<cac:TaxSubtotal>`
  *    breakdown alongside `<cbc:TaxAmount>` instead of emitting

@@ -16,7 +16,7 @@
  * - `SET_SIGNED_PROPERTIES_XML`    the for-output SignedProperties
  *                                  fragment.
  *
- * Ported verbatim from rwiqha-backend's
+ * Ported verbatim from the legacy helper's
  * `zatca.ubl.extension.ts`. The whitespace / indentation matters for
  * the post-sign canonicalisation step — do not reformat.
  */
