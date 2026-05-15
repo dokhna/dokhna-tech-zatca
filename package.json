@@ -13,6 +13,7 @@
     "build": "pnpm -r build",
     "dev": "pnpm -r --parallel dev",
     "test": "pnpm -r --parallel test",
+    "test:coverage": "pnpm -r --parallel test:coverage",
     "typecheck": "pnpm -r --parallel typecheck",
     "lint": "biome check .",
     "format": "biome format --write .",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
     "@changesets/cli": "^2.31.0",
+    "@vitest/coverage-v8": "^4.1.6",
     "tsup": "^8.5.1",
     "tsx": "^4.22.0",
     "typedoc": "^0.28.19",
