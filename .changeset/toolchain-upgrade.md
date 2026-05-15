@@ -1,8 +1,8 @@
 ---
-"@dokhna-tech/zatca": minor
-"@dokhna-tech/zatca-storage-memory": minor
-"@dokhna-tech/zatca-storage-mongo": minor
-"@dokhna-tech/zatca-storage-postgres": minor
+"@dokhna-tech/zatca": patch
+"@dokhna-tech/zatca-storage-memory": patch
+"@dokhna-tech/zatca-storage-mongo": patch
+"@dokhna-tech/zatca-storage-postgres": patch
 ---
 
 Toolchain refresh. No runtime behaviour change; all 332 tests pass.
