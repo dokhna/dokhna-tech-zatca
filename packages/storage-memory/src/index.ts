@@ -8,6 +8,6 @@
 
 export {
   createMemoryStorageAdapter,
-  type MemoryStorageAdapterOptions,
   type InvoiceNumberFormatter,
+  type MemoryStorageAdapterOptions,
 } from "./adapter.js";

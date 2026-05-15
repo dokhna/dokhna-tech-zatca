@@ -13,8 +13,8 @@
  * (e.g. HTTP request bodies) before passing them into the package.
  */
 
-export * from "./vat-number.js";
-export * from "./crn.js";
-export * from "./uuid.js";
 export * from "./base64.js";
+export * from "./crn.js";
 export * from "./schemas.js";
+export * from "./uuid.js";
+export * from "./vat-number.js";

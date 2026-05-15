@@ -33,7 +33,7 @@
  * The six concrete builder classes end up < 100 LOC each.
  */
 
-import { type SignedXMLResult, generateSignedXMLString } from "../crypto/sign.js";
+import { generateSignedXMLString, type SignedXMLResult } from "../crypto/sign.js";
 import { buildBuyerInfoXml } from "../issue/build-parties.js";
 import type { Base64, InvoiceHash } from "../types/branded.js";
 import { ZatcaSigningError } from "../types/errors.js";
@@ -49,8 +49,8 @@ import type {
   ZATCAInvoiceLineItem,
   ZatcaInvoiceType,
 } from "../types/invoice.js";
-import { XMLDocument } from "../xml/document.js";
 import type { XMLObject } from "../xml/document.js";
+import { XMLDocument } from "../xml/document.js";
 import { toFixedNoRounding } from "./fixed-no-rounding.js";
 
 /** Union of every Phase 2 input shape the abstract supports. */

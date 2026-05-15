@@ -145,7 +145,7 @@ function withComplianceCertificate(
   privateKey: string,
   complianceCertificate: string,
   complianceApiSecret: string,
-  complianceBinarySecurityToken: string,
+  _complianceBinarySecurityToken: string,
 ): EGSUnitInfo {
   return {
     ...info,

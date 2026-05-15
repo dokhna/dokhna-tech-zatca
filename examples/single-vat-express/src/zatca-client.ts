@@ -6,11 +6,11 @@
  */
 
 import {
-  type EGSUnitInfo,
-  type TenantScope,
   asCommercialRegistrationNumber,
   asEGSUuid,
   asVATNumber,
+  type EGSUnitInfo,
+  type TenantScope,
 } from "@dokhna-tech/zatca";
 import { createMemoryStorageAdapter } from "@dokhna-tech/zatca-storage-memory";
 

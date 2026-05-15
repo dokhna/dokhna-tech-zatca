@@ -18,15 +18,15 @@
  * re-exported here; users go through the higher-level entry points.
  */
 
-export * from "./types/index.js";
-export * from "./validation/index.js";
-export * from "./utils/index.js";
-export * from "./xml/index.js";
-export * from "./crypto/index.js";
-export * from "./qr/index.js";
-export * from "./invoices/index.js";
-export * from "./issue/index.js";
 export * from "./api/index.js";
 export * from "./certificates/index.js";
 export * from "./compliance/index.js";
+export * from "./crypto/index.js";
+export * from "./invoices/index.js";
+export * from "./issue/index.js";
 export * from "./onboarding/index.js";
+export * from "./qr/index.js";
+export * from "./types/index.js";
+export * from "./utils/index.js";
+export * from "./validation/index.js";
+export * from "./xml/index.js";

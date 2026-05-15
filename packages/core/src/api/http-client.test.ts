@@ -13,11 +13,11 @@
  *     header material).
  */
 
-import { http, HttpResponse } from "msw";
+import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { ZatcaApiError } from "../types/errors.js";
-import { type HttpClientOptions, computeBackoffMs, request } from "./http-client.js";
+import { computeBackoffMs, type HttpClientOptions, request } from "./http-client.js";
 
 const BASE = "https://gw-fatoora.test/zatca";
 

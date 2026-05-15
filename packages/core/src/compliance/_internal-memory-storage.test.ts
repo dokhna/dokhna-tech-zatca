@@ -5,8 +5,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { InvoiceHash } from "../types/branded.js";
-import type { EGSUuid, VATNumber } from "../types/branded.js";
+import type { EGSUuid, InvoiceHash, VATNumber } from "../types/branded.js";
 import { ZatcaStorageError } from "../types/errors.js";
 import type { InvoiceRecord, TenantScope } from "../types/storage.js";
 import { createInternalMemoryStorage } from "./_internal-memory-storage.js";

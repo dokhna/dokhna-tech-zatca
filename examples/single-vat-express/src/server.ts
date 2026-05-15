@@ -20,12 +20,12 @@ import { fileURLToPath } from "node:url";
 
 import "dotenv/config";
 import {
-  type EGSUnitInfo,
-  type OnboardingResult,
   asCommercialRegistrationNumber,
   asEGSUuid,
   asVATNumber,
+  type EGSUnitInfo,
   issueSimplifiedTaxInvoice,
+  type OnboardingResult,
   onboard,
 } from "@dokhna-tech/zatca";
 import express, { type Express, type Request, type Response } from "express";
