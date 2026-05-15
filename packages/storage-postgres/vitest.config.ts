@@ -12,5 +12,11 @@ export default defineConfig({
     pool: "threads",
     root: ".",
     passWithNoTests: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov", "json"],
+      include: ["src/**/*.ts"],
+      exclude: ["src/**/*.test.ts"],
+    },
   },
 });

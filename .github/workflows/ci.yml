@@ -44,7 +44,12 @@ jobs:
         run: pnpm lint
 
       - name: Test
+        if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.node == '22') }}
         run: pnpm test
+
+      - name: Test (with coverage)
+        if: matrix.os == 'ubuntu-latest' && matrix.node == '22'
+        run: pnpm test:coverage
 
       - name: Audit (warn-only on high/critical)
         run: pnpm audit --audit-level high || echo "::warning::pnpm audit reported advisories — review and bump or document risk-accept"

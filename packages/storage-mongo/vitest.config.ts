@@ -17,5 +17,11 @@ export default defineConfig({
     // for CI hosts under load; warm runs finish in ~300ms.
     hookTimeout: 60_000,
     testTimeout: 30_000,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov", "json"],
+      include: ["src/**/*.ts"],
+      exclude: ["src/**/*.test.ts"],
+    },
   },
 });
