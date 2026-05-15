@@ -5,7 +5,7 @@
   "description": "Monorepo root for @dokhna-tech/zatca — Saudi Arabia ZATCA Phase 2 e-invoicing helper.",
   "license": "BUSL-1.1",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=20.19.0",
     "pnpm": ">=9.0.0"
   },
   "packageManager": "pnpm@9.12.0",
@@ -24,12 +24,13 @@
     "clean": "pnpm -r exec rm -rf dist .turbo tsconfig.tsbuildinfo && rm -rf node_modules"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@changesets/cli": "^2.27.9",
-    "tsup": "^8.3.0",
-    "tsx": "^4.21.0",
-    "typedoc": "^0.28.0",
-    "typescript": "^5.6.0",
-    "vitest": "^2.1.0"
+    "@biomejs/biome": "^2.4.15",
+    "@changesets/cli": "^2.31.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.22.0",
+    "typedoc": "^0.28.19",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13",
+    "vitest": "^4.1.6"
   }
 }

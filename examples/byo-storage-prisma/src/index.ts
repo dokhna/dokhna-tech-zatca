@@ -9,18 +9,16 @@
  */
 
 import { randomUUID } from "node:crypto";
-
-import { PrismaClient } from "@prisma/client";
-
 import {
-  type EGSUnitInfo,
   asCommercialRegistrationNumber,
   asEGSUuid,
   asVATNumber,
+  type EGSUnitInfo,
   issueSimplifiedTaxInvoice,
 } from "@dokhna-tech/zatca";
+import { PrismaClient } from "@prisma/client";
 
-import { type PrismaLike, createPrismaStorageAdapter } from "./prisma-adapter.js";
+import { createPrismaStorageAdapter, type PrismaLike } from "./prisma-adapter.js";
 
 async function main(): Promise<void> {
   // The example requires `pnpm prisma:generate` to be run beforehand so

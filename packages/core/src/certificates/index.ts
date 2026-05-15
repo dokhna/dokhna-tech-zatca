@@ -8,7 +8,7 @@
  * admin tooling.
  */
 
+export { getCertificateExpirationDate } from "./expiration.js";
+export { isCertificateValid } from "./validity.js";
 export type { CertificateVerification } from "./verify.js";
 export { verifyCertificate } from "./verify.js";
-export { isCertificateValid } from "./validity.js";
-export { getCertificateExpirationDate } from "./expiration.js";

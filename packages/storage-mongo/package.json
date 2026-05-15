@@ -23,7 +23,11 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -32,7 +36,7 @@
     "prepack": "cp ../../LICENSE ./LICENSE"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.19.0"
   },
   "publishConfig": {
     "access": "public"
@@ -42,12 +46,12 @@
   },
   "peerDependencies": {
     "@dokhna-tech/zatca": "workspace:*",
-    "mongoose": ">=8.0.0"
+    "mongoose": ">=9.0.0"
   },
   "devDependencies": {
     "@dokhna-tech/zatca": "workspace:*",
     "@types/debug": "^4.1.12",
-    "mongodb-memory-server": "^10.1.2",
+    "mongodb-memory-server": "^11.1.0",
     "mongoose": "^9.6.2"
   }
 }

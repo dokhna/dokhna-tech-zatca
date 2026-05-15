@@ -28,7 +28,11 @@
       "require": "./dist/test-helpers.cjs"
     }
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -37,12 +41,19 @@
     "prepack": "cp ../../LICENSE ./LICENSE && cp ../../README.md ./README.md"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.19.0"
   },
   "publishConfig": {
     "access": "public"
   },
-  "keywords": ["zatca", "saudi-arabia", "e-invoicing", "phase-2", "ubl", "fatoora"],
+  "keywords": [
+    "zatca",
+    "saudi-arabia",
+    "e-invoicing",
+    "phase-2",
+    "ubl",
+    "fatoora"
+  ],
   "dependencies": {
     "@fidm/x509": "^1.2.1",
     "@xmldom/xmldom": "^0.8.10",
@@ -53,10 +64,11 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
+    "@types/node": "^20.19.0",
     "msw": "^2.6.0"
   },
   "peerDependencies": {
-    "vitest": "^2.0.0 || ^3.0.0"
+    "vitest": "^2.0.0 || ^3.0.0 || ^4.0.0"
   },
   "peerDependenciesMeta": {
     "vitest": {

@@ -13,8 +13,8 @@
  * because ZATCA's clearance API parses this string with regex.
  */
 
-import { ZATCA_INVOICE_TYPES } from "../types/invoice.js";
 import type { SimplifiedTaxInvoiceInput } from "../types/invoice.js";
+import { ZATCA_INVOICE_TYPES } from "../types/invoice.js";
 import { generateInvoiceBillingReference } from "./billing-reference.js";
 
 const TEMPLATE = /* XML */ `

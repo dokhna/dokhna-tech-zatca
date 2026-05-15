@@ -25,7 +25,7 @@ import type {
 import { ZatcaStorageError } from "@dokhna-tech/zatca";
 import debug from "debug";
 import type { Connection } from "mongoose";
-import { type CounterDoc, type InvoiceDoc, buildModels } from "./schema.js";
+import { buildModels, type CounterDoc, type InvoiceDoc } from "./schema.js";
 
 const log = debug("zatca:storage:mongo");
 

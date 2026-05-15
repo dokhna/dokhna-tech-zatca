@@ -20,7 +20,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runStorageAdapterConformance } from "@dokhna-tech/zatca/test-helpers";
 import { newDb } from "pg-mem";
-import { type PgQueryable, createPostgresStorageAdapter } from "./adapter.js";
+import { createPostgresStorageAdapter, type PgQueryable } from "./adapter.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

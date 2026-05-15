@@ -17,11 +17,11 @@
  * three reference adapters all pass it.
  */
 
-export {
-  runStorageAdapterConformance,
-  ZATCA_BASE_INVOICE_HASH,
-} from "./storage-adapter-conformance.js";
 export type {
   ConformanceFixtures,
   RunConformanceOptions,
+} from "./storage-adapter-conformance.js";
+export {
+  runStorageAdapterConformance,
+  ZATCA_BASE_INVOICE_HASH,
 } from "./storage-adapter-conformance.js";

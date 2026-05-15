@@ -15,10 +15,10 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import "dotenv/config";
-import { type StorageAdapter, issueSimplifiedTaxInvoice } from "@dokhna-tech/zatca";
+import { issueSimplifiedTaxInvoice, type StorageAdapter } from "@dokhna-tech/zatca";
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 
-import { type TenantContext, type TenantRecord, makeTenantResolver } from "./tenant-router.js";
+import { makeTenantResolver, type TenantContext, type TenantRecord } from "./tenant-router.js";
 import { buildStorageAdapter, connectMongo } from "./zatca-mongo.js";
 
 const DEMO_TENANTS: ReadonlyArray<TenantRecord> = [
