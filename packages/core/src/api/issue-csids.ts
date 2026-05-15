@@ -7,8 +7,8 @@
  * it are the credentials used by subsequent clearance / reporting /
  * cancel / status calls.
  *
- * Compared to the rwiqha helper:
- *   - **No simulated dev fallback.** Rwiqha's
+ * Compared to the legacy helper:
+ *   - **No simulated dev fallback.** The legacy helper's
  *     `issueCSIDSFromAPI` returns a hand-rolled fake response when
  *     the call fails (`requestID: simulated-prod-…`). Open-source
  *     consumers MUST hit a real ZATCA sandbox; we throw
@@ -45,7 +45,7 @@ export interface IssueCSIDSParams {
  * Production CSID issuance result.
  *
  * `issuedCertificate` is the decoded PEM body (matching the shape
- * rwiqha returns to its callers — the helper decodes the base64
+ * the legacy helper returns to its callers — the helper decodes the base64
  * cert before persisting). `binarySecurityToken` is the raw base64
  * string that subsequent ZATCA calls authenticate with.
  */

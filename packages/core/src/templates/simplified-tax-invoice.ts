@@ -1,7 +1,7 @@
 /**
  * Simplified tax invoice UBL template + populator.
  *
- * Ported verbatim from rwiqha-backend's
+ * Ported verbatim from the legacy helper's
  * `simplified.tax.invoice.template.ts`. The XML string is
  * ZATCA-canonicalisation-sensitive; do not reformat. Field-level
  * substitutions use uppercase `SET_*` tokens — identical to the

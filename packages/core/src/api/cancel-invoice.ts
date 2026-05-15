@@ -1,9 +1,10 @@
 /**
  * ZATCA invoice cancellation endpoint client.
  *
- * Rwiqha's helper authenticates this endpoint with a bearer
- * `ZATCA_API_KEY` environment variable. That was a legacy shape from
- * an internal proxy — the production ZATCA gateway uses HTTP Basic
+ * The legacy in-tree helper authenticated this endpoint with a
+ * bearer `ZATCA_API_KEY` environment variable. That was a legacy
+ * shape from an internal proxy — the production ZATCA gateway uses
+ * HTTP Basic
  * with the production CSID + API secret (same as clearance /
  * reporting). The open-source surface follows the public ZATCA spec.
  */

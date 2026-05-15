@@ -3,10 +3,10 @@
  *
  * Each scenario directory under `fixtures/` contains:
  *
- * - `input.json`              — the inputs we fed the rwiqha helper.
+ * - `input.json`              — the inputs we fed the legacy helper.
  * - `expected-presign-xml.xml` — the template-filled invoice XML
  *                                before signing. Deterministic
- *                                output of the rwiqha helper.
+ *                                output of the legacy helper.
  * - `expected-hash.txt`        — the SHA-256 invoice hash. Byte-
  *                                deterministic; we assert exact match.
  * - `expected-signed.xml`      — the full signed XML. ECDSA is
@@ -19,7 +19,7 @@
  *
  * Goal: a byte-identical hash means our `XMLDocument` + canonicaliser
  * + whitespace fixups + SHA-256 produce the same digest as the
- * rwiqha helper for the same pre-sign XML.
+ * legacy helper for the same pre-sign XML.
  *
  * See `fixtures/README.md` for capture procedure.
  */
@@ -78,7 +78,7 @@ describe("golden vectors — byte-identical hash parity", () => {
   }
 
   for (const scenario of scenarios) {
-    it(`reproduces the rwiqha invoice hash for ${scenario.name}`, () => {
+    it(`reproduces the legacy invoice hash for ${scenario.name}`, () => {
       const presignXml = readFileSync(scenario.presignXmlPath, "utf8");
       const expectedHash = readFileSync(scenario.hashPath, "utf8").trim();
       const actual = getInvoiceHash(new XMLDocument(presignXml));
@@ -126,7 +126,7 @@ import { SimplifiedCreditNoteBuilder } from "../invoices/simplified-credit-note.
 // ---------------------------------------------------------------------------
 // Phase 3 builder parity — re-running the new Phase 3 builders on the
 // same `input.json` payloads MUST produce byte-identical invoice hashes
-// to the captured `expected-hash.txt` from the rwiqha helper. This is
+// to the captured `expected-hash.txt` from the legacy helper. This is
 // the regression that proves the Phase 3 refactor preserves the
 // canonical pre-sign XML to the byte.
 // ---------------------------------------------------------------------------
@@ -229,7 +229,7 @@ function mapItems(items: ReadonlyArray<LegacyLineItem>): SimplifiedTaxInvoiceInp
     name: li.name,
     quantity: li.quantity,
     taxExclusivePrice: li.tax_exclusive_price,
-    // rwiqha's input.json stores VAT_percent as a decimal fraction
+    // the legacy helper's input.json stores VAT_percent as a decimal fraction
     // (0.15); the v2 builder API takes a percent (15). Convert at the
     // boundary so the captured golden vectors remain byte-identical.
     vatPercent: li.VAT_percent * 100,

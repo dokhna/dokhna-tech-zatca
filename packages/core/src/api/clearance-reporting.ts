@@ -11,7 +11,7 @@
  *     `/invoices/reporting/single` — the gateway validates and
  *     records the invoice; no cleared XML is returned.
  *
- * Differences vs. rwiqha:
+ * Differences vs. the legacy helper:
  *   - Routing decision is made by reading the XML once (no second
  *     parse pass).
  *   - Errors throw `ZatcaApiError` (with `validationResults`); no

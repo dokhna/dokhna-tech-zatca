@@ -1,12 +1,18 @@
 /**
  * Golden-vector capture script.
  *
- * Reads the rwiqha helper directly from
- * /Users/ameensaeed/Documents/Node/rwiqha-backend/src/server/api/zatca.invoices/
- * and produces deterministic test fixtures under
- * packages/core/src/fixtures/<scenario>/.
+ * Reads the legacy reference helper directly from the path supplied via
+ * the `REFERENCE_HELPER_SRC` environment variable and produces
+ * deterministic test fixtures under
+ * `packages/core/src/fixtures/<scenario>/`.
  *
- * Run with: `pnpm tsx scripts/capture-golden-vectors.mjs`
+ * Run with:
+ *   REFERENCE_HELPER_SRC=/path/to/reference-helper/src/server/api/zatca.invoices \
+ *     pnpm tsx scripts/capture-golden-vectors.mjs
+ *
+ * The committed fixtures were captured once from the original
+ * reference helper and are frozen in tree. Re-running this script is
+ * only needed when adding a new scenario.
  *
  * Determinism notes:
  *
@@ -32,14 +38,16 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..");
-const RWIQHA_SRC = resolve(
-  "/Users/ameensaeed/Documents/Node/rwiqha-backend/src/server/api/zatca.invoices",
-);
+const REFERENCE_HELPER_SRC = process.env.REFERENCE_HELPER_SRC
+  ? resolve(process.env.REFERENCE_HELPER_SRC)
+  : null;
 const FIXTURES_DIR = resolve(REPO_ROOT, "packages/core/src/fixtures");
 const KEYS_DIR = join(FIXTURES_DIR, "_keys");
 
-if (!existsSync(RWIQHA_SRC)) {
-  process.stderr.write(`Rwiqha source not found at ${RWIQHA_SRC}. Skipping capture.\n`);
+if (!REFERENCE_HELPER_SRC || !existsSync(REFERENCE_HELPER_SRC)) {
+  process.stderr.write(
+    "Reference helper source not found. Set REFERENCE_HELPER_SRC=/path/to/reference-helper/src/server/api/zatca.invoices and re-run. Skipping capture.\n",
+  );
   process.exit(2);
 }
 
@@ -56,7 +64,7 @@ const CERT_PATH = join(KEYS_DIR, "test-cert.pem");
 
 if (!existsSync(KEY_PATH) || !existsSync(CERT_PATH)) {
   process.stderr.write("Generating test key + self-signed cert...\n");
-  // openssl ecparam to match rwiqha's expectations
+  // openssl ecparam to match the reference helper's expectations
   const keyResult = spawnSync(
     "openssl",
     ["ecparam", "-name", "secp256k1", "-genkey", "-noout", "-out", KEY_PATH],
@@ -93,8 +101,8 @@ const PRIVATE_KEY = readFileSync(KEY_PATH, "utf8");
 const CERTIFICATE = readFileSync(CERT_PATH, "utf8");
 
 // ---------------------------------------------------------------------------
-// Import the rwiqha helper. We dynamic-import via tsx so the .ts
-// source is evaluated directly without modifying rwiqha-backend.
+// Import the reference helper. We dynamic-import via tsx so the .ts
+// source is evaluated directly without modifying the upstream checkout.
 // ---------------------------------------------------------------------------
 
 let ZATCASimplifiedTaxInvoice;
@@ -103,17 +111,17 @@ let ZATCASimplifiedCreditNote;
 
 try {
   ({ ZATCASimplifiedTaxInvoice } = await import(
-    `file://${RWIQHA_SRC}/zatca.package/classes/zatca.simplified.tax.invoice.ts`
+    `file://${REFERENCE_HELPER_SRC}/zatca.package/classes/zatca.simplified.tax.invoice.ts`
   ));
   ({ ZATCAStandardTaxInvoice } = await import(
-    `file://${RWIQHA_SRC}/zatca.package/classes/zatca.standard.tax.invoice.ts`
+    `file://${REFERENCE_HELPER_SRC}/zatca.package/classes/zatca.standard.tax.invoice.ts`
   ));
   ({ ZATCASimplifiedCreditNote } = await import(
-    `file://${RWIQHA_SRC}/zatca.package/classes/zatca.simplified.credit.note.ts`
+    `file://${REFERENCE_HELPER_SRC}/zatca.package/classes/zatca.simplified.credit.note.ts`
   ));
 } catch (err) {
   process.stderr.write(
-    `Failed to import rwiqha helper sources via tsx. Run with: pnpm tsx scripts/capture-golden-vectors.mjs\nUnderlying error: ${err.message}\n`,
+    `Failed to import reference helper sources via tsx. Run with: REFERENCE_HELPER_SRC=/path/... pnpm tsx scripts/capture-golden-vectors.mjs\nUnderlying error: ${err.message}\n`,
   );
   process.exit(3);
 }

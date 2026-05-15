@@ -46,7 +46,7 @@ import type {
  * The ZATCA Phase 2 "first invoice" PIH sentinel.
  *
  * This is the base64 of the *hex string* of `SHA-256("")`, which is
- * the value the rwiqha reference implementation and every adapter in
+ * the value the legacy reference implementation and every adapter in
  * this monorepo return when `getPreviousHash` is called for an empty
  * scope. Exposed so adapter authors can re-use the same constant.
  */

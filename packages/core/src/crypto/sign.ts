@@ -1,7 +1,7 @@
 /**
  * ZATCA XML signing.
  *
- * Ported from rwiqha-backend's `zatca.xml.signing.ts`. The pipeline is:
+ * Ported from the legacy helper's `zatca.xml.signing.ts`. The pipeline is:
  *
  * 1. Compute the invoice hash (`getInvoiceHash`).
  * 2. Extract the cert info (hash, DN-reversed issuer, decimal serial,
@@ -252,7 +252,7 @@ function populateUBLSignExtension(args: {
  * Trims leading spaces from each line inside `<ds:Object>...</ds:Object>`
  * to match the indentation ZATCA's validator expects.
  *
- * Verbatim from rwiqha — see the source's comment block. ZATCA's
+ * Verbatim from the legacy helper — see the source's comment block. ZATCA's
  * validator computes the hash over an *unindented* SignedProperties
  * block. Removing this function makes the sandbox reject the
  * signature with a "Signature hash mismatch" error.
@@ -308,7 +308,7 @@ export function generateSignedXMLString(params: GenerateSignatureXMLParams): Sig
 
   // 5: Sign timestamp anchored to the invoice issue date/time when
   //    possible, falling back to "now" if either is absent. Mirrors
-  //    rwiqha's behaviour so the SigningTime element matches what
+  //    the legacy helper's behaviour so the SigningTime element matches what
   //    the QR encodes.
   const issue_date_result = invoice_xml.get("Invoice/cbc:IssueDate");
   const issue_time_result = invoice_xml.get("Invoice/cbc:IssueTime");

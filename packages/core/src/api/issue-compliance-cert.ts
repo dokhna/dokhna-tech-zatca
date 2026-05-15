@@ -7,7 +7,7 @@
  * (and only the compliance pack — invoices must NOT be cleared with
  * it).
  *
- * Compared to the rwiqha helper:
+ * Compared to the legacy helper:
  *   - Errors throw `ZatcaApiError` (the original threw a
  *     server-framework-specific Boom error).
  *   - No status-code-to-Boom mapping switch — every non-2xx surfaces
@@ -70,7 +70,7 @@ interface ComplianceCertResponseBody {
 
 /**
  * Decode a base64-encoded PEM body and wrap it in `BEGIN/END
- * CERTIFICATE` armour, matching the form rwiqha returns.
+ * CERTIFICATE` armour, matching the form the legacy helper returns.
  */
 function wrapCertificatePem(base64Body: string): string {
   const body = Buffer.from(base64Body, "base64").toString("utf8");

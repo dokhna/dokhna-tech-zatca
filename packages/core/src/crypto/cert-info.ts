@@ -16,7 +16,7 @@
  *
  * Node's `crypto.X509Certificate` covers (2) and (3); (4) and (5)
  * require ASN.1 access and are read via `@fidm/x509`. The hybrid
- * approach matches the rwiqha original. `@fidm/x509` is flagged for
+ * approach matches the legacy original. `@fidm/x509` is flagged for
  * replacement in v2 once Node's stdlib exposes `rawPublicKey` /
  * `rawSignature`.
  */
@@ -32,7 +32,7 @@ import { getCertificateHash } from "./hash.js";
  * Distinct from the public `X509CertificateInfo` type (in
  * `types/crypto.ts`) which is the v1 public surface — this internal
  * shape carries the *precomputed* hash + signing-specific aliases
- * that the rwiqha pipeline produced. Phase 3 will collapse the two
+ * that the legacy pipeline produced. Phase 3 will collapse the two
  * shapes once the invoice builders are ported.
  */
 export interface CertificateInfo {

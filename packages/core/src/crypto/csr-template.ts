@@ -43,7 +43,7 @@ export interface CSRTemplateProps {
 /**
  * Builds the OpenSSL `.cnf` content for a ZATCA-compliant CSR.
  *
- * Verbatim from rwiqha's `zatca.csr.template.function.ts` —
+ * Verbatim from the legacy helper's `zatca.csr.template.function.ts` —
  * deviating from this layout makes ZATCA reject the CSR with
  * "Invalid CSR distinguished name".
  */

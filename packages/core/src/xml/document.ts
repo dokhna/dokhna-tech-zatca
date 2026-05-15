@@ -1,7 +1,7 @@
 /**
  * `XMLDocument` — minimal-surface UBL XML wrapper.
  *
- * Ported from rwiqha-backend's `zatca.xml.parser.ts` with two
+ * Ported from the legacy helper's `zatca.xml.parser.ts` with two
  * dependency changes:
  *
  * 1. **No external collection-utility library.** Path filtering uses
@@ -10,7 +10,7 @@
  *    the original `filter(arr, matches(condition))` for the subset
  *    of inputs the ZATCA pipeline produces (plain objects with
  *    string / number / nested-object values).
- * 2. **`fast-xml-parser` v5 (bumped from rwiqha's v4).** The v4 / v5
+ * 2. **`fast-xml-parser` v5 (bumped from the legacy helper's v4).** The v4 / v5
  *    APIs are compatible for the options we use (`ignoreAttributes:
  *    false`, `ignoreDeclaration: false`, `parseTagValue: false`).
  *    Golden vectors confirmed byte-identical across the bump.
@@ -127,7 +127,7 @@ export class XMLDocument {
   /**
    * Walks `xml_object` down `path_query` (a `/`-separated tag list),
    * returning the leaf object along with its parent + parent's tag.
-   * Recursion mirrors the rwiqha original.
+   * Recursion mirrors the legacy original.
    */
   private getElement(
     xml_object: XMLObject | undefined,

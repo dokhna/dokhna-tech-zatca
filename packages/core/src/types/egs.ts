@@ -4,7 +4,7 @@
  * physical/logical billing endpoint (cash register, POS, server).
  *
  * Field names are camelCase (`vatNumber`, `crnNumber`) — a deliberate
- * departure from the snake_case shape used in the legacy rwiqha
+ * departure from the snake_case shape used in the legacy in-tree
  * helper. The internal UBL template fillers translate to whatever the
  * XML expects.
  */

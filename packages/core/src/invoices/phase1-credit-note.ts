@@ -6,7 +6,7 @@
  * being amended and uses `381` as the `cbc:InvoiceTypeCode` element
  * text per the ZATCA Phase 1 spec.
  *
- * Ported from rwiqha-backend's
+ * Ported from the legacy helper's
  * `zatca.generate.phase1.credit.note.function.ts`.
  */
 

@@ -1,7 +1,7 @@
 /**
  * Tests for `issueCSIDS`.
  *
- * Important: confirms that NO mock fallback exists — the rwiqha
+ * Important: confirms that NO mock fallback exists — the legacy
  * helper would return a fake "simulated-prod-…" response on failure;
  * the open-source surface throws instead.
  */
@@ -86,7 +86,7 @@ describe("issueCSIDS — error paths (no mock fallback)", () => {
       expect.unreachable("should have thrown — no mock fallback exists");
     } catch (err) {
       expect(err).toBeInstanceOf(ZatcaApiError);
-      // Critical: the rwiqha helper would have returned a fake
+      // Critical: the legacy helper would have returned a fake
       // response containing `simulated-prod-…`. The open-source
       // surface must NEVER do this.
       const e = err as ZatcaApiError;

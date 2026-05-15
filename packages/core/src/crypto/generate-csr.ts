@@ -19,7 +19,7 @@
  * 6. Always remove both temp files in a `finally` — even on failure
  *    — to avoid leaking key material onto disk.
  *
- * Differences from rwiqha:
+ * Differences from the legacy helper:
  *
  * - Uses `os.tmpdir()` instead of hardcoded `/tmp/`.
  * - Uses `crypto.randomUUID()` instead of the `uuid` package.

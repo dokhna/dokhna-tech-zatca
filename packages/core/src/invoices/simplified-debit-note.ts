@@ -3,7 +3,7 @@
  *
  * Uses the debit-note arithmetic family. Differs from the standard
  * debit note in that the line-item `<cac:TaxTotal>` does NOT include
- * a `<cbc:RoundingAmount>` element (matches the rwiqha class
+ * a `<cbc:RoundingAmount>` element (matches the legacy class
  * verbatim).
  */
 

@@ -6,7 +6,7 @@
 
 A TypeScript-first ZATCA Phase 2 e-invoicing library for Saudi Arabia. Build, sign, hash, generate QR codes, and submit invoices to the ZATCA Fatoora system. Supports single-VAT and multi-VAT (multi-tenant SaaS) deployments with a bring-your-own storage adapter pattern.
 
-> **Status: v2.0.2 — first lockstep-versioned release across all four packages.** See [`plan/`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/plan/README.md) for the multi-phase roadmap and [`CHANGELOG.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/CHANGELOG.md) for release notes.
+> **Status: v2.0.4 — lockstep-versioned across all four packages.** See [`CHANGELOG.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/CHANGELOG.md) for release notes.
 
 ## Table of contents
 

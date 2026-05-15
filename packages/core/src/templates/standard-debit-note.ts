@@ -1,7 +1,7 @@
 /**
  * Standard debit note UBL template + populator.
  *
- * Ported verbatim from rwiqha-backend's
+ * Ported verbatim from the legacy helper's
  * `standard.debit.note.template.ts`. Differs from the simplified
  * debit note only by the `name="0100000"` BR-KSA-06 subtype literal.
  *

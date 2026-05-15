@@ -15,7 +15,7 @@
  *   enclosing UBL extension already declares them.
  *
  * Both templates and the helper functions are ported verbatim from
- * rwiqha-backend's `zatca.ubl.extension.signed.properties.template.ts`.
+ * the legacy helper's `zatca.ubl.extension.signed.properties.template.ts`.
  * The leading indentation matters for the post-sign canonicalisation
  * step — do not reformat.
  */

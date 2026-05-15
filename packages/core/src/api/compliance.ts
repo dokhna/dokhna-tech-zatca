@@ -5,7 +5,7 @@
  * compliance gateway. Used during onboarding for the compliance test
  * pack — does NOT actually report or clear an invoice in production.
  *
- * Differences vs. the rwiqha helper:
+ * Differences vs. the legacy helper:
  *   - The token-debug logging block is gone. Open-source builds must
  *     never emit secret material, truncated or otherwise.
  *   - Errors throw `ZatcaApiError`, not `Error`/`Boom`.

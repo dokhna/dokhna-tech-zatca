@@ -17,7 +17,7 @@
  *
  * Tags 7-9 are kept as `Uint8Array` to preserve raw bytes — the
  * signature in particular is stored as the *UTF-8 bytes of the
- * base64 string* (per rwiqha's behaviour and the ZATCA reference
+ * base64 string* (per the legacy helper's behaviour and the ZATCA reference
  * implementation), not as decoded bytes. Tag 8 (public key) and
  * tag 9 (certificate signature) are decoded from the certificate
  * and embedded raw.

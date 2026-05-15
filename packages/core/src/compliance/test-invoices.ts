@@ -1,9 +1,9 @@
 /**
  * The six ZATCA-spec compliance test scenarios.
  *
- * Source of truth: the rwiqha `runComplianceTests` function (see
+ * Source of truth: the legacy `runComplianceTests` function (see
  * `plan/PHASES/PHASE-06-onboarding-compliance.md`). Each scenario
- * matches the rwiqha payload: 1 line item, 100 SAR net, 15% VAT,
+ * matches the legacy payload: 1 line item, 100 SAR net, 15% VAT,
  * 115 SAR total, plus a cancellation block on credit/debit notes.
  *
  * The factories accept the issuer's {@link EGSUnitInfo} (so the
@@ -32,7 +32,7 @@ const DEFAULT_ISSUE_DATE = "2024-01-15";
 const DEFAULT_ISSUE_TIME = "12:00:00Z";
 
 /**
- * Single canonical line item used by every scenario (matches rwiqha:
+ * Single canonical line item used by every scenario (matches the legacy helper:
  * 1 unit at 100 SAR, 15% VAT).
  */
 function makeComplianceLineItem(): ZATCAInvoiceLineItem {
@@ -72,7 +72,7 @@ export type StandardDebitNoteScenarioInput = Omit<StandardDebitNoteInput, Issuer
  * Optional date overrides applied to every scenario factory.
  *
  * The compliance runner pins these to a single timestamp so the six
- * test invoices share an issue date — matching rwiqha's behaviour and
+ * test invoices share an issue date — matching the legacy helper's behaviour and
  * keeping the chain deterministic in CI replays.
  */
 export interface ScenarioDateOverrides {

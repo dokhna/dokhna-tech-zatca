@@ -1,5 +1,5 @@
 /**
- * `toFixedNoRounding` — replicates rwiqha-backend's prototype
+ * `toFixedNoRounding` — replicates the legacy helper's prototype
  * extension on `Number`.
  *
  * The legacy helper attached this method to `Number.prototype` to
@@ -19,7 +19,7 @@
  * `Number.prototype` — the legacy approach was hostile to bundlers
  * and to libraries that don't want monkey-patches.
  *
- * Behaviour is byte-identical to the rwiqha original; the regex is
+ * Behaviour is byte-identical to the legacy original; the regex is
  * lifted as-is so the same edge cases (negative-numbers, integers,
  * already-truncated values) reproduce.
  */

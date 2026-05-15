@@ -1,7 +1,7 @@
 /**
  * Standard tax invoice UBL template + populator.
  *
- * Ported verbatim from rwiqha-backend's
+ * Ported verbatim from the legacy helper's
  * `standard.tax.invoice.template.ts`. The only structural difference
  * versus the simplified template is the BR-KSA-06 subtype literal
  * (`name="0100000"` for "standard tax invoice") and the empty

@@ -135,7 +135,7 @@ export interface ZATCAInvoiceCancelation {
 }
 
 // ---------------------------------------------------------------------------
-// Shared base shape (per rwiqha's ZATCAInvoiceProps)
+// Shared base shape (per the legacy helper's ZATCAInvoiceProps)
 // ---------------------------------------------------------------------------
 
 /**

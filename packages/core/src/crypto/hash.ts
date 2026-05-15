@@ -1,7 +1,7 @@
 /**
  * ZATCA invoice-hash computation.
  *
- * Ported from rwiqha-backend's `zatca.xml.signing.ts`. The hash is
+ * Ported from the legacy helper's `zatca.xml.signing.ts`. The hash is
  * SHA-256(canonicalize(stripped invoice)) base64-encoded, where:
  *
  * - "stripped" removes the `<ext:UBLExtensions>`, `<cac:Signature>`,
