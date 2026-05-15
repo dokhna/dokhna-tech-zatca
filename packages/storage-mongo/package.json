@@ -33,6 +33,7 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
     "prepack": "cp ../../LICENSE ./LICENSE"
   },
   "engines": {

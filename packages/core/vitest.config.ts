@@ -15,5 +15,16 @@ export default defineConfig({
     include: ["src/**/*.test.ts"],
     pool: "threads",
     root: ".",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov", "json"],
+      include: ["src/**/*.ts"],
+      exclude: [
+        "src/**/*.test.ts",
+        "src/test-helpers/**",
+        "src/fixtures/**",
+        "src/**/_test-helpers.ts",
+      ],
+    },
   },
 });
