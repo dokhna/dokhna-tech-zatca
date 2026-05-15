@@ -19,6 +19,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "removeComments": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "ignoreDeprecations": "6.0"
   }
 }
