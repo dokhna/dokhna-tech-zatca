@@ -46,6 +46,15 @@ export interface ErrorResponse {
       readonly message: string;
       readonly zatcaRequestId?: string;
       readonly validationResults?: unknown;
+      /**
+       * For `ZatcaApiError` only: the raw upstream status returned
+       * by the ZATCA gateway. The wire `statusCode` may differ —
+       * 401/403/429 from ZATCA are re-mapped to 502/502/503 so a
+       * client sees a downstream-service status, not a misleading
+       * auth status (ME-02). Inspect `upstreamStatus` to see what
+       * ZATCA actually said.
+       */
+      readonly upstreamStatus?: number;
     };
   };
   readonly headers: Readonly<Record<string, string>>;
@@ -79,12 +88,35 @@ export function mapErrorToResponse(err: unknown): ErrorResponse {
     return makeBody(500, err.name, err.message, {});
   }
   if (err instanceof ZatcaApiError) {
-    // Surface ZATCA's status code; clamp non-HTTP statuses to 502.
-    const status = err.statusCode >= 400 && err.statusCode < 600 ? err.statusCode : 502;
+    // ME-02: re-map upstream statuses so they don't mislead the
+    // client about what failed. ZATCA's 401/403 means the server's
+    // stored credentials are revoked or expired — NOT the client's
+    // bearer; passing 401 through prompts ops tickets for an auth
+    // problem the caller can't fix. ZATCA's 429 is a server-side
+    // backpressure signal — again, surface it as a downstream
+    // condition the caller should back off on, not a per-caller
+    // rate limit. All other 4xx (validation errors etc.) pass
+    // through unchanged because they reflect a real
+    // caller-recoverable condition. The upstream status survives
+    // inside the body for client debugging.
+    const upstream = err.statusCode;
+    let status: number;
+    if (upstream === 401 || upstream === 403) {
+      status = 502;
+    } else if (upstream === 429) {
+      status = 503;
+    } else if (upstream >= 400 && upstream < 600) {
+      status = upstream;
+    } else {
+      status = 502;
+    }
     const headers: Record<string, string> = {};
     const reqId = err.requestId;
     if (reqId !== undefined) {
       headers["X-Zatca-Request-Id"] = reqId;
+    }
+    if (status === 503) {
+      headers["retry-after"] = "30";
     }
     return {
       statusCode: status,
@@ -92,6 +124,7 @@ export function mapErrorToResponse(err: unknown): ErrorResponse {
         error: {
           name: err.name,
           message: err.message,
+          upstreamStatus: upstream,
           ...(reqId !== undefined ? { zatcaRequestId: reqId } : {}),
           ...(err.validationResults !== undefined
             ? { validationResults: err.validationResults }

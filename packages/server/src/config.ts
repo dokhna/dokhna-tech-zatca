@@ -62,6 +62,15 @@ export interface ServerConfig {
   readonly metricsEnabled: boolean;
   /** Pino log level. Default `info`. */
   readonly logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace";
+  /**
+   * Trust the `X-Forwarded-*` chain from upstream proxies. Default
+   * `false` (ME-15). Set to `true` ONLY when running behind a
+   * trusted reverse proxy / ingress that strips the headers before
+   * forwarding. With `true` and a directly-reachable bind address,
+   * a same-network attacker can spoof `req.ip` via
+   * `X-Forwarded-For`.
+   */
+  readonly trustProxy: boolean;
 }
 
 /**
@@ -220,6 +229,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       LevelSchema,
       "info",
       "ZATCA_SERVER_LOG_LEVEL",
+    ),
+    trustProxy: withDefault(
+      env.ZATCA_SERVER_TRUST_PROXY,
+      BoolSchema,
+      false,
+      "ZATCA_SERVER_TRUST_PROXY",
     ),
   };
 }

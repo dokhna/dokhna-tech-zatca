@@ -82,7 +82,10 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   const server = fastify({
     loggerInstance: logger,
     disableRequestLogging: false,
-    trustProxy: true,
+    // ME-15: operator-configurable via ZATCA_SERVER_TRUST_PROXY
+    // (default false). Set true only when bound behind a proxy that
+    // strips inbound X-Forwarded-* headers before forwarding.
+    trustProxy: config.trustProxy,
     // 180s read timeout — matches the documented onboarding ceiling
     // (the route can block this long without timing out).
     connectionTimeout: Math.max(30_000, config.onboardingTimeoutMs + 10_000),
