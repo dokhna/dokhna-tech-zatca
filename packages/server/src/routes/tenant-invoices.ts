@@ -230,12 +230,16 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
       // ME-08: if the caller asked to submit but the invoice kind is
       // Phase 1 (no XML to clear), reject loudly rather than silently
       // skipping. Pre-fix the route accepted `{submit: true, input:
-      // {kind: "simplified-invoice"}}` and returned a 200 with
+      // {kind: "phase1-invoice"}}` and returned a 200 with
       // `status: "pending"` — the audit row recorded
       // `submitted: true` even though no ZATCA call was made.
+      //
+      // Core declares the Phase 1 kinds at `phase1-invoice` and
+      // `phase1-credit-note`; hardcode the list rather than a regex
+      // so a future kind rename doesn't silently re-open the bug.
       const inputKind = (body.input as { kind?: string }).kind ?? "";
-      const isPhase1Kind = /^simplified-invoice$|^standard-invoice$/.test(inputKind);
-      if (body.submit && isPhase1Kind) {
+      const PHASE_1_KINDS = new Set(["phase1-invoice", "phase1-credit-note"]);
+      if (body.submit && PHASE_1_KINDS.has(inputKind)) {
         throw new ZatcaValidationError(
           `submit=true is incompatible with Phase 1 invoice kind '${inputKind}'. ` +
             `Phase 1 invoices have no signed XML to clear/report; pass submit=false ` +

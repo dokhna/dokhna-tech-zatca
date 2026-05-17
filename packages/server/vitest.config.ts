@@ -18,7 +18,18 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov", "json"],
       include: ["src/**/*.ts"],
-      exclude: ["src/**/*.test.ts", "src/**/index.ts"],
+      exclude: [
+        "src/**/*.test.ts",
+        "src/**/index.ts",
+        // cli.ts is the bin entrypoint — only loadable as a
+        // subprocess (it boots the Fastify server, binds a port,
+        // installs signal handlers, calls process.exit). Exercising
+        // it in-process would require mocking `process` itself.
+        // The boot path is covered by manual `docker compose up`
+        // smoke + the example walkthrough in
+        // `examples/standalone-server/README.md`.
+        "src/cli.ts",
+      ],
     },
   },
 });
