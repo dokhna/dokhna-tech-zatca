@@ -533,14 +533,26 @@ export function createMongoCredentialVault(options: MongoCredentialVaultOptions)
       const cc = await encryptOptional(material.complianceCertificate);
       const cbst = await encryptOptional(material.complianceBinarySecurityToken);
       const cas = await encryptOptional(material.complianceApiSecret);
+      // HI-10: re-onboard MUST clear stale optional compliance fields.
+      // Build a parallel `$unset` for fields the new material omits so
+      // a row that previously held compliance values doesn't keep them
+      // after a rotation that produced production material only.
+      const unset: Record<string, ""> = {};
       if (cc !== undefined) doc.complianceCertificate = cc;
+      else unset.complianceCertificate = "";
       if (cbst !== undefined) doc.complianceBinarySecurityToken = cbst;
+      else unset.complianceBinarySecurityToken = "";
       if (cas !== undefined) doc.complianceApiSecret = cas;
-      await CredentialsModel.findOneAndUpdate(
-        { _id: tenantRef },
-        { $set: doc, $setOnInsert: { createdAt: now } },
-        { upsert: true, returnDocument: "after" },
-      ).exec();
+      else unset.complianceApiSecret = "";
+      const update: Record<string, unknown> = {
+        $set: doc,
+        $setOnInsert: { createdAt: now },
+      };
+      if (Object.keys(unset).length > 0) update["$unset"] = unset;
+      await CredentialsModel.findOneAndUpdate({ _id: tenantRef }, update, {
+        upsert: true,
+        returnDocument: "after",
+      }).exec();
     },
 
     async get(tenantRef: string) {

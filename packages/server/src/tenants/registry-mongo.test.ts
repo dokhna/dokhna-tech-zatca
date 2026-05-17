@@ -255,6 +255,30 @@ describe("createMongoCredentialVault", () => {
     expect((await vault.get("acme"))?.privateKey).toBe("P2");
   });
 
+  it("re-put without compliance fields clears stale compliance values (HI-10)", async () => {
+    const vault = createMongoCredentialVault({ connection, cipher: freshCipher() });
+    await vault.put("acme", {
+      privateKey: "PRIV",
+      productionCertificate: "PROD-CERT",
+      productionBinarySecurityToken: "PROD-BST",
+      productionApiSecret: "PROD-SECRET",
+      complianceCertificate: "COMP-CERT",
+      complianceBinarySecurityToken: "COMP-BST",
+      complianceApiSecret: "COMP-SECRET",
+    });
+    await vault.put("acme", {
+      privateKey: "PRIV2",
+      productionCertificate: "PROD-CERT2",
+      productionBinarySecurityToken: "PROD-BST2",
+      productionApiSecret: "PROD-SECRET2",
+    });
+    const out = await vault.get("acme");
+    expect(out?.complianceCertificate).toBeUndefined();
+    expect(out?.complianceBinarySecurityToken).toBeUndefined();
+    expect(out?.complianceApiSecret).toBeUndefined();
+    expect(out?.privateKey).toBe("PRIV2");
+  });
+
   it("decrypt failure under a rotated-out kid throws ZatcaCipherError", async () => {
     const writer = createMongoCredentialVault({ connection, cipher: freshCipher() });
     await writer.put("acme", {
