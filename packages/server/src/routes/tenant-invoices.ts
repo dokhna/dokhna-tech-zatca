@@ -21,7 +21,6 @@ import {
   cancelInvoice,
   checkInvoiceCompliance,
   checkInvoiceStatus,
-  type EGSUnitInfo,
   type IssueInvoiceArgs,
   issueInvoice,
   type StorageAdapter,
@@ -132,22 +131,34 @@ const IssueBody = z.object({
   submit: z.boolean().default(true),
 });
 
+// ME-18: zatcaInvoiceId + clearanceNumber are first-class fields on
+// the locally-persisted InvoiceRecord (the `invoiceId` field IS the
+// ZATCA-side identifier; `clearanceNumber` is set when ZATCA accepts
+// a standard invoice). Made both optional — the route falls back to
+// the stored values when the caller omits them. Pre-fix, every
+// client had to track these out-of-band; many would lose them and
+// silently break cancels.
 const CancelBody = z.object({
   /** Reason text; surfaces in the ZATCA cancel request. */
   reason: z.string().min(1).max(500),
   /**
-   * ZATCA-issued invoice identifier returned at clearance time.
-   * Caller-side state — the server's local InvoiceRecord doesn't
-   * persist it separately (it lives inside `validationResults`).
+   * Override for the stored `record.invoiceId`. Optional — supply
+   * only when the local record's invoice id differs from the ZATCA-
+   * registered one (rare, e.g. data migrations).
    */
-  zatcaInvoiceId: z.string().min(1),
-  /** ZATCA-issued clearance number. */
-  clearanceNumber: z.string().min(1),
+  zatcaInvoiceId: z.string().min(1).optional(),
+  /**
+   * Override for the stored `record.clearanceNumber`. Optional —
+   * see `zatcaInvoiceId` for the override-shape rationale. The
+   * server falls back to the persisted clearance number when
+   * absent.
+   */
+  clearanceNumber: z.string().min(1).optional(),
 });
 
 const StatusQuery = z.object({
-  zatcaInvoiceId: z.string().min(1),
-  clearanceNumber: z.string().min(1),
+  zatcaInvoiceId: z.string().min(1).optional(),
+  clearanceNumber: z.string().min(1).optional(),
 });
 
 function parseBody<S extends z.ZodTypeAny>(schema: S, body: unknown): z.output<S> {
@@ -190,35 +201,6 @@ async function authTenant(
   };
 }
 
-function buildEgsInfo(tenant: TenantRecord, signing: SignerMaterial): EGSUnitInfo {
-  return {
-    uuid: tenant.egsUuid,
-    customId: `${tenant.tenantRef}-pos-01`,
-    model: "ZATCA Standalone Server",
-    crnNumber: tenant.crn,
-    vatName: tenant.vatName,
-    vatNumber: tenant.vatNumber,
-    branchName: tenant.branchName,
-    branchIndustry: tenant.branchIndustry ?? "Retail",
-    location: tenant.location,
-    certificate: {
-      privateKey: signing.privateKey,
-      productionCertificate: signing.productionCertificate,
-      productionBinarySecurityToken: signing.productionBinarySecurityToken,
-      productionApiSecret: signing.productionApiSecret,
-      ...(signing.complianceCertificate !== undefined
-        ? { complianceCertificate: signing.complianceCertificate }
-        : {}),
-      ...(signing.complianceBinarySecurityToken !== undefined
-        ? { complianceBinarySecurityToken: signing.complianceBinarySecurityToken }
-        : {}),
-      ...(signing.complianceApiSecret !== undefined
-        ? { complianceApiSecret: signing.complianceApiSecret }
-        : {}),
-    },
-  } as EGSUnitInfo;
-}
-
 export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: RouteDeps): void {
   // POST /v1/tenants/:ref/invoices
   server.post<{
@@ -239,8 +221,27 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
     const idem = await beginIdempotency(deps, reply, idemKey, req.params.ref, route);
     if (!idem.proceed) return reply;
     try {
-      const _egsInfo = buildEgsInfo(tenant, signing);
+      // ME-07: `buildEgsInfo` was previously called and discarded —
+      // wasted CPU and a needless local holding the decrypted private
+      // key (foot-gun for any future debug-log change). `issueInvoice`
+      // doesn't need it; deleted.
       const scope = toTenantScope(tenant);
+
+      // ME-08: if the caller asked to submit but the invoice kind is
+      // Phase 1 (no XML to clear), reject loudly rather than silently
+      // skipping. Pre-fix the route accepted `{submit: true, input:
+      // {kind: "simplified-invoice"}}` and returned a 200 with
+      // `status: "pending"` — the audit row recorded
+      // `submitted: true` even though no ZATCA call was made.
+      const inputKind = (body.input as { kind?: string }).kind ?? "";
+      const isPhase1Kind = /^simplified-invoice$|^standard-invoice$/.test(inputKind);
+      if (body.submit && isPhase1Kind) {
+        throw new ZatcaValidationError(
+          `submit=true is incompatible with Phase 1 invoice kind '${inputKind}'. ` +
+            `Phase 1 invoices have no signed XML to clear/report; pass submit=false ` +
+            `or use a Phase 2 kind (e.g. 'simplified-tax-invoice').`,
+        );
+      }
 
       // Issue locally — signs the UBL XML, persists via the storage
       // adapter with status="pending".
@@ -370,13 +371,26 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
           code: "not_found",
         });
       }
+      // ME-18: fall back to the locally-persisted ZATCA identifiers
+      // when the caller didn't supply overrides. The server already
+      // has them — forcing the client to re-track them was
+      // UX-hostile and a subtle spoofing surface.
+      const zatcaInvoiceId = body.zatcaInvoiceId ?? record.invoiceId;
+      const clearanceNumber = body.clearanceNumber ?? record.clearanceNumber;
+      if (clearanceNumber === undefined) {
+        throw new ZatcaValidationError(
+          `Invoice '${req.params.invoiceId}' has no clearanceNumber on the local record. ` +
+            `Provide one in the request body, or cancel a standard invoice that has been ` +
+            `cleared by ZATCA.`,
+        );
+      }
       let result: unknown;
       let zatcaRequestId: string | undefined;
       let cancelStatus: "ok" | "error" = "ok";
       try {
         result = await cancelInvoice({
-          invoiceId: body.zatcaInvoiceId,
-          clearanceNumber: body.clearanceNumber,
+          invoiceId: zatcaInvoiceId,
+          clearanceNumber,
           reason: body.reason,
           binarySecurityToken: signing.productionBinarySecurityToken,
           apiSecret: signing.productionApiSecret,
@@ -424,9 +438,19 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
         });
       }
       const query = parseBody(StatusQuery, req.query);
+      // ME-18: fall back to the locally-persisted identifiers.
+      const zatcaInvoiceId = query.zatcaInvoiceId ?? record.invoiceId;
+      const clearanceNumber = query.clearanceNumber ?? record.clearanceNumber;
+      if (clearanceNumber === undefined) {
+        throw new ZatcaValidationError(
+          `Invoice '${req.params.invoiceId}' has no clearanceNumber on the local record. ` +
+            `Provide one as a query parameter, or check the status of an invoice that has ` +
+            `been cleared by ZATCA.`,
+        );
+      }
       const result = await checkInvoiceStatus({
-        invoiceId: query.zatcaInvoiceId,
-        clearanceNumber: query.clearanceNumber,
+        invoiceId: zatcaInvoiceId,
+        clearanceNumber,
         binarySecurityToken: signing.productionBinarySecurityToken,
         apiSecret: signing.productionApiSecret,
         environment: tenant.environment,
