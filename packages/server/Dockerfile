@@ -58,10 +58,11 @@ USER zatca
 
 EXPOSE 3000
 
-# Default health check via /healthz (use the CLI's `--health-check`
-# once ops surface lands; for now curl the endpoint).
+# Default health check via /healthz. LO-13: honour an
+# operator-supplied `ZATCA_SERVER_PORT` rather than hardcoding 3000 —
+# otherwise overriding the bind port silently breaks the probe.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:3000/healthz').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))" || exit 1
+  CMD node -e "fetch('http://127.0.0.1:' + (process.env.ZATCA_SERVER_PORT || 3000) + '/healthz').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["node", "/app/dist/cli.js"]

@@ -53,9 +53,11 @@ const AuditSchemaDefinition = {
 function buildAuditModel(connection: Connection): Model<AuditDoc> {
   const existing = connection.models.ZatcaServerAuditLog as Model<AuditDoc> | undefined;
   if (existing !== undefined) return existing;
+  // LO-05: `_id: false` was misleading — it applies to subdocuments,
+  // not the top-level schema. We explicitly declare `_id` of type
+  // String above so Mongoose already treats our value as the row id.
   const schema = new mongoose.Schema<AuditDoc>(AuditSchemaDefinition, {
     versionKey: false,
-    _id: false,
   });
   schema.index({ tenantRef: 1, at: -1 });
   schema.index({ action: 1, at: -1 });

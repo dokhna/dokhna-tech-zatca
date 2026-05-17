@@ -15,6 +15,7 @@ import type { FastifyInstance, FastifyPluginAsync, FastifyRequest } from "fastif
 import { z } from "zod";
 
 import type { AuditActor } from "../audit/log.js";
+import { redactSecrets } from "../audit/redact.js";
 import { ZatcaRegistryError } from "../errors.js";
 
 import type { RouteDeps } from "./deps.js";
@@ -61,7 +62,12 @@ export function registerAdminApiKeyRoutes(server: FastifyInstance, deps: RouteDe
           action: "apiKey.issued",
           targetId: i.tokenId,
           result: "ok",
-          payload: { label: body.label },
+          // LO-11: pre-fix this audit row's payload was a bare
+          // `{label}` while every other audit write went through
+          // `redactSecrets({...})`. `label` is plain text so there's
+          // nothing to scrub, but using the same helper everywhere
+          // keeps the pattern consistent for future fields.
+          payload: redactSecrets({ label: body.label }),
         });
         return i;
       });

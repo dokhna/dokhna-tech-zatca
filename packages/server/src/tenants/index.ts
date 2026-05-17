@@ -2,9 +2,18 @@
  * Public surface of the tenant-registry layer.
  *
  * Three separate interfaces — `TenantStore`, `CredentialVault`,
- * `ApiKeyStore` — plus the in-memory reference implementation that
- * wires them together for dev + tests. DB-backed implementations land
- * in PR2.
+ * `ApiKeyStore` — plus three implementations:
+ *   - in-memory (`createMemoryRegistry`) for dev + tests
+ *   - MongoDB (`createMongoRegistry`)
+ *   - PostgreSQL (`createPostgresRegistry`)
+ *
+ * All three implementations satisfy the same contracts so swapping
+ * storage backends doesn't require touching route handlers. The
+ * `withPgTransaction` helper is re-exported from
+ * `registry-postgres.js` for downstream apps that embed the package
+ * and need to wrap their own work in a transaction; route handlers
+ * inside this package go through the `withUnitOfWork` abstraction in
+ * `routes/deps.ts` instead.
  */
 
 export type {

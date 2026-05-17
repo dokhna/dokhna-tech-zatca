@@ -15,7 +15,9 @@
  * deps.
  */
 
+import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 import type { StorageAdapter } from "@dokhna-tech/zatca";
 import { buildApp } from "./app.js";
@@ -92,6 +94,18 @@ async function bootMongo(config: ServerConfig, env: NodeJS.ProcessEnv): Promise<
   }
   const mongoose = (await import("mongoose")).default;
   const connection = mongoose.createConnection(uri);
+  // LO-06: register an error listener BEFORE awaiting the
+  // connection. Once the initial handshake completes, later
+  // network-blip errors emit `error` on the Connection object —
+  // without a listener Node's default behaviour is to crash the
+  // process. Logging the error and letting Mongoose's built-in
+  // auto-reconnect handle recovery is the right call for a v1
+  // deployment; operators see the issue via logs + the `/readyz`
+  // probe failing rather than a sudden SIGKILL.
+  connection.on("error", (err) => {
+    // eslint-disable-next-line no-console -- pino isn't bound here.
+    console.error("[zatca-server] mongo connection error:", err);
+  });
   await connection.asPromise();
   const { createMongoStorageAdapter } = (await import("@dokhna-tech/zatca-storage-mongo")) as {
     createMongoStorageAdapter: (opts: { connection: typeof connection }) => StorageAdapter;
@@ -223,13 +237,17 @@ async function main(): Promise<void> {
 
   const shutdown = async (signal: string): Promise<void> => {
     app.log.info({ signal }, "shutting down");
+    let shutdownErr: unknown;
     try {
       await app.close();
       await booted.shutdown();
     } catch (err) {
+      shutdownErr = err;
       app.log.error({ err }, "shutdown error");
     } finally {
-      process.exit(0);
+      // LO-03: exit non-zero when the shutdown path threw so the
+      // orchestrator (systemd / k8s) sees the failure.
+      process.exit(shutdownErr === undefined ? 0 : 1);
     }
   };
   process.on("SIGINT", () => {
@@ -240,10 +258,18 @@ async function main(): Promise<void> {
   });
 }
 
-const isMainModule =
-  process.argv[1] !== undefined &&
-  (import.meta.url === `file://${process.argv[1]}` ||
-    import.meta.url.endsWith(process.argv[1].split("/").pop() ?? ""));
+// LO-02: previous heuristic used `.endsWith(basename)` which would
+// match any file with the same filename — brittle. Resolve both to
+// absolute paths and compare directly.
+const isMainModule = (() => {
+  const entry = process.argv[1];
+  if (entry === undefined) return false;
+  try {
+    return fileURLToPath(import.meta.url) === path.resolve(entry);
+  } catch {
+    return false;
+  }
+})();
 
 if (isMainModule) {
   main().catch((err) => {
