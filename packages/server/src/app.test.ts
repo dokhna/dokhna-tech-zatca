@@ -33,6 +33,8 @@ function freshConfig(): ServerConfig {
     instanceId: "test-instance",
     metricsEnabled: false,
     logLevel: "fatal",
+    trustProxy: false,
+    onboardingMaxConcurrent: 4,
   };
 }
 

@@ -53,6 +53,17 @@ export interface ServerConfig {
   /** Idempotency-key replay window in ms. Default 86_400_000 (24h). */
   readonly idempotencyWindowMs: number;
   /**
+   * Maximum number of onboarding / credentials-rotate requests
+   * in flight at the same time across this process. A privileged
+   * admin (or compromised key) firing N parallel `/onboard` calls
+   * across many tenants would otherwise pin the DB pool + ZATCA
+   * outbound connections for up to 3 minutes each. Default 4 —
+   * tuned for a single-replica server; horizontally-scaled
+   * deployments multiply this by the replica count. Excess
+   * requests get 503 with `Retry-After: 30`. ME-27 from REVIEW.md.
+   */
+  readonly onboardingMaxConcurrent: number;
+  /**
    * Server-instance identifier used for the per-tenant onboarding
    * lock. Defaults to the hostname; override when multiple replicas
    * share a hostname (Kubernetes pods, etc.).
@@ -60,8 +71,8 @@ export interface ServerConfig {
   readonly instanceId: string;
   /** Expose `/metrics` (Prometheus exposition). Default `true`. */
   readonly metricsEnabled: boolean;
-  /** Pino log level. Default `info`. */
-  readonly logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace";
+  /** Pino log level. Default `info`. `silent` disables logging entirely (ME-23). */
+  readonly logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace" | "silent";
   /**
    * Trust the `X-Forwarded-*` chain from upstream proxies. Default
    * `false` (ME-15). Set to `true` ONLY when running behind a
@@ -96,7 +107,9 @@ export function toSafeServerConfig(config: ServerConfig): SafeServerConfig {
   return safe;
 }
 
-const LevelSchema = z.enum(["fatal", "error", "warn", "info", "debug", "trace"]);
+// ME-23: `silent` lets tests + low-noise environments turn pino off
+// entirely. Pino accepts "silent" as a valid level.
+const LevelSchema = z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]);
 
 function readKeyring(raw: string): ReadonlyArray<MasterKey> {
   const entries = raw
@@ -228,6 +241,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       MsSchema,
       86_400_000,
       "ZATCA_SERVER_IDEMPOTENCY_WINDOW_MS",
+    ),
+    onboardingMaxConcurrent: withDefault(
+      env.ZATCA_SERVER_ONBOARDING_MAX_CONCURRENT,
+      MsSchema,
+      4,
+      "ZATCA_SERVER_ONBOARDING_MAX_CONCURRENT",
     ),
     instanceId: env.ZATCA_SERVER_INSTANCE_ID ?? env.HOSTNAME ?? "instance-0",
     metricsEnabled: withDefault(

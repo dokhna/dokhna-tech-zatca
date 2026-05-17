@@ -475,6 +475,12 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
         });
       }
     },
+
+    async ping() {
+      // ME-11: cheap SELECT 1 — checks DB reachability without
+      // pulling any tenant rows. Used by /readyz.
+      await pool.query("SELECT 1");
+    },
   };
 }
 

@@ -18,6 +18,7 @@
 
 import type { StorageAdapter } from "@dokhna-tech/zatca";
 import fastify, { type FastifyInstance } from "fastify";
+import type { Logger } from "pino";
 
 import type { AuditLog } from "./audit/index.js";
 import { createAdminKeyVerifier, createTenantBearerVerifier } from "./auth/index.js";
@@ -25,6 +26,7 @@ import { type ServerConfig, toSafeServerConfig } from "./config.js";
 import { createAesGcmCipher, type SecretCipher } from "./crypto/index.js";
 import {
   createMemoryIdempotencyStore,
+  createSemaphore,
   type IdempotencyStore,
   mapErrorToResponse,
 } from "./middleware/index.js";
@@ -62,6 +64,13 @@ export interface BuildAppOptions {
   readonly cipher?: SecretCipher;
   readonly idempotencyStore?: IdempotencyStore;
   readonly metrics?: ServerMetrics;
+  /**
+   * Override the pino logger built from `config.logLevel`. Tests
+   * commonly pass a silent or in-memory pino instance to keep the
+   * vitest output clean (ME-23). Production callers leave it
+   * undefined.
+   */
+  readonly logger?: Logger;
   /** Test-injection seams for the onboarding flow. */
   readonly onboardingHooks?: RouteDeps["onboardingHooks"];
 }
@@ -72,11 +81,17 @@ export interface BuildAppOptions {
  */
 export async function buildApp(options: BuildAppOptions): Promise<FastifyInstance> {
   const { config } = options;
-  const logger = createLogger({ level: config.logLevel });
+  // ME-23: accept a caller-supplied logger (tests + low-noise
+  // environments). Falls back to the config-driven default.
+  const logger = options.logger ?? createLogger({ level: config.logLevel });
   const cipher =
     options.cipher ??
     createAesGcmCipher({ keyring: config.masterKeys, activeKid: config.activeKid });
   const idempotencyStore = options.idempotencyStore ?? createMemoryIdempotencyStore();
+  // ME-27: bound concurrent onboarding requests so a privileged
+  // admin (or compromised key) cannot pin the DB pool and ZATCA
+  // outbound connections by firing parallel onboards.
+  const onboardingSemaphore = createSemaphore(config.onboardingMaxConcurrent);
   const metrics = options.metrics ?? createMetrics({ collectDefaults: config.metricsEnabled });
 
   const server = fastify({
@@ -86,10 +101,13 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     // (default false). Set true only when bound behind a proxy that
     // strips inbound X-Forwarded-* headers before forwarding.
     trustProxy: config.trustProxy,
-    // 180s read timeout — matches the documented onboarding ceiling
-    // (the route can block this long without timing out).
-    connectionTimeout: Math.max(30_000, config.onboardingTimeoutMs + 10_000),
-    requestTimeout: Math.max(30_000, config.onboardingTimeoutMs + 10_000),
+    // ME-16: 30s default at the connection level — short enough that
+    // a stuck/hung TCP probe doesn't pin FDs. The /onboard and
+    // /credentials/rotate routes override via Fastify's per-route
+    // `connectionTimeout` so the long ZATCA handshake still has the
+    // documented 180s ceiling.
+    connectionTimeout: 30_000,
+    requestTimeout: 30_000,
   });
 
   // Auth verifiers.
@@ -125,6 +143,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     adminVerifier,
     tenantVerifier,
     idempotencyStore,
+    onboardingSemaphore,
     metrics,
     ...(options.onboardingHooks !== undefined ? { onboardingHooks: options.onboardingHooks } : {}),
   };

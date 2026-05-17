@@ -18,10 +18,11 @@ export const opsRoutes: FastifyPluginAsync<RouteDeps> = async (server, deps) => 
   server.get("/healthz", async () => ({ status: "ok" }));
 
   server.get("/readyz", async (req, reply) => {
-    // Liveness over reachability: ping the tenant store (cheap) and
-    // surface failures as 503. Future versions may also ping ZATCA.
+    // ME-11: cheap `ping()` instead of a full tenant list — at 10k
+    // tenants the list-on-every-probe was a known latency spike.
+    // Future versions may also ping ZATCA reachability.
     try {
-      await deps.registry.tenants.list({ includeDeleted: false });
+      await deps.registry.tenants.ping();
       return { status: "ready" };
     } catch (err) {
       // ME-12: /readyz is unauthenticated by design (k8s probes hit

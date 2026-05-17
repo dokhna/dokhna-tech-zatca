@@ -90,4 +90,13 @@ export interface TenantStore {
    * the tenant is hidden).
    */
   softDelete(tenantRef: string): Promise<void>;
+
+  /**
+   * Cheap connectivity check used by `/readyz`. Returns when the
+   * backing store is reachable; throws otherwise. Implementations
+   * SHOULD execute a constant-time operation (e.g. `SELECT 1`,
+   * `db.runCommand({ping:1})`) rather than a paginated read so the
+   * cost stays flat as the tenant population grows (ME-11).
+   */
+  ping(): Promise<void>;
 }

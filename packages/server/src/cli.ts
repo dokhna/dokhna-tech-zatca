@@ -115,6 +115,13 @@ async function bootMongo(config: ServerConfig, env: NodeJS.ProcessEnv): Promise<
     registry,
     auditLog,
     shutdown: async () => {
+      // ME-21: app.close() runs before this in the SIGTERM path
+      // (see the main `shutdown` handler below) so all in-flight
+      // handlers have already returned and their awaited audit
+      // writes have committed. `connection.close()` without `force`
+      // then waits for any remaining buffered operations to flush
+      // before the socket goes down — `force: true` would skip
+      // that flush and lose last-mile audit rows.
       await connection.close();
     },
   };

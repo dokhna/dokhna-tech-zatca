@@ -13,7 +13,7 @@ import type { AuditLog } from "../audit/index.js";
 import type { AdminKeyVerifier, TenantBearerVerifier } from "../auth/index.js";
 import type { SafeServerConfig } from "../config.js";
 import type { SecretCipher } from "../crypto/index.js";
-import type { IdempotencyStore } from "../middleware/index.js";
+import type { IdempotencyStore, Semaphore } from "../middleware/index.js";
 import type { ServerMetrics } from "../observability/index.js";
 import type { ApiKeyStore } from "../tenants/api-key-store.js";
 import type { CredentialVault } from "../tenants/credential-vault.js";
@@ -89,6 +89,11 @@ export interface RouteDeps {
   readonly adminVerifier: AdminKeyVerifier;
   readonly tenantVerifier: TenantBearerVerifier;
   readonly idempotencyStore: IdempotencyStore;
+  /**
+   * Caps concurrent /onboard + /credentials/rotate requests across
+   * the process (ME-27). Built from `config.onboardingMaxConcurrent`.
+   */
+  readonly onboardingSemaphore: Semaphore;
   readonly metrics?: ServerMetrics;
   /**
    * Test-injection seam — replace `core.onboard` and the certificate

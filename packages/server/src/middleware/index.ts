@@ -10,3 +10,4 @@ export {
   DEFAULT_IDEMPOTENCY_TTL_MS,
   type IdempotencyStore,
 } from "./idempotency.js";
+export { createSemaphore, type Semaphore } from "./semaphore.js";

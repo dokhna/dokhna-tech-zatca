@@ -285,6 +285,10 @@ export function createMemoryTenantStore(options: { now?: () => Date } = {}): Ten
       };
       records.set(tenantRef, updated);
     },
+
+    async ping() {
+      // ME-11: in-memory store is always reachable.
+    },
   };
 }
 

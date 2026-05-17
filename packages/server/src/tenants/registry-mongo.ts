@@ -508,6 +508,16 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
         });
       }
     },
+
+    async ping() {
+      // ME-11: cheap ping via the underlying driver — checks
+      // connectivity without pulling tenant rows. Used by /readyz.
+      const db = options.connection.db;
+      if (db === undefined) {
+        throw new Error("Mongoose connection has no .db handle (not yet open?).");
+      }
+      await db.admin().ping();
+    },
   };
 }
 
