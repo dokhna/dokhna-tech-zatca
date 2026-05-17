@@ -48,7 +48,9 @@ export function registerAdminApiKeyRoutes(server: FastifyInstance, deps: RouteDe
       // been soft-deleted). Returns 404 via the error mapper.
       const tenant = await deps.registry.tenants.get(req.params.ref);
       if (tenant === null) {
-        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, {
+          code: "not_found",
+        });
       }
       // issue + audit atomic (CR-01).
       const issued = await deps.withUnitOfWork(async (uow) => {
@@ -92,6 +94,7 @@ export function registerAdminApiKeyRoutes(server: FastifyInstance, deps: RouteDe
         if (!revoked) {
           throw new ZatcaRegistryError(
             `Unknown api key '${req.params.tokenId}' for tenant '${req.params.ref}'.`,
+            { code: "not_found" },
           );
         }
         await uow.auditLog.write({

@@ -117,7 +117,7 @@ export function createMemoryTenantStore(options: { now?: () => Date } = {}): Ten
   function requireRecord(tenantRef: string): TenantRecord {
     const existing = records.get(tenantRef);
     if (existing === undefined || existing.deletedAt !== undefined) {
-      throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+      throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
     }
     return existing;
   }
@@ -126,7 +126,9 @@ export function createMemoryTenantStore(options: { now?: () => Date } = {}): Ten
     async create(input: CreateTenantInput) {
       const tenantRef = input.tenantRef ?? generateTenantRef();
       if (records.has(tenantRef)) {
-        throw new ZatcaRegistryError(`Tenant '${tenantRef}' already exists.`);
+        throw new ZatcaRegistryError(`Tenant '${tenantRef}' already exists.`, {
+          code: "conflict",
+        });
       }
       const now = clock();
       const record: TenantRecord = {
@@ -213,6 +215,7 @@ export function createMemoryTenantStore(options: { now?: () => Date } = {}): Ten
         if (existing.state !== options.expectedFrom && !lockNotHeld) {
           throw new ZatcaRegistryError(
             `Cannot transition tenant '${tenantRef}' from '${existing.state}' (expected '${options.expectedFrom}').`,
+            { code: "conflict" },
           );
         }
       }
@@ -266,7 +269,7 @@ export function createMemoryTenantStore(options: { now?: () => Date } = {}): Ten
     async softDelete(tenantRef: string) {
       const existing = records.get(tenantRef);
       if (existing === undefined) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
       const updated: TenantRecord = {
         ...existing,

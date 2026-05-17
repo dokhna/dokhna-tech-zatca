@@ -214,12 +214,16 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
         );
         const firstRow = result.rows[0];
         if (firstRow === undefined) {
-          throw new ZatcaRegistryError(`create returned no row for tenant '${tenantRef}'.`);
+          throw new ZatcaRegistryError(`create returned no row for tenant '${tenantRef}'.`, {
+            code: "conflict",
+          });
         }
         return rowToTenant(firstRow);
       } catch (err) {
         if (isUniqueViolation(err)) {
-          throw new ZatcaRegistryError(`Tenant '${tenantRef}' already exists.`);
+          throw new ZatcaRegistryError(`Tenant '${tenantRef}' already exists.`, {
+            code: "conflict",
+          });
         }
         throw err;
       }
@@ -306,7 +310,7 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
       );
       const row = result.rows[0];
       if (row === undefined) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
       return rowToTenant(row);
     },
@@ -389,10 +393,11 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
           [tenantRef],
         );
         if (exists.rows.length === 0) {
-          throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+          throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
         }
         throw new ZatcaRegistryError(
           `Cannot transition tenant '${tenantRef}' from '${exists.rows[0]?.state}' (expected '${opts.expectedFrom}').`,
+          { code: "conflict" },
         );
       }
       return rowToTenant(row);
@@ -410,7 +415,7 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
       );
       const existing = current.rows[0];
       if (existing === undefined) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
       const merged: OnboardingProgress = {
         ...existing.onboarding_progress,
@@ -441,7 +446,7 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
         [tenantRef, expiresAt.toISOString(), clock()],
       );
       if (result.rowCount === 0) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
     },
 
@@ -454,7 +459,7 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
         [tenantRef, now],
       );
       if (result.rowCount === 0) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
     },
   };

@@ -64,9 +64,11 @@ export function mapErrorToResponse(err: unknown): ErrorResponse {
     return makeBody(400, err.name, err.message, {});
   }
   if (err instanceof ZatcaRegistryError) {
-    // 404 for any "unknown <entity>" lookup miss; 409 for state-
-    // machine conflicts (CAS failures, duplicate creates, etc).
-    const status = /^Unknown\b/.test(err.message) ? 404 : 409;
+    // HI-08: route by the explicit `code` field — set at every throw
+    // site in the server's own code. The `.message`-regex fallback
+    // is kept only for the legacy / external-callsite case where
+    // `code` is undefined; new throws MUST set `code`.
+    const status = registryErrorStatus(err);
     return makeBody(status, err.name, err.message, {});
   }
   if (err instanceof ZatcaCipherError) {
@@ -112,7 +114,12 @@ export function mapErrorToResponse(err: unknown): ErrorResponse {
     return makeBody(500, err.name, err.message, {});
   }
   if (err instanceof ZatcaServerError) {
-    return makeBody(500, err.name, err.message, {});
+    // HI-07: respect `statusHint` when the throw site set one. Several
+    // user-recoverable conditions in `runOnboarding` (lock conflicts,
+    // bad-state transitions, compliance-test failures) throw plain
+    // `ZatcaServerError`; without the hint they'd all map to 500.
+    const status = err.statusHint ?? 500;
+    return makeBody(status, err.name, err.message, {});
   }
   if (err instanceof ZatcaError) {
     return makeBody(500, err.name, err.message, {});
@@ -121,6 +128,25 @@ export function mapErrorToResponse(err: unknown): ErrorResponse {
     return makeBody(500, "InternalServerError", err.message, {});
   }
   return makeBody(500, "InternalServerError", "Unknown error", {});
+}
+
+/**
+ * HI-08: pick the HTTP status for a {@link ZatcaRegistryError} from
+ * its explicit `code` field, falling back to the historical
+ * `.message`-regex routing for callers that haven't been updated.
+ *
+ * New throws inside this package always pass `code`; the fallback
+ * exists only to preserve behaviour for binary-compat external
+ * callers (downstream apps embedding the package) that construct the
+ * class without it.
+ */
+function registryErrorStatus(err: ZatcaRegistryError): number {
+  if (err.code === "not_found") return 404;
+  if (err.code === "invalid") return 400;
+  if (err.code === "conflict") return 409;
+  // Legacy fallback — kept narrow on purpose. Once external callers
+  // adopt `code`, the regex can be deleted entirely.
+  return /^Unknown\b/.test(err.message) ? 404 : 409;
 }
 
 function makeBody(

@@ -286,7 +286,7 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
       .lean()
       .exec();
     if (doc === null) {
-      throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+      throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
     }
     return doc as TenantDoc;
   }
@@ -316,7 +316,9 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
         await TenantModel.create(doc);
       } catch (err) {
         if (isDuplicateKeyError(err)) {
-          throw new ZatcaRegistryError(`Tenant '${tenantRef}' already exists.`);
+          throw new ZatcaRegistryError(`Tenant '${tenantRef}' already exists.`, {
+            code: "conflict",
+          });
         }
         throw err;
       }
@@ -362,7 +364,7 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
         { returnDocument: "after", lean: true },
       ).exec();
       if (doc === null) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
       return docToTenant(doc as unknown as TenantDoc);
     },
@@ -444,10 +446,11 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
           .lean()
           .exec()) as TenantDoc | null;
         if (exists === null) {
-          throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+          throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
         }
         throw new ZatcaRegistryError(
           `Cannot transition tenant '${tenantRef}' from '${exists.state}' (expected '${opts.expectedFrom}').`,
+          { code: "conflict" },
         );
       }
       return docToTenant(doc as unknown as TenantDoc);
@@ -470,7 +473,7 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
         { $set: { onboardingProgress: merged, updatedAt: clock() } },
       ).exec();
       if (result.matchedCount === 0) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
     },
 
@@ -480,7 +483,7 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
         { $set: { productionCertificateExpiresAt: expiresAt, updatedAt: clock() } },
       ).exec();
       if (result.matchedCount === 0) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
     },
 
@@ -491,7 +494,7 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
         { $set: { state: "revoked", deletedAt: now, updatedAt: now } },
       ).exec();
       if (result.matchedCount === 0) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
     },
   };

@@ -140,7 +140,9 @@ async function authTenant(
   const resolved = await deps.tenantVerifier.verify(req.headers.authorization, expectedTenantRef);
   const tenant = await deps.registry.tenants.get(expectedTenantRef);
   if (tenant === null) {
-    throw new ZatcaRegistryError(`Unknown tenant '${expectedTenantRef}'.`);
+    throw new ZatcaRegistryError(`Unknown tenant '${expectedTenantRef}'.`, {
+      code: "not_found",
+    });
   }
   if (tenant.state !== "production-ready") {
     throw new ZatcaValidationError(
@@ -316,7 +318,9 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
       const scope = toTenantScope(tenant);
       const record = await deps.storage.loadInvoice(scope, req.params.invoiceId);
       if (record === null) {
-        throw new ZatcaRegistryError(`Unknown invoice '${req.params.invoiceId}'.`);
+        throw new ZatcaRegistryError(`Unknown invoice '${req.params.invoiceId}'.`, {
+          code: "not_found",
+        });
       }
       return reply.send(record);
     },
@@ -331,7 +335,9 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
       const scope = toTenantScope(tenant);
       const record = await deps.storage.loadInvoice(scope, req.params.invoiceId);
       if (record === null) {
-        throw new ZatcaRegistryError(`Unknown invoice '${req.params.invoiceId}'.`);
+        throw new ZatcaRegistryError(`Unknown invoice '${req.params.invoiceId}'.`, {
+          code: "not_found",
+        });
       }
       let result: unknown;
       let zatcaRequestId: string | undefined;
@@ -382,7 +388,9 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
       const scope = toTenantScope(tenant);
       const record = await deps.storage.loadInvoice(scope, req.params.invoiceId);
       if (record === null) {
-        throw new ZatcaRegistryError(`Unknown invoice '${req.params.invoiceId}'.`);
+        throw new ZatcaRegistryError(`Unknown invoice '${req.params.invoiceId}'.`, {
+          code: "not_found",
+        });
       }
       const query = parseBody(StatusQuery, req.query);
       const result = await checkInvoiceStatus({
@@ -404,7 +412,9 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
       const scope = toTenantScope(tenant);
       const record = await deps.storage.loadInvoice(scope, req.params.invoiceId);
       if (record === null) {
-        throw new ZatcaRegistryError(`Unknown invoice '${req.params.invoiceId}'.`);
+        throw new ZatcaRegistryError(`Unknown invoice '${req.params.invoiceId}'.`, {
+          code: "not_found",
+        });
       }
       const result = await checkInvoiceCompliance({
         signedInvoiceXml: record.signedXml,

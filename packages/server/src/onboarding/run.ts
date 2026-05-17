@@ -206,7 +206,9 @@ export async function runOnboarding(args: RunOnboardingArgs): Promise<RunOnboard
 
   const existing = await args.registry.tenants.get(args.tenantRef);
   if (existing === null) {
-    throw new ZatcaRegistryError(`Unknown tenant '${args.tenantRef}'.`);
+    throw new ZatcaRegistryError(`Unknown tenant '${args.tenantRef}'.`, {
+      code: "not_found",
+    });
   }
 
   // Pre-flight: refuse to attempt onboarding while a fresh claim is
@@ -221,6 +223,8 @@ export async function runOnboarding(args: RunOnboardingArgs): Promise<RunOnboard
       `Tenant '${args.tenantRef}' is already onboarding (claimed by '${
         existing.claimedBy ?? "unknown"
       }', lock expires ${existing.claimExpiresAt.toISOString()}).`,
+      undefined,
+      { statusHint: 409 },
     );
   }
 
@@ -255,6 +259,8 @@ export async function runOnboarding(args: RunOnboardingArgs): Promise<RunOnboard
     const fresh = await args.registry.tenants.get(args.tenantRef);
     throw new ZatcaServerError(
       `Tenant '${args.tenantRef}' cannot be onboarded from state '${fresh?.state ?? "unknown"}'.`,
+      undefined,
+      { statusHint: 409 },
     );
   }
 
@@ -283,7 +289,11 @@ export async function runOnboarding(args: RunOnboardingArgs): Promise<RunOnboard
       // core.onboard() already throws ZatcaOnboardingError on a
       // failed report, but we belt-and-brace in case that contract
       // softens — defensive symmetry with the success path.
-      throw new ZatcaServerError(`Compliance tests failed for tenant '${args.tenantRef}'.`);
+      throw new ZatcaServerError(
+        `Compliance tests failed for tenant '${args.tenantRef}'.`,
+        undefined,
+        { statusHint: 422 },
+      );
     }
 
     // Parse the production-cert expiry BEFORE entering the

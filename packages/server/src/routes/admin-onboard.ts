@@ -143,7 +143,7 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
       }
       const tenant = await deps.registry.tenants.get(req.params.ref);
       if (tenant === null) {
-        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, { code: "not_found" });
       }
 
       const runArgs = {
@@ -208,7 +208,7 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
       }
       const tenant = await deps.registry.tenants.get(req.params.ref);
       if (tenant === null) {
-        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, { code: "not_found" });
       }
       const runArgs = {
         tenantRef: req.params.ref,
@@ -260,7 +260,7 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
     adminFor(req, deps);
     const record = await deps.registry.tenants.get(req.params.ref);
     if (record === null) {
-      throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
+      throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, { code: "not_found" });
     }
     return reply.send({
       tenantRef: record.tenantRef,
@@ -302,7 +302,7 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
       const force = parsed.data?.force === true;
       const record = await deps.registry.tenants.get(req.params.ref);
       if (record === null) {
-        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
+        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, { code: "not_found" });
       }
       if (record.state !== "onboarding") {
         throw new ZatcaValidationError(
