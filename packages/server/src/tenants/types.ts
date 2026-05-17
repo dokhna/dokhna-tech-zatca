@@ -20,18 +20,17 @@ import type {
  *
  * - `created`                  — registered; no ZATCA credentials yet.
  * - `onboarding`               — `onboard()` in flight; lock held.
- * - `compliance-tests-passed`  — 6 scenarios passed; awaiting production CSID issuance.
  * - `production-ready`         — production CSID acquired and persisted.
  * - `failed`                   — the most recent onboarding attempt aborted. `onboardingProgress.lastError` holds the reason.
  * - `revoked`                  — soft-deleted; all API keys revoked; vault retained for audit retention.
+ *
+ * ME-26: `compliance-tests-passed` was previously enumerated as an
+ * intermediate state but no code path transitions into it — the
+ * onboarding flow goes straight from `onboarding` to either
+ * `production-ready` or `failed`. Dead state removed to avoid
+ * operator dashboards permanently showing zero rows in a filter.
  */
-export type TenantState =
-  | "created"
-  | "onboarding"
-  | "compliance-tests-passed"
-  | "production-ready"
-  | "failed"
-  | "revoked";
+export type TenantState = "created" | "onboarding" | "production-ready" | "failed" | "revoked";
 
 /**
  * Physical-address fields embedded in the CSR + UBL XML.

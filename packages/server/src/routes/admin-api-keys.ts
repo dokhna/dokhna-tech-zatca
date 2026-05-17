@@ -73,11 +73,30 @@ export function registerAdminApiKeyRoutes(server: FastifyInstance, deps: RouteDe
     },
   );
 
-  server.get<{ Params: { ref: string } }>("/v1/tenants/:ref/api-keys", async (req) => {
-    adminFor(req, deps);
-    const keys = await deps.registry.apiKeys.list(req.params.ref);
-    return { keys };
-  });
+  server.get<{ Params: { ref: string }; Querystring: { includeRevoked?: string } }>(
+    "/v1/tenants/:ref/api-keys",
+    async (req) => {
+      adminFor(req, deps);
+      // ME-17: refuse to list keys for unknown / soft-deleted
+      // tenants. The store doesn't enforce this on its own (it just
+      // matches `tenant_ref`); without the precheck, an admin who
+      // knows a deleted tenant's ref could still enumerate its
+      // historical tokens.
+      const tenant = await deps.registry.tenants.get(req.params.ref);
+      if (tenant === null) {
+        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, {
+          code: "not_found",
+        });
+      }
+      const all = await deps.registry.apiKeys.list(req.params.ref);
+      // ME-19: default to active-only (the common case); opt in to
+      // history with `?includeRevoked=true`. Unbounded growth of the
+      // active set is bounded by tenant rotations.
+      const includeRevoked = req.query.includeRevoked === "true";
+      const keys = includeRevoked ? all : all.filter((k) => k.revokedAt === undefined);
+      return { keys, includeRevoked };
+    },
+  );
 
   server.delete<{ Params: { ref: string; tokenId: string } }>(
     "/v1/tenants/:ref/api-keys/:tokenId",

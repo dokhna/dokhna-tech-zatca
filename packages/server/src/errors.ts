@@ -69,10 +69,7 @@ export type ZatcaRegistryErrorCode = "not_found" | "conflict" | "invalid";
 export class ZatcaRegistryError extends ZatcaServerError {
   public readonly code?: ZatcaRegistryErrorCode;
 
-  constructor(
-    message: string,
-    options?: { code?: ZatcaRegistryErrorCode; cause?: unknown },
-  ) {
+  constructor(message: string, options?: { code?: ZatcaRegistryErrorCode; cause?: unknown }) {
     super(message, options?.cause);
     if (options?.code !== undefined) {
       this.code = options.code;

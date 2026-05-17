@@ -489,12 +489,23 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
 
     async softDelete(tenantRef: string) {
       const now = clock();
+      // ME-05: filter so a second softDelete can't clobber the
+      // original deletion timestamp. Use $exists:false on deletedAt
+      // — Mongoose treats unset and null differently; we set
+      // deletedAt only on first delete, so $exists:false matches
+      // exactly the not-yet-deleted state.
       const result = await TenantModel.updateOne(
-        { _id: tenantRef },
+        { _id: tenantRef, deletedAt: { $exists: false } },
         { $set: { state: "revoked", deletedAt: now, updatedAt: now } },
       ).exec();
       if (result.matchedCount === 0) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
+        const exists = await TenantModel.exists({ _id: tenantRef });
+        if (exists === null) {
+          throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
+        }
+        throw new ZatcaRegistryError(`Tenant '${tenantRef}' is already deleted.`, {
+          code: "conflict",
+        });
       }
     },
   };
@@ -619,10 +630,17 @@ export interface MongoApiKeyStoreOptions {
   readonly now?: () => Date;
 }
 
+/**
+ * ME-04: skip writing `lastUsedAt` more often than once per minute
+ * per token. Mirror of the Postgres impl debounce.
+ */
+const MONGO_LAST_USED_DEBOUNCE_MS = 60_000;
+
 export function createMongoApiKeyStore(options: MongoApiKeyStoreOptions): ApiKeyStore {
   const { ApiKeyModel } = buildServerModels(options.connection);
   const env = options.env ?? "live";
   const clock = options.now ?? (() => new Date());
+  const lastUsedWriteAt = new Map<string, number>();
 
   return {
     async issue(tenantRef: string, label: string): Promise<IssuedApiKey> {
@@ -660,7 +678,17 @@ export function createMongoApiKeyStore(options: MongoApiKeyStoreOptions): ApiKey
         const candidate = await scrypt(presentedToken, salt, 32);
         if (candidate.length !== expectedHash.length) continue;
         if (!timingSafeEqual(candidate, expectedHash)) continue;
-        await ApiKeyModel.updateOne({ _id: doc._id }, { $set: { lastUsedAt: clock() } }).exec();
+        // ME-04: debounce — skip the update if we wrote one for
+        // this token within the window. Mirror of the Postgres impl.
+        const now = clock().getTime();
+        const lastWriteAt = lastUsedWriteAt.get(doc._id) ?? 0;
+        if (now - lastWriteAt >= MONGO_LAST_USED_DEBOUNCE_MS) {
+          lastUsedWriteAt.set(doc._id, now);
+          await ApiKeyModel.updateOne(
+            { _id: doc._id },
+            { $set: { lastUsedAt: new Date(now) } },
+          ).exec();
+        }
         return { tenantRef: doc.tenantRef, tokenId: doc._id };
       }
       return null;

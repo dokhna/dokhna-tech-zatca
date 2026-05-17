@@ -81,16 +81,7 @@ const PatchTenantBody = z
   );
 
 const ListQuery = z.object({
-  state: z
-    .enum([
-      "created",
-      "onboarding",
-      "compliance-tests-passed",
-      "production-ready",
-      "failed",
-      "revoked",
-    ])
-    .optional(),
+  state: z.enum(["created", "onboarding", "production-ready", "failed", "revoked"]).optional(),
   environment: z.enum(["sandbox", "simulation", "production"]).optional(),
   expiringWithinDays: z.coerce.number().int().positive().optional(),
   includeDeleted: z

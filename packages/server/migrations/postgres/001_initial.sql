@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS zatca_server_tenants (
   CONSTRAINT zatca_server_tenants_environment_check
     CHECK (environment IN ('sandbox','simulation','production')),
   CONSTRAINT zatca_server_tenants_state_check
-    CHECK (state IN ('created','onboarding','compliance-tests-passed','production-ready','failed','revoked'))
+    CHECK (state IN ('created','onboarding','production-ready','failed','revoked'))
 );
 
 -- Indexed for state-filtered listing AND for the "expiring within N

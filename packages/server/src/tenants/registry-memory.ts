@@ -271,6 +271,12 @@ export function createMemoryTenantStore(options: { now?: () => Date } = {}): Ten
       if (existing === undefined) {
         throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
       }
+      // ME-05: refuse to overwrite an existing deletion timestamp.
+      if (existing.deletedAt !== undefined) {
+        throw new ZatcaRegistryError(`Tenant '${tenantRef}' is already deleted.`, {
+          code: "conflict",
+        });
+      }
       const updated: TenantRecord = {
         ...existing,
         state: "revoked",

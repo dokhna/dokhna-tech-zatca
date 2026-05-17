@@ -452,14 +452,27 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
 
     async softDelete(tenantRef: string) {
       const now = clock();
+      // ME-05: filter `deleted_at IS NULL` so a second softDelete
+      // doesn't clobber the original deletion timestamp. The two
+      // failure modes (unknown vs already-deleted) are distinguished
+      // by a follow-up read so audits don't lose forensic data.
       const result = await pool.query(
         `UPDATE zatca_server_tenants
          SET state = 'revoked', deleted_at = $2, updated_at = $2
-         WHERE tenant_ref = $1`,
+         WHERE tenant_ref = $1 AND deleted_at IS NULL`,
         [tenantRef, now],
       );
       if (result.rowCount === 0) {
-        throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
+        const exists = await pool.query<{ deleted_at: Date | null }>(
+          `SELECT deleted_at FROM zatca_server_tenants WHERE tenant_ref = $1`,
+          [tenantRef],
+        );
+        if (exists.rowCount === 0) {
+          throw new ZatcaRegistryError(`Unknown tenant '${tenantRef}'.`, { code: "not_found" });
+        }
+        throw new ZatcaRegistryError(`Tenant '${tenantRef}' is already deleted.`, {
+          code: "conflict",
+        });
       }
     },
   };
@@ -641,10 +654,19 @@ export interface PostgresApiKeyStoreOptions {
   readonly now?: () => Date;
 }
 
+/**
+ * ME-04: skip writing `last_used_at` more often than once per
+ * minute per token. A high-throughput tenant doing hundreds of
+ * resolves a second was previously generating that many writes
+ * just for the telemetry column.
+ */
+const LAST_USED_DEBOUNCE_MS = 60_000;
+
 export function createPostgresApiKeyStore(options: PostgresApiKeyStoreOptions): ApiKeyStore {
   const { pool } = options;
   const env = options.env ?? "live";
   const clock = options.now ?? (() => new Date());
+  const lastUsedWriteAt = new Map<string, number>();
 
   return {
     async issue(tenantRef: string, label: string): Promise<IssuedApiKey> {
@@ -693,10 +715,19 @@ export function createPostgresApiKeyStore(options: PostgresApiKeyStoreOptions): 
         const candidate = await scrypt(presentedToken, salt, 32);
         if (candidate.length !== expectedHash.length) continue;
         if (!timingSafeEqual(candidate, expectedHash)) continue;
-        await pool.query(`UPDATE zatca_server_api_keys SET last_used_at = $2 WHERE token_id = $1`, [
-          row.token_id,
-          clock(),
-        ]);
+        // ME-04: debounce — skip the UPDATE if we wrote one
+        // recently for this token. The per-token Map fits a
+        // small-ish working set; even at a million tokens it's
+        // ~64MB which is fine for an in-process registry.
+        const now = clock().getTime();
+        const lastWriteAt = lastUsedWriteAt.get(row.token_id) ?? 0;
+        if (now - lastWriteAt >= LAST_USED_DEBOUNCE_MS) {
+          lastUsedWriteAt.set(row.token_id, now);
+          await pool.query(
+            `UPDATE zatca_server_api_keys SET last_used_at = $2 WHERE token_id = $1`,
+            [row.token_id, new Date(now)],
+          );
+        }
         return { tenantRef: row.tenant_ref, tokenId: row.token_id };
       }
       return null;
