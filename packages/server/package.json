@@ -1,0 +1,65 @@
+{
+  "name": "@dokhna-tech/zatca-server",
+  "version": "3.0.0",
+  "description": "Standalone multi-tenant ZATCA Phase 2 server. Tenant registry, encrypted credential vault, onboarding orchestration, and ZATCA operations exposed over HTTP.",
+  "license": "BUSL-1.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dokhna/dokhna-tech-zatca.git",
+    "directory": "packages/server"
+  },
+  "homepage": "https://github.com/dokhna/dokhna-tech-zatca#readme",
+  "bugs": {
+    "url": "https://github.com/dokhna/dokhna-tech-zatca/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
+    "prepack": "cp ../../LICENSE ./LICENSE"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "zatca",
+    "saudi-arabia",
+    "e-invoicing",
+    "phase-2",
+    "multi-tenant",
+    "server",
+    "docker"
+  ],
+  "dependencies": {
+    "debug": "^4.3.7"
+  },
+  "peerDependencies": {
+    "@dokhna-tech/zatca": "workspace:*"
+  },
+  "devDependencies": {
+    "@dokhna-tech/zatca": "workspace:*",
+    "@types/debug": "^4.1.12",
+    "@types/node": "^20.19.0"
+  }
+}

@@ -5,6 +5,7 @@
   "fixed": [
     [
       "@dokhna-tech/zatca",
+      "@dokhna-tech/zatca-server",
       "@dokhna-tech/zatca-storage-memory",
       "@dokhna-tech/zatca-storage-mongo",
       "@dokhna-tech/zatca-storage-postgres"

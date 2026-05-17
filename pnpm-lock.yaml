@@ -148,6 +148,22 @@ importers:
         specifier: ^2.6.0
         version: 2.14.6(@types/node@20.19.41)(typescript@6.0.3)
 
+  packages/server:
+    dependencies:
+      debug:
+        specifier: ^4.3.7
+        version: 4.4.3
+    devDependencies:
+      '@dokhna-tech/zatca':
+        specifier: workspace:*
+        version: link:../core
+      '@types/debug':
+        specifier: ^4.1.12
+        version: 4.1.13
+      '@types/node':
+        specifier: ^20.19.0
+        version: 20.19.41
+
   packages/storage-memory:
     dependencies:
       async-mutex:
@@ -3761,7 +3777,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.6(@types/node@20.19.41)(@vitest/coverage-v8@4.1.6)(msw@2.14.6(@types/node@20.19.41)(typescript@6.0.3))(vite@8.0.13(@types/node@20.19.41)(esbuild@0.27.7)(tsx@4.22.0)(yaml@2.9.0))
+      vitest: 4.1.6(@types/node@20.19.41)(@vitest/coverage-v8@4.1.6)(msw@2.14.6(@types/node@20.19.41)(typescript@6.0.3))(vite@8.0.13(@types/node@20.19.41)(esbuild@0.28.0)(tsx@4.22.0)(yaml@2.9.0))
 
   '@vitest/expect@4.1.6':
     dependencies:
