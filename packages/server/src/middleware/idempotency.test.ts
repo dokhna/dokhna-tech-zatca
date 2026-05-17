@@ -13,38 +13,61 @@ const RESPONSE: CachedResponse = {
 };
 
 describe("createMemoryIdempotencyStore", () => {
-  it("putIfAbsent inserts when key is unseen + returns true", async () => {
+  it("begin returns 'claimed' for an unseen key", async () => {
     const store = createMemoryIdempotencyStore();
-    expect(await store.putIfAbsent("k", RESPONSE, 10_000)).toBe(true);
+    const result = await store.begin("k", 10_000);
+    expect(result.kind).toBe("claimed");
   });
 
-  it("putIfAbsent returns false on collision within TTL", async () => {
+  it("begin returns 'in-flight' while a prior claim is open", async () => {
     const store = createMemoryIdempotencyStore();
-    await store.putIfAbsent("k", RESPONSE, 10_000);
-    expect(await store.putIfAbsent("k", RESPONSE, 10_000)).toBe(false);
+    await store.begin("k", 10_000);
+    const result = await store.begin("k", 10_000);
+    expect(result.kind).toBe("in-flight");
   });
 
-  it("get returns the stored response within TTL", async () => {
+  it("begin returns 'replay' once the prior caller committed", async () => {
     const store = createMemoryIdempotencyStore();
-    await store.putIfAbsent("k", RESPONSE, 10_000);
-    expect(await store.get("k")).toEqual(RESPONSE);
+    await store.begin("k", 10_000);
+    await store.commit("k", RESPONSE, 10_000);
+    const result = await store.begin("k", 10_000);
+    expect(result.kind).toBe("replay");
+    if (result.kind === "replay") {
+      expect(result.response).toEqual(RESPONSE);
+    }
   });
 
-  it("get returns null for unknown key", async () => {
-    expect(await createMemoryIdempotencyStore().get("missing")).toBeNull();
+  it("release allows a fresh claim on retry", async () => {
+    const store = createMemoryIdempotencyStore();
+    await store.begin("k", 10_000);
+    await store.release("k");
+    const result = await store.begin("k", 10_000);
+    expect(result.kind).toBe("claimed");
   });
 
-  it("get returns null + sweeps expired entries", async () => {
+  it("commit without prior begin throws (programming-error guard)", async () => {
     const store = createMemoryIdempotencyStore();
-    await store.set("k", RESPONSE, -1);
-    expect(await store.get("k")).toBeNull();
+    await expect(store.commit("k", RESPONSE, 10_000)).rejects.toThrow(/unclaimed key/);
   });
 
-  it("set overwrites prior value", async () => {
+  it("expired in-flight slot is sweepable by a fresh begin", async () => {
     const store = createMemoryIdempotencyStore();
-    await store.set("k", RESPONSE, 10_000);
-    await store.set("k", { ...RESPONSE, statusCode: 201 }, 10_000);
-    expect((await store.get("k"))?.statusCode).toBe(201);
+    await store.begin("k", -1);
+    const result = await store.begin("k", 10_000);
+    expect(result.kind).toBe("claimed");
+  });
+
+  it("expired committed entry is sweepable by a fresh begin", async () => {
+    const store = createMemoryIdempotencyStore();
+    await store.begin("k", 10_000);
+    await store.commit("k", RESPONSE, -1);
+    const result = await store.begin("k", 10_000);
+    expect(result.kind).toBe("claimed");
+  });
+
+  it("release of an unknown key is a no-op", async () => {
+    const store = createMemoryIdempotencyStore();
+    await expect(store.release("missing")).resolves.toBeUndefined();
   });
 });
 

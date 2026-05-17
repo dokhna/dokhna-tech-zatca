@@ -66,35 +66,63 @@ function readIdempotencyKey(req: FastifyRequest): string | undefined {
   return trimmed;
 }
 
-async function tryReplayIdempotent(
+/**
+ * HI-11: open an idempotency slot. See admin-onboard.ts for the
+ * detailed contract — same shape, duplicated here because the routes
+ * live in different modules and lifting the helper into
+ * middleware/idempotency.ts would introduce a circular dep on
+ * RouteDeps.
+ */
+async function beginIdempotency(
   deps: RouteDeps,
   reply: FastifyReply,
-  key: string,
+  idemKey: string | undefined,
   tenantRef: string,
   route: string,
-): Promise<boolean> {
-  const cacheKey = buildIdempotencyCacheKey({ tenantRef, route, presentedKey: key });
-  const cached = await deps.idempotencyStore.get(cacheKey);
-  if (cached === null) return false;
-  for (const [k, v] of Object.entries(cached.headers)) reply.header(k, v);
-  reply.header("x-idempotent-replay", "true");
-  await reply.code(cached.statusCode).send(cached.body);
-  return true;
-}
-
-async function storeIdempotent(
-  deps: RouteDeps,
-  key: string,
-  tenantRef: string,
-  route: string,
-  response: CachedResponse,
-): Promise<void> {
-  const cacheKey = buildIdempotencyCacheKey({ tenantRef, route, presentedKey: key });
+): Promise<{ proceed: true; cacheKey: string | undefined; ttl: number } | { proceed: false }> {
   const ttl =
     deps.config.idempotencyWindowMs > 0
       ? deps.config.idempotencyWindowMs
       : DEFAULT_IDEMPOTENCY_TTL_MS;
-  await deps.idempotencyStore.set(cacheKey, response, ttl);
+  if (idemKey === undefined) {
+    return { proceed: true, cacheKey: undefined, ttl };
+  }
+  const cacheKey = buildIdempotencyCacheKey({ tenantRef, route, presentedKey: idemKey });
+  const result = await deps.idempotencyStore.begin(cacheKey, ttl);
+  if (result.kind === "replay") {
+    for (const [k, v] of Object.entries(result.response.headers)) reply.header(k, v);
+    reply.header("x-idempotent-replay", "true");
+    await reply.code(result.response.statusCode).send(result.response.body);
+    return { proceed: false };
+  }
+  if (result.kind === "in-flight") {
+    await reply
+      .code(409)
+      .header("retry-after", "30")
+      .send({
+        error: {
+          name: "IdempotencyConflict",
+          message: "An idempotent request with this key is in flight; retry after a short delay.",
+        },
+      });
+    return { proceed: false };
+  }
+  return { proceed: true, cacheKey, ttl };
+}
+
+async function commitIdempotency(
+  deps: RouteDeps,
+  cacheKey: string | undefined,
+  ttl: number,
+  response: CachedResponse,
+): Promise<void> {
+  if (cacheKey === undefined) return;
+  await deps.idempotencyStore.commit(cacheKey, response, ttl);
+}
+
+async function releaseIdempotency(deps: RouteDeps, cacheKey: string | undefined): Promise<void> {
+  if (cacheKey === undefined) return;
+  await deps.idempotencyStore.release(cacheKey);
 }
 
 const IssueBody = z.object({
@@ -200,114 +228,117 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
   }>("/v1/tenants/:ref/invoices", async (req, reply) => {
     const { actor, tenant, signing } = await authTenant(req, deps, req.params.ref);
     const body = parseBody(IssueBody, req.body);
-    // Idempotency (CR-03): an invoice POST submits to ZATCA. A TCP
-    // retry without idempotency protection would either re-submit
-    // the same invoice (rejected on the ZATCA side as duplicate) or
-    // — worse — issue a fresh invoice number under a duplicate
-    // logical request. The header is optional.
+    // Idempotency (CR-03 + HI-11): an invoice POST submits to ZATCA.
+    // A TCP retry without protection would either re-submit the same
+    // invoice (rejected on the ZATCA side as duplicate) or — worse —
+    // issue a fresh invoice number under a duplicate logical request.
+    // The explicit `begin → commit | release` state machine prevents
+    // concurrent dupes; a retry after `commit` replays the response.
     const route = "/v1/tenants/:ref/invoices";
     const idemKey = readIdempotencyKey(req);
-    if (idemKey !== undefined) {
-      const replayed = await tryReplayIdempotent(deps, reply, idemKey, req.params.ref, route);
-      if (replayed) return reply;
-    }
-    const _egsInfo = buildEgsInfo(tenant, signing);
-    const scope = toTenantScope(tenant);
+    const idem = await beginIdempotency(deps, reply, idemKey, req.params.ref, route);
+    if (!idem.proceed) return reply;
+    try {
+      const _egsInfo = buildEgsInfo(tenant, signing);
+      const scope = toTenantScope(tenant);
 
-    // Issue locally — signs the UBL XML, persists via the storage
-    // adapter with status="pending".
-    const issueArgs: IssueInvoiceArgs = {
-      input: body.input as IssueInvoiceArgs["input"],
-      storage: deps.storage as StorageAdapter,
-      scope,
-      signing: {
-        certificate: signing.productionCertificate,
-        privateKey: signing.privateKey,
-      },
-    };
-    // The dispatch helper handles both Phase 1 and Phase 2 kinds —
-    // its return shape differs (`IssuedInvoice | IssuedPhase1Invoice`).
-    // We narrow on the presence of `signedXml`.
-    const issued = await issueInvoice(issueArgs);
-    const isPhase2 = "signedXml" in issued;
+      // Issue locally — signs the UBL XML, persists via the storage
+      // adapter with status="pending".
+      const issueArgs: IssueInvoiceArgs = {
+        input: body.input as IssueInvoiceArgs["input"],
+        storage: deps.storage as StorageAdapter,
+        scope,
+        signing: {
+          certificate: signing.productionCertificate,
+          privateKey: signing.privateKey,
+        },
+      };
+      // The dispatch helper handles both Phase 1 and Phase 2 kinds —
+      // its return shape differs (`IssuedInvoice | IssuedPhase1Invoice`).
+      // We narrow on the presence of `signedXml`.
+      const issued = await issueInvoice(issueArgs);
+      const isPhase2 = "signedXml" in issued;
 
-    let zatcaResponse: unknown = null;
-    let zatcaRequestId: string | undefined;
-    let status: "accepted" | "rejected" | "pending" = "pending";
+      let zatcaResponse: unknown = null;
+      let zatcaRequestId: string | undefined;
+      let status: "accepted" | "rejected" | "pending" = "pending";
 
-    if (body.submit && isPhase2) {
-      const phase2 = issued as { signedXml: string; invoiceHash: string };
-      try {
-        const result = await singleInvoiceReportingOrClearanceStatus({
-          signedInvoiceXml: phase2.signedXml,
-          invoiceHash: phase2.invoiceHash,
-          egsUuid: tenant.egsUuid,
-          binarySecurityToken: signing.productionBinarySecurityToken,
-          apiSecret: signing.productionApiSecret,
-          environment: tenant.environment,
-        });
-        zatcaResponse = result;
-        status = "accepted";
-      } catch (err) {
-        if (err instanceof ZatcaApiError) {
-          zatcaResponse = err.validationResults;
-          zatcaRequestId = err.requestId;
-          status = "rejected";
-        } else {
-          throw err;
+      if (body.submit && isPhase2) {
+        const phase2 = issued as { signedXml: string; invoiceHash: string };
+        try {
+          const result = await singleInvoiceReportingOrClearanceStatus({
+            signedInvoiceXml: phase2.signedXml,
+            invoiceHash: phase2.invoiceHash,
+            egsUuid: tenant.egsUuid,
+            binarySecurityToken: signing.productionBinarySecurityToken,
+            apiSecret: signing.productionApiSecret,
+            environment: tenant.environment,
+          });
+          zatcaResponse = result;
+          status = "accepted";
+        } catch (err) {
+          if (err instanceof ZatcaApiError) {
+            zatcaResponse = err.validationResults;
+            zatcaRequestId = err.requestId;
+            status = "rejected";
+          } else {
+            throw err;
+          }
         }
+        // Persist the lifecycle transition.
+        const invoiceId =
+          (issued as { invoiceId?: string; invoiceNumber: string }).invoiceId ??
+          issued.invoiceNumber;
+        await deps.storage.updateInvoiceStatus(scope, invoiceId, status);
       }
-      // Persist the lifecycle transition.
-      const invoiceId =
-        (issued as { invoiceId?: string; invoiceNumber: string }).invoiceId ?? issued.invoiceNumber;
-      await deps.storage.updateInvoiceStatus(scope, invoiceId, status);
-    }
 
-    if (deps.metrics !== undefined) {
-      const kind = (body.input as { kind?: string }).kind ?? "unknown";
-      deps.metrics.invoicesIssuedTotal.inc({
-        tenant: tenant.tenantRef,
-        kind,
-        status,
+      if (deps.metrics !== undefined) {
+        const kind = (body.input as { kind?: string }).kind ?? "unknown";
+        deps.metrics.invoicesIssuedTotal.inc({
+          tenant: tenant.tenantRef,
+          kind,
+          status,
+        });
+      }
+
+      await deps.auditLog.write({
+        actor,
+        tenantRef: tenant.tenantRef,
+        action: "invoice.issued",
+        targetId: issued.invoiceNumber,
+        result: status === "rejected" ? "error" : "ok",
+        ...(zatcaRequestId !== undefined ? { zatcaRequestId } : {}),
+        payload: redactSecrets({
+          kind: (body.input as { kind?: string }).kind,
+          submitted: body.submit,
+          status,
+        }),
       });
-    }
 
-    await deps.auditLog.write({
-      actor,
-      tenantRef: tenant.tenantRef,
-      action: "invoice.issued",
-      targetId: issued.invoiceNumber,
-      result: status === "rejected" ? "error" : "ok",
-      ...(zatcaRequestId !== undefined ? { zatcaRequestId } : {}),
-      payload: redactSecrets({
-        kind: (body.input as { kind?: string }).kind,
-        submitted: body.submit,
+      const responseHeaders: Record<string, string> = {};
+      if (zatcaRequestId !== undefined) {
+        reply.header("X-Zatca-Request-Id", zatcaRequestId);
+        responseHeaders["X-Zatca-Request-Id"] = zatcaRequestId;
+      }
+      const responseBody = {
+        invoiceNumber: issued.invoiceNumber,
+        sequence: issued.sequence,
+        invoiceHash: "invoiceHash" in issued ? issued.invoiceHash : undefined,
+        signedXml: "signedXml" in issued ? issued.signedXml : undefined,
+        qrCode: "qrCode" in issued ? issued.qrCode : undefined,
         status,
-      }),
-    });
-
-    const responseHeaders: Record<string, string> = {};
-    if (zatcaRequestId !== undefined) {
-      reply.header("X-Zatca-Request-Id", zatcaRequestId);
-      responseHeaders["X-Zatca-Request-Id"] = zatcaRequestId;
-    }
-    const responseBody = {
-      invoiceNumber: issued.invoiceNumber,
-      sequence: issued.sequence,
-      invoiceHash: "invoiceHash" in issued ? issued.invoiceHash : undefined,
-      signedXml: "signedXml" in issued ? issued.signedXml : undefined,
-      qrCode: "qrCode" in issued ? issued.qrCode : undefined,
-      status,
-      zatcaResponse,
-    };
-    if (idemKey !== undefined) {
-      await storeIdempotent(deps, idemKey, req.params.ref, route, {
+        zatcaResponse,
+      };
+      await commitIdempotency(deps, idem.cacheKey, idem.ttl, {
         statusCode: 200,
         headers: responseHeaders,
         body: JSON.stringify(responseBody),
       });
+      return reply.send(responseBody);
+    } catch (err) {
+      await releaseIdempotency(deps, idem.cacheKey);
+      throw err;
     }
-    return reply.send(responseBody);
   });
 
   // GET /v1/tenants/:ref/invoices/:invoiceId

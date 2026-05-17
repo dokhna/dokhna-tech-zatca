@@ -48,46 +48,68 @@ function readIdempotencyKey(req: FastifyRequest): string | undefined {
 }
 
 /**
- * Replay a cached idempotent response, if one exists. Returns `true`
- * when a cached response was sent (caller should stop processing),
- * `false` otherwise. The cache key is namespaced by tenantRef + route
- * + a sha256 of the presented header, so a key replayed against a
- * different tenant or different route does NOT hit the cache.
+ * HI-11: open an idempotency slot for the request.
+ *
+ * Returns:
+ * - `{ proceed: true, cacheKey, ttl }` when the caller is first (or
+ *   no idemKey was presented). The caller MUST call `commit` on
+ *   success OR `release` on error; skipping both wedges the slot
+ *   until TTL.
+ * - `{ proceed: false }` when the response has already been sent —
+ *   either a replay of a prior committed response or a 409 because
+ *   another caller is mid-flight under the same key. The caller
+ *   stops processing and returns the reply.
  */
-async function tryReplayIdempotent(
+async function beginIdempotency(
   deps: RouteDeps,
   reply: FastifyReply,
-  key: string,
+  idemKey: string | undefined,
   tenantRef: string,
   route: string,
-): Promise<boolean> {
-  const cacheKey = buildIdempotencyCacheKey({ tenantRef, route, presentedKey: key });
-  const cached = await deps.idempotencyStore.get(cacheKey);
-  if (cached === null) return false;
-  for (const [k, v] of Object.entries(cached.headers)) reply.header(k, v);
-  reply.header("x-idempotent-replay", "true");
-  await reply.code(cached.statusCode).send(cached.body);
-  return true;
-}
-
-/**
- * Persist an idempotent response for replay. The TTL is configurable
- * via `config.idempotencyWindowMs` (default 24h) and falls back to
- * `DEFAULT_IDEMPOTENCY_TTL_MS` if the config is somehow zero.
- */
-async function storeIdempotent(
-  deps: RouteDeps,
-  key: string,
-  tenantRef: string,
-  route: string,
-  response: CachedResponse,
-): Promise<void> {
-  const cacheKey = buildIdempotencyCacheKey({ tenantRef, route, presentedKey: key });
+): Promise<{ proceed: true; cacheKey: string | undefined; ttl: number } | { proceed: false }> {
   const ttl =
     deps.config.idempotencyWindowMs > 0
       ? deps.config.idempotencyWindowMs
       : DEFAULT_IDEMPOTENCY_TTL_MS;
-  await deps.idempotencyStore.set(cacheKey, response, ttl);
+  if (idemKey === undefined) {
+    return { proceed: true, cacheKey: undefined, ttl };
+  }
+  const cacheKey = buildIdempotencyCacheKey({ tenantRef, route, presentedKey: idemKey });
+  const result = await deps.idempotencyStore.begin(cacheKey, ttl);
+  if (result.kind === "replay") {
+    for (const [k, v] of Object.entries(result.response.headers)) reply.header(k, v);
+    reply.header("x-idempotent-replay", "true");
+    await reply.code(result.response.statusCode).send(result.response.body);
+    return { proceed: false };
+  }
+  if (result.kind === "in-flight") {
+    await reply
+      .code(409)
+      .header("retry-after", "30")
+      .send({
+        error: {
+          name: "IdempotencyConflict",
+          message: "An idempotent request with this key is in flight; retry after a short delay.",
+        },
+      });
+    return { proceed: false };
+  }
+  return { proceed: true, cacheKey, ttl };
+}
+
+async function commitIdempotency(
+  deps: RouteDeps,
+  cacheKey: string | undefined,
+  ttl: number,
+  response: CachedResponse,
+): Promise<void> {
+  if (cacheKey === undefined) return;
+  await deps.idempotencyStore.commit(cacheKey, response, ttl);
+}
+
+async function releaseIdempotency(deps: RouteDeps, cacheKey: string | undefined): Promise<void> {
+  if (cacheKey === undefined) return;
+  await deps.idempotencyStore.release(cacheKey);
 }
 
 const OnboardBody = z.object({
@@ -130,62 +152,65 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
     async (req, reply) => {
       const actor = adminFor(req, deps);
       const body = parseBody(OnboardBody, req.body);
-      // Idempotency (CR-03): if the caller presents an
-      // `Idempotency-Key` header and we've seen the same key within
-      // the configured window, replay the cached response rather than
-      // burn a fresh OTP. The header is optional — its absence
-      // bypasses the cache entirely.
+      // Idempotency (CR-03 + HI-11): the explicit state machine
+      // (`begin` → `commit` | `release`) reserves the slot atomically
+      // so a concurrent retry with the same key sees `in-flight` and
+      // gets 409 — never executing the work twice. A retry after the
+      // first call has `commit`ed replays the prior response.
       const route = "/v1/tenants/:ref/onboard";
       const idemKey = readIdempotencyKey(req);
-      if (idemKey !== undefined) {
-        const replayed = await tryReplayIdempotent(deps, reply, idemKey, req.params.ref, route);
-        if (replayed) return reply;
-      }
-      const tenant = await deps.registry.tenants.get(req.params.ref);
-      if (tenant === null) {
-        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, { code: "not_found" });
-      }
+      const idem = await beginIdempotency(deps, reply, idemKey, req.params.ref, route);
+      if (!idem.proceed) return reply;
+      try {
+        const tenant = await deps.registry.tenants.get(req.params.ref);
+        if (tenant === null) {
+          throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, {
+            code: "not_found",
+          });
+        }
 
-      const runArgs = {
-        tenantRef: req.params.ref,
-        otp: body.otp,
-        solutionName: body.solutionName,
-        environment: body.environment,
-        instanceId: deps.config.instanceId,
-        registry: { tenants: deps.registry.tenants, vault: deps.registry.vault },
-        auditLog: deps.auditLog,
-        actor,
-        lockTtlMs: deps.config.onboardingTimeoutMs,
-        // Forward the transactional UoW so the success-path
-        // batch (vault.put → setProductionExpiry → setState →
-        // audit.write) commits atomically (CR-01 + HI-05).
-        withUnitOfWork: deps.withUnitOfWork,
-        ...(deps.onboardingHooks?.onboardFn !== undefined
-          ? { onboardFn: deps.onboardingHooks.onboardFn }
-          : {}),
-        ...(deps.onboardingHooks?.getExpiry !== undefined
-          ? { getExpiry: deps.onboardingHooks.getExpiry }
-          : {}),
-      };
-      const result = await runOnboarding(runArgs);
-      if (deps.metrics !== undefined) {
-        deps.metrics.onboardingTotal.inc({ outcome: "succeeded" });
-      }
-      const responseBody = {
-        tenantRef: result.tenantRef,
-        state: result.state,
-        complianceTestStatus: result.complianceTestStatus,
-        productionCertificateExpiresAt: result.productionCertificateExpiresAt,
-        productionRequestId: result.productionRequestId,
-      };
-      if (idemKey !== undefined) {
-        await storeIdempotent(deps, idemKey, req.params.ref, route, {
+        const runArgs = {
+          tenantRef: req.params.ref,
+          otp: body.otp,
+          solutionName: body.solutionName,
+          environment: body.environment,
+          instanceId: deps.config.instanceId,
+          registry: { tenants: deps.registry.tenants, vault: deps.registry.vault },
+          auditLog: deps.auditLog,
+          actor,
+          lockTtlMs: deps.config.onboardingTimeoutMs,
+          // Forward the transactional UoW so the success-path
+          // batch (vault.put → setProductionExpiry → setState →
+          // audit.write) commits atomically (CR-01 + HI-05).
+          withUnitOfWork: deps.withUnitOfWork,
+          ...(deps.onboardingHooks?.onboardFn !== undefined
+            ? { onboardFn: deps.onboardingHooks.onboardFn }
+            : {}),
+          ...(deps.onboardingHooks?.getExpiry !== undefined
+            ? { getExpiry: deps.onboardingHooks.getExpiry }
+            : {}),
+        };
+        const result = await runOnboarding(runArgs);
+        if (deps.metrics !== undefined) {
+          deps.metrics.onboardingTotal.inc({ outcome: "succeeded" });
+        }
+        const responseBody = {
+          tenantRef: result.tenantRef,
+          state: result.state,
+          complianceTestStatus: result.complianceTestStatus,
+          productionCertificateExpiresAt: result.productionCertificateExpiresAt,
+          productionRequestId: result.productionRequestId,
+        };
+        await commitIdempotency(deps, idem.cacheKey, idem.ttl, {
           statusCode: 200,
           headers: {},
           body: JSON.stringify(responseBody),
         });
+        return reply.send(responseBody);
+      } catch (err) {
+        await releaseIdempotency(deps, idem.cacheKey);
+        throw err;
       }
-      return reply.send(responseBody);
     },
   );
 
@@ -197,61 +222,64 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
     async (req, reply) => {
       const actor = adminFor(req, deps);
       const body = parseBody(OnboardBody, req.body);
-      // Idempotency (CR-03): rotation burns an OTP just like
-      // onboarding, so a client TCP retry without idempotency
-      // protection would burn a second OTP. The header is optional.
+      // Idempotency (CR-03 + HI-11): rotation burns an OTP just like
+      // onboarding, so a client TCP retry without protection would
+      // burn a second OTP. Same state-machine guarantees as /onboard.
       const route = "/v1/tenants/:ref/credentials/rotate";
       const idemKey = readIdempotencyKey(req);
-      if (idemKey !== undefined) {
-        const replayed = await tryReplayIdempotent(deps, reply, idemKey, req.params.ref, route);
-        if (replayed) return reply;
-      }
-      const tenant = await deps.registry.tenants.get(req.params.ref);
-      if (tenant === null) {
-        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, { code: "not_found" });
-      }
-      const runArgs = {
-        tenantRef: req.params.ref,
-        otp: body.otp,
-        solutionName: body.solutionName,
-        environment: body.environment,
-        instanceId: deps.config.instanceId,
-        registry: { tenants: deps.registry.tenants, vault: deps.registry.vault },
-        auditLog: deps.auditLog,
-        actor,
-        lockTtlMs: deps.config.onboardingTimeoutMs,
-        // Forward the transactional UoW so the success-path
-        // batch (vault.put → setProductionExpiry → setState →
-        // audit.write) commits atomically (CR-01 + HI-05).
-        withUnitOfWork: deps.withUnitOfWork,
-        ...(deps.onboardingHooks?.onboardFn !== undefined
-          ? { onboardFn: deps.onboardingHooks.onboardFn }
-          : {}),
-        ...(deps.onboardingHooks?.getExpiry !== undefined
-          ? { getExpiry: deps.onboardingHooks.getExpiry }
-          : {}),
-      };
-      const result = await runOnboarding(runArgs);
-      await deps.auditLog.write({
-        actor,
-        tenantRef: req.params.ref,
-        action: "tenant.credentialsRotated",
-        targetId: req.params.ref,
-        result: "ok",
-      });
-      const responseBody = {
-        tenantRef: result.tenantRef,
-        state: result.state,
-        productionCertificateExpiresAt: result.productionCertificateExpiresAt,
-      };
-      if (idemKey !== undefined) {
-        await storeIdempotent(deps, idemKey, req.params.ref, route, {
+      const idem = await beginIdempotency(deps, reply, idemKey, req.params.ref, route);
+      if (!idem.proceed) return reply;
+      try {
+        const tenant = await deps.registry.tenants.get(req.params.ref);
+        if (tenant === null) {
+          throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`, {
+            code: "not_found",
+          });
+        }
+        const runArgs = {
+          tenantRef: req.params.ref,
+          otp: body.otp,
+          solutionName: body.solutionName,
+          environment: body.environment,
+          instanceId: deps.config.instanceId,
+          registry: { tenants: deps.registry.tenants, vault: deps.registry.vault },
+          auditLog: deps.auditLog,
+          actor,
+          lockTtlMs: deps.config.onboardingTimeoutMs,
+          // Forward the transactional UoW so the success-path
+          // batch (vault.put → setProductionExpiry → setState →
+          // audit.write) commits atomically (CR-01 + HI-05).
+          withUnitOfWork: deps.withUnitOfWork,
+          ...(deps.onboardingHooks?.onboardFn !== undefined
+            ? { onboardFn: deps.onboardingHooks.onboardFn }
+            : {}),
+          ...(deps.onboardingHooks?.getExpiry !== undefined
+            ? { getExpiry: deps.onboardingHooks.getExpiry }
+            : {}),
+        };
+        const result = await runOnboarding(runArgs);
+        await deps.auditLog.write({
+          actor,
+          tenantRef: req.params.ref,
+          action: "tenant.credentialsRotated",
+          targetId: req.params.ref,
+          result: "ok",
+        });
+        const responseBody = {
+          tenantRef: result.tenantRef,
+          state: result.state,
+          productionCertificateExpiresAt: result.productionCertificateExpiresAt,
+        };
+        await commitIdempotency(deps, idem.cacheKey, idem.ttl, {
           statusCode: 200,
           headers: {},
           body: JSON.stringify(responseBody),
         });
+        return reply.send(responseBody);
+      } catch (err) {
+        await releaseIdempotency(deps, idem.cacheKey);
+        throw err;
       }
-      return reply.send(responseBody);
     },
   );
 
