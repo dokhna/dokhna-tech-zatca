@@ -303,8 +303,19 @@ describe("createMongoApiKeyStore", () => {
   it("revoke makes the token unresolvable", async () => {
     const apiKeys = createMongoApiKeyStore({ connection });
     const issued = await apiKeys.issue("acme", "k");
-    await apiKeys.revoke(issued.tokenId);
+    const ok = await apiKeys.revoke("acme", issued.tokenId);
+    expect(ok).toBe(true);
     expect(await apiKeys.resolve(issued.token)).toBeNull();
+  });
+
+  it("revoke refuses cross-tenant attempts and leaves the row intact (CR-04)", async () => {
+    const apiKeys = createMongoApiKeyStore({ connection });
+    const issued = await apiKeys.issue("acme", "k");
+    expect(await apiKeys.revoke("globex", issued.tokenId)).toBe(false);
+    expect(await apiKeys.resolve(issued.token)).not.toBeNull();
+    expect(await apiKeys.revoke("acme", issued.tokenId)).toBe(true);
+    expect(await apiKeys.resolve(issued.token)).toBeNull();
+    expect(await apiKeys.revoke("acme", issued.tokenId)).toBe(false);
   });
 
   it("list returns no plaintext, only metadata + last4", async () => {

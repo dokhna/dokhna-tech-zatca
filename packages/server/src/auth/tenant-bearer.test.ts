@@ -50,7 +50,7 @@ describe("createTenantBearerVerifier", () => {
   it("throws 401 on a revoked token", async () => {
     const apiKeys = createMemoryApiKeyStore();
     const issued = await apiKeys.issue("acme", "k");
-    await apiKeys.revoke(issued.tokenId);
+    await apiKeys.revoke("acme", issued.tokenId);
     const verifier = createTenantBearerVerifier(apiKeys);
     try {
       await verifier.verify(`Bearer ${issued.token}`, "acme");

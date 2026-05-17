@@ -691,12 +691,17 @@ export function createPostgresApiKeyStore(options: PostgresApiKeyStoreOptions): 
       return null;
     },
 
-    async revoke(tokenId: string) {
-      await pool.query(
-        `UPDATE zatca_server_api_keys SET revoked_at = $2
-         WHERE token_id = $1 AND revoked_at IS NULL`,
-        [tokenId, clock()],
+    async revoke(tenantRef: string, tokenId: string) {
+      // Tenant scoping (CR-04): the WHERE clause demands both ids so an
+      // admin cannot revoke tenant B's tokens via tenant A's route.
+      // `rowCount` distinguishes a real revoke (1) from a miss (0); the
+      // route turns the miss into a 404.
+      const result = await pool.query(
+        `UPDATE zatca_server_api_keys SET revoked_at = $3
+         WHERE token_id = $1 AND tenant_ref = $2 AND revoked_at IS NULL`,
+        [tokenId, tenantRef, clock()],
       );
+      return (result.rowCount ?? 0) > 0;
     },
 
     async list(tenantRef: string): Promise<ReadonlyArray<ApiKeyListEntry>> {

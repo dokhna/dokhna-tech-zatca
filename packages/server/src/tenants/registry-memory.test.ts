@@ -315,8 +315,27 @@ describe("createMemoryApiKeyStore", () => {
   it("revoke makes a previously-valid token unresolvable", async () => {
     const store = createMemoryApiKeyStore();
     const issued = await store.issue("acme", "k");
-    await store.revoke(issued.tokenId);
+    const revoked = await store.revoke("acme", issued.tokenId);
+    expect(revoked).toBe(true);
     expect(await store.resolve(issued.token)).toBeNull();
+  });
+
+  it("revoke refuses cross-tenant — returns false without touching the row (CR-04)", async () => {
+    const store = createMemoryApiKeyStore();
+    const acmeIssued = await store.issue("acme", "k");
+    // Attempt to revoke acme's token via tenant 'globex' — must return
+    // false AND leave the token resolvable so a follow-up tenant-correct
+    // revoke succeeds.
+    const wrongTenant = await store.revoke("globex", acmeIssued.tokenId);
+    expect(wrongTenant).toBe(false);
+    expect(await store.resolve(acmeIssued.token)).not.toBeNull();
+    // Correct tenant succeeds.
+    const correctTenant = await store.revoke("acme", acmeIssued.tokenId);
+    expect(correctTenant).toBe(true);
+    expect(await store.resolve(acmeIssued.token)).toBeNull();
+    // Idempotent — second call returns false (no active row to update).
+    const second = await store.revoke("acme", acmeIssued.tokenId);
+    expect(second).toBe(false);
   });
 
   it("list returns no plaintext, only last4 + metadata", async () => {

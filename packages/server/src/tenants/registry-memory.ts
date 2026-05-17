@@ -426,11 +426,16 @@ export function createMemoryApiKeyStore(
       return null;
     },
 
-    async revoke(tokenId: string) {
+    async revoke(tenantRef: string, tokenId: string) {
       const row = rows.get(tokenId);
-      if (row === undefined) return;
-      if (row.revokedAt !== undefined) return;
+      if (row === undefined) return false;
+      // Tenant scoping: refuse to revoke a token that belongs to a
+      // different tenant. The route layer maps `false` to 404 so
+      // cross-tenant attempts (CR-04) cannot succeed.
+      if (row.tenantRef !== tenantRef) return false;
+      if (row.revokedAt !== undefined) return false;
       row.revokedAt = clock();
+      return true;
     },
 
     async list(tenantRef: string): Promise<ReadonlyArray<ApiKeyListEntry>> {

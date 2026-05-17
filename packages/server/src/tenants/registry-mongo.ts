@@ -636,11 +636,16 @@ export function createMongoApiKeyStore(options: MongoApiKeyStoreOptions): ApiKey
       return null;
     },
 
-    async revoke(tokenId: string) {
-      await ApiKeyModel.updateOne(
-        { _id: tokenId, revokedAt: { $exists: false } },
+    async revoke(tenantRef: string, tokenId: string) {
+      // Tenant scoping (CR-04): the filter requires both `_id` and
+      // `tenantRef` so an admin cannot revoke another tenant's tokens
+      // via the wrong URL. `matchedCount` distinguishes a real revoke
+      // (1) from a miss (0); the route turns the miss into a 404.
+      const result = await ApiKeyModel.updateOne(
+        { _id: tokenId, tenantRef, revokedAt: { $exists: false } },
         { $set: { revokedAt: clock() } },
       ).exec();
+      return result.matchedCount > 0;
     },
 
     async list(tenantRef: string): Promise<ReadonlyArray<ApiKeyListEntry>> {

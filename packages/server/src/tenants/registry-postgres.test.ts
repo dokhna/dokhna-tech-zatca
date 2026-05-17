@@ -362,8 +362,24 @@ describe("createPostgresApiKeyStore", () => {
     await seedTenant("acme");
     const apiKeys = createPostgresApiKeyStore({ pool });
     const issued = await apiKeys.issue("acme", "k");
-    await apiKeys.revoke(issued.tokenId);
+    const ok = await apiKeys.revoke("acme", issued.tokenId);
+    expect(ok).toBe(true);
     expect(await apiKeys.resolve(issued.token)).toBeNull();
+  });
+
+  it("revoke refuses cross-tenant attempts and leaves the row intact (CR-04)", async () => {
+    await seedTenant("acme");
+    await seedTenant("globex");
+    const apiKeys = createPostgresApiKeyStore({ pool });
+    const issued = await apiKeys.issue("acme", "k");
+    // Wrong tenant — must return false AND leave the token live.
+    expect(await apiKeys.revoke("globex", issued.tokenId)).toBe(false);
+    expect(await apiKeys.resolve(issued.token)).not.toBeNull();
+    // Correct tenant — succeeds.
+    expect(await apiKeys.revoke("acme", issued.tokenId)).toBe(true);
+    expect(await apiKeys.resolve(issued.token)).toBeNull();
+    // Idempotent — second call returns false (no active row).
+    expect(await apiKeys.revoke("acme", issued.tokenId)).toBe(false);
   });
 
   it("list returns no plaintext, only metadata + last4", async () => {

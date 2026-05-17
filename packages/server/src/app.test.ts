@@ -359,6 +359,49 @@ describe("zatca-server app", () => {
       });
       expect(res.statusCode).toBe(404);
     });
+
+    it("cross-tenant revoke returns 404 and leaves the target token live (CR-04)", async () => {
+      await setupTenant();
+      // Set up a second tenant so an admin can pose as that tenant's
+      // URL while targeting acme's token id.
+      await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { ...TENANT_BODY, tenantRef: "globex" },
+      });
+      // Issue a token under 'acme'.
+      const issued = await app.inject({
+        method: "POST",
+        url: "/v1/tenants/acme/api-keys",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { label: "ops" },
+      });
+      const tokenId: string = issued.json().tokenId;
+      // Attempt to revoke acme's token via globex's URL — must 404,
+      // not 204. The route must NOT silently target the wrong tenant.
+      const wrong = await app.inject({
+        method: "DELETE",
+        url: `/v1/tenants/globex/api-keys/${tokenId}`,
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(wrong.statusCode).toBe(404);
+      // The token is still active on acme: a follow-up correct revoke
+      // succeeds with 204.
+      const right = await app.inject({
+        method: "DELETE",
+        url: `/v1/tenants/acme/api-keys/${tokenId}`,
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(right.statusCode).toBe(204);
+      // Second attempt is also 404 (already revoked / no active row).
+      const second = await app.inject({
+        method: "DELETE",
+        url: `/v1/tenants/acme/api-keys/${tokenId}`,
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(second.statusCode).toBe(404);
+    });
   });
 
   describe("tenant bearer auth on invoice routes", () => {

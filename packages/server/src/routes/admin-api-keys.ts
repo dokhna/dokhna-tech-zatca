@@ -77,7 +77,18 @@ export function registerAdminApiKeyRoutes(server: FastifyInstance, deps: RouteDe
     "/v1/tenants/:ref/api-keys/:tokenId",
     async (req, reply) => {
       const actor = adminFor(req, deps);
-      await deps.registry.apiKeys.revoke(req.params.tokenId);
+      // Tenant-scoped revoke (CR-04): pass the URL's tenantRef so the
+      // store can refuse to revoke a token that belongs to a different
+      // tenant. A `false` return means no row matched — either the
+      // token is unknown, already revoked, or scoped to another
+      // tenant. We surface that as 404 so cross-tenant revoke
+      // attempts cannot silently 204 against the wrong target.
+      const revoked = await deps.registry.apiKeys.revoke(req.params.ref, req.params.tokenId);
+      if (!revoked) {
+        throw new ZatcaRegistryError(
+          `Unknown api key '${req.params.tokenId}' for tenant '${req.params.ref}'.`,
+        );
+      }
       await deps.auditLog.write({
         actor,
         tenantRef: req.params.ref,

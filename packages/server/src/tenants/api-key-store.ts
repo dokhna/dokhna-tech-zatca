@@ -70,11 +70,19 @@ export interface ApiKeyStore {
   resolve(presentedToken: string): Promise<ResolvedApiKey | null>;
 
   /**
-   * Revoke by id. Idempotent. After revoke, `resolve` returns `null`
-   * for any presentation of the revoked token even if the bytes are
-   * still valid.
+   * Revoke by id, scoped to the tenant that owns the token. Returns
+   * `true` if a matching active row was revoked, `false` if no row
+   * matched (either the token id is unknown, was already revoked, or
+   * belongs to a different tenant). The route layer turns `false`
+   * into a 404 so cross-tenant revocation attempts fail loudly.
+   *
+   * Idempotent over a single tenant — calling `revoke` twice for the
+   * same `(tenantRef, tokenId)` returns `true` on the first call and
+   * `false` on the second. After revoke, `resolve` returns `null` for
+   * any presentation of the revoked token even if the bytes are still
+   * valid.
    */
-  revoke(tokenId: string): Promise<void>;
+  revoke(tenantRef: string, tokenId: string): Promise<boolean>;
 
   /**
    * List active + revoked keys for the tenant. No plaintext, just
