@@ -158,6 +158,15 @@ export function mapErrorToResponse(err: unknown): ErrorResponse {
     return makeBody(500, err.name, err.message, {});
   }
   if (err instanceof Error) {
+    // Some Fastify plugins (e.g. `@fastify/rate-limit`) throw an
+    // Error with a `statusCode` field rather than a recognised
+    // ZATCA error class. Honour that field so the wire-side status
+    // is correct (429 for rate-limit, 413 for too-large, etc.)
+    // instead of an opaque 500.
+    const stamped = (err as { statusCode?: unknown }).statusCode;
+    if (typeof stamped === "number" && stamped >= 400 && stamped < 600) {
+      return makeBody(stamped, "InternalServerError", err.message, {});
+    }
     return makeBody(500, "InternalServerError", err.message, {});
   }
   return makeBody(500, "InternalServerError", "Unknown error", {});

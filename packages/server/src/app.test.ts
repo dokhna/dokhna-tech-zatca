@@ -35,6 +35,9 @@ function freshConfig(): ServerConfig {
     logLevel: "fatal",
     trustProxy: false,
     onboardingMaxConcurrent: 4,
+    // High enough to never trip during the test suite. Production
+    // default in loadConfig() is 200/min/IP.
+    rateLimitMaxPerMinute: 100_000,
   };
 }
 
@@ -58,8 +61,11 @@ function stubOnboard(): typeof import("@dokhna-tech/zatca").onboard {
   })) as never;
 }
 
-async function bootApp(opts: { auditLog?: AuditLog } = {}) {
+async function bootApp(opts: { auditLog?: AuditLog; rateLimitMaxPerMinute?: number } = {}) {
   const cfg = freshConfig();
+  if (opts.rateLimitMaxPerMinute !== undefined) {
+    (cfg as { rateLimitMaxPerMinute: number }).rateLimitMaxPerMinute = opts.rateLimitMaxPerMinute;
+  }
   const cipher = createAesGcmCipher({ keyring: cfg.masterKeys, activeKid: cfg.activeKid });
   const registry = createMemoryRegistry({ cipher });
   const storage = createMemoryStorageAdapter();
@@ -116,6 +122,46 @@ describe("zatca-server app", () => {
     it("/readyz returns 200 when registry is reachable", async () => {
       const res = await app.inject({ method: "GET", url: "/readyz" });
       expect(res.statusCode).toBe(200);
+    });
+  });
+
+  describe("rate limiting (CodeQL js/missing-rate-limiting)", () => {
+    it("returns 429 once an IP exceeds the per-minute cap", async () => {
+      const { app: throttled } = await bootApp({ rateLimitMaxPerMinute: 2 });
+      try {
+        const a = await throttled.inject({
+          method: "GET",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        });
+        const b = await throttled.inject({
+          method: "GET",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        });
+        const c = await throttled.inject({
+          method: "GET",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        });
+        expect(a.statusCode).toBe(200);
+        expect(b.statusCode).toBe(200);
+        expect(c.statusCode).toBe(429);
+      } finally {
+        await throttled.close();
+      }
+    });
+
+    it("/healthz is exempt from rate limiting", async () => {
+      const { app: throttled } = await bootApp({ rateLimitMaxPerMinute: 1 });
+      try {
+        await throttled.inject({ method: "GET", url: "/healthz" });
+        await throttled.inject({ method: "GET", url: "/healthz" });
+        const third = await throttled.inject({ method: "GET", url: "/healthz" });
+        expect(third.statusCode).toBe(200);
+      } finally {
+        await throttled.close();
+      }
     });
   });
 

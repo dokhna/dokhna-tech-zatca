@@ -82,6 +82,14 @@ export interface ServerConfig {
    * `X-Forwarded-For`.
    */
   readonly trustProxy: boolean;
+  /**
+   * Maximum requests per minute per IP across all routes. Default
+   * 200. Closes CodeQL `js/missing-rate-limiting`. The intent is a
+   * coarse wire-layer cap; operators are expected to run a real
+   * ingress-side limiter (nginx, cloudflare, WAF) in front of the
+   * server. /healthz, /readyz, and /metrics are exempt.
+   */
+  readonly rateLimitMaxPerMinute: number;
 }
 
 /**
@@ -266,6 +274,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       BoolSchema,
       false,
       "ZATCA_SERVER_TRUST_PROXY",
+    ),
+    rateLimitMaxPerMinute: withDefault(
+      env.ZATCA_SERVER_RATE_LIMIT_PER_MINUTE,
+      MsSchema,
+      200,
+      "ZATCA_SERVER_RATE_LIMIT_PER_MINUTE",
     ),
   };
 }

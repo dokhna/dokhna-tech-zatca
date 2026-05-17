@@ -17,6 +17,7 @@
  */
 
 import type { StorageAdapter } from "@dokhna-tech/zatca";
+import rateLimit from "@fastify/rate-limit";
 import fastify, { type FastifyInstance } from "fastify";
 import type { Logger } from "pino";
 
@@ -108,6 +109,27 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     // documented 180s ceiling.
     connectionTimeout: 30_000,
     requestTimeout: 30_000,
+  });
+
+  // Closes the CodeQL `js/missing-rate-limiting` alerts on every
+  // authenticated route. Defaults are deliberately permissive — the
+  // server-internal idempotency + onboarding-semaphore already shape
+  // most of the burst load; this is a per-IP cap that protects
+  // against brute-force / runaway-client patterns at the wire layer.
+  // Operators are still expected to do "real" rate limiting at
+  // ingress (nginx / cloudflare / WAF).
+  //
+  // Default: 200 req/min/IP across all routes. Admin auth routes use
+  // a tighter cap inside their plugin via `Reply.rateLimit({...})`.
+  await server.register(rateLimit, {
+    global: true,
+    max: config.rateLimitMaxPerMinute,
+    timeWindow: "1 minute",
+    // Don't rate-limit /healthz / /readyz / /metrics — those are
+    // operational endpoints scraped by Prometheus + k8s probes at
+    // multi-Hz cadences and have no auth surface to brute-force.
+    allowList: (req) => req.url === "/healthz" || req.url === "/readyz" || req.url === "/metrics",
+    keyGenerator: (req) => req.ip,
   });
 
   // Auth verifiers.
