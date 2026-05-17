@@ -25,6 +25,7 @@
   },
   "files": [
     "dist",
+    "migrations",
     "README.md",
     "LICENSE"
   ],
@@ -55,11 +56,36 @@
     "debug": "^4.3.7"
   },
   "peerDependencies": {
-    "@dokhna-tech/zatca": "workspace:*"
+    "@dokhna-tech/zatca": "workspace:*",
+    "@dokhna-tech/zatca-storage-mongo": "workspace:*",
+    "@dokhna-tech/zatca-storage-postgres": "workspace:*",
+    "mongoose": ">=9.0.0",
+    "pg": ">=8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@dokhna-tech/zatca-storage-mongo": {
+      "optional": true
+    },
+    "@dokhna-tech/zatca-storage-postgres": {
+      "optional": true
+    },
+    "mongoose": {
+      "optional": true
+    },
+    "pg": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@dokhna-tech/zatca": "workspace:*",
+    "@dokhna-tech/zatca-storage-mongo": "workspace:*",
+    "@dokhna-tech/zatca-storage-postgres": "workspace:*",
     "@types/debug": "^4.1.12",
-    "@types/node": "^20.19.0"
+    "@types/node": "^20.19.0",
+    "@types/pg": "^8.11.10",
+    "mongodb-memory-server": "^11.1.0",
+    "mongoose": "^9.6.2",
+    "pg": "^8.20.0",
+    "pg-mem": "^3.0.14"
   }
 }

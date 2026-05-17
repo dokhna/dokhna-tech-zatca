@@ -157,12 +157,33 @@ importers:
       '@dokhna-tech/zatca':
         specifier: workspace:*
         version: link:../core
+      '@dokhna-tech/zatca-storage-mongo':
+        specifier: workspace:*
+        version: link:../storage-mongo
+      '@dokhna-tech/zatca-storage-postgres':
+        specifier: workspace:*
+        version: link:../storage-postgres
       '@types/debug':
         specifier: ^4.1.12
         version: 4.1.13
       '@types/node':
         specifier: ^20.19.0
         version: 20.19.41
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.20.0
+      mongodb-memory-server:
+        specifier: ^11.1.0
+        version: 11.1.0
+      mongoose:
+        specifier: ^9.6.2
+        version: 9.6.2
+      pg:
+        specifier: ^8.20.0
+        version: 8.20.0
+      pg-mem:
+        specifier: ^3.0.14
+        version: 3.0.14
 
   packages/storage-memory:
     dependencies:
