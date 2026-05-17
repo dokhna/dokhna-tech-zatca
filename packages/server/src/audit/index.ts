@@ -16,4 +16,6 @@ export {
   type AuditResult,
   createMemoryAuditLog,
 } from "./log.js";
+export { createMongoAuditLog, type MongoAuditLogOptions } from "./log-mongo.js";
+export { createPostgresAuditLog, type PostgresAuditLogOptions } from "./log-postgres.js";
 export { redactSecrets } from "./redact.js";

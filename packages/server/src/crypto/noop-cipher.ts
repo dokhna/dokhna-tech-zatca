@@ -37,7 +37,7 @@ export interface NoopCipherOptions {
  * opt-in.
  */
 export function createNoopCipher(options: NoopCipherOptions = {}): SecretCipher {
-  const env = process.env["NODE_ENV"];
+  const env = process.env.NODE_ENV;
   const isDev = env === "development";
   if (!isDev && options.acknowledgeUnsafe !== true) {
     throw new ZatcaCipherError(

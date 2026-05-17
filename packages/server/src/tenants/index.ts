@@ -25,6 +25,28 @@ export {
   createMemoryTenantStore,
   generateTenantRef,
 } from "./registry-memory.js";
+export {
+  buildServerModels,
+  createMongoApiKeyStore,
+  createMongoCredentialVault,
+  createMongoRegistry,
+  createMongoTenantStore,
+  type MongoApiKeyStoreOptions,
+  type MongoCredentialVaultOptions,
+  type MongoTenantStoreOptions,
+} from "./registry-mongo.js";
+export {
+  createPostgresApiKeyStore,
+  createPostgresCredentialVault,
+  createPostgresRegistry,
+  createPostgresTenantStore,
+  type PgClient,
+  type PgQueryable,
+  type PostgresApiKeyStoreOptions,
+  type PostgresCredentialVaultOptions,
+  type PostgresTenantStoreOptions,
+  withPgTransaction,
+} from "./registry-postgres.js";
 export type { TenantStore } from "./store.js";
 export {
   type CreateTenantInput,

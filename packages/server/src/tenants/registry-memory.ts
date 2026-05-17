@@ -211,16 +211,16 @@ export function createMemoryTenantStore(options: { now?: () => Date } = {}): Ten
         }
       }
       const mutableRecord: Record<string, unknown> = { ...existing };
-      mutableRecord["state"] = next;
-      mutableRecord["updatedAt"] = clock();
+      mutableRecord.state = next;
+      mutableRecord.updatedAt = clock();
       applyOptionalDate(mutableRecord, "claimExpiresAt", options.claimExpiresAt);
       if (options.claimedBy === undefined) {
-        delete mutableRecord["claimedBy"];
+        delete mutableRecord.claimedBy;
       } else {
-        mutableRecord["claimedBy"] = options.claimedBy;
+        mutableRecord.claimedBy = options.claimedBy;
       }
       if (options.lastError !== undefined) {
-        mutableRecord["onboardingProgress"] = deepFreezeProgress({
+        mutableRecord.onboardingProgress = deepFreezeProgress({
           ...existing.onboardingProgress,
           lastError: options.lastError,
         });
