@@ -127,3 +127,35 @@ describe("XMLDocument — round trip", () => {
     expect(round.get("Invoice/cac:AdditionalDocumentReference")?.length).toBe(2);
   });
 });
+
+describe("XMLDocument — prototype-pollution guard (CodeQL alerts 1-6)", () => {
+  it("set() refuses paths whose tail is __proto__", () => {
+    const doc = new XMLDocument(SAMPLE_INVOICE_XML);
+    expect(doc.set("Invoice/__proto__", true, "polluted")).toBe(false);
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
+  it("set() refuses paths with __proto__ in any segment", () => {
+    const doc = new XMLDocument(SAMPLE_INVOICE_XML);
+    expect(doc.set("__proto__/cbc:ID", true, "polluted")).toBe(false);
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
+  it("set() refuses 'constructor' and 'prototype' segments too", () => {
+    const doc = new XMLDocument(SAMPLE_INVOICE_XML);
+    expect(doc.set("Invoice/constructor", true, "x")).toBe(false);
+    expect(doc.set("Invoice/prototype", true, "x")).toBe(false);
+  });
+
+  it("delete() refuses paths with __proto__ / constructor / prototype", () => {
+    const doc = new XMLDocument(SAMPLE_INVOICE_XML);
+    expect(doc.delete("Invoice/__proto__")).toBe(false);
+    expect(doc.delete("Invoice/constructor")).toBe(false);
+    expect(doc.delete("Invoice/prototype")).toBe(false);
+  });
+
+  it("set() still accepts normal UBL paths", () => {
+    const doc = new XMLDocument(SAMPLE_INVOICE_XML);
+    expect(doc.set("Invoice/cbc:Note", true, "ok")).toBe(true);
+  });
+});
