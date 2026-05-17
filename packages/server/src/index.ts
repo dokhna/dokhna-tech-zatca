@@ -28,9 +28,14 @@
  * land in subsequent PRs.
  */
 
+export * from "./app.js";
 export * from "./audit/index.js";
 export * from "./auth/index.js";
+export * from "./config.js";
 export * from "./crypto/index.js";
 export * from "./errors.js";
+export * from "./middleware/index.js";
+export * from "./observability/index.js";
 export * from "./onboarding/index.js";
+export * from "./routes/index.js";
 export * from "./tenants/index.js";

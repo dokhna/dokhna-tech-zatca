@@ -1,0 +1,435 @@
+/**
+ * Black-box integration tests for the Fastify app.
+ *
+ * Uses `app.inject({...})` so tests run without binding a real
+ * socket. All dependencies are in-memory; the onboarding flow is
+ * stubbed via the `onboardingHooks` injection seam so the test
+ * never reaches the real ZATCA gateway.
+ */
+
+import { createMemoryStorageAdapter } from "@dokhna-tech/zatca-storage-memory";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+import { buildApp } from "./app.js";
+import { type AuditLog, createMemoryAuditLog } from "./audit/index.js";
+import type { ServerConfig } from "./config.js";
+import { createAesGcmCipher } from "./crypto/index.js";
+import { createMemoryRegistry } from "./tenants/index.js";
+
+const ADMIN_KEY = "a".repeat(32);
+const SECOND_ADMIN = "b".repeat(32);
+
+function freshConfig(): ServerConfig {
+  return {
+    host: "127.0.0.1",
+    port: 0,
+    timezone: "Asia/Riyadh",
+    adminKeysRaw: `ops:${ADMIN_KEY},ci:${SECOND_ADMIN}`,
+    masterKeys: [{ kid: "v1", key: Buffer.alloc(32, 1) }],
+    activeKid: "v1",
+    tenantBearerEnv: "live",
+    onboardingTimeoutMs: 30_000,
+    idempotencyWindowMs: 60_000,
+    instanceId: "test-instance",
+    metricsEnabled: false,
+    logLevel: "fatal",
+  };
+}
+
+function stubOnboard(): typeof import("@dokhna-tech/zatca").onboard {
+  return (async () => ({
+    privateKey: "PRIV",
+    csr: "CSR",
+    complianceCertificate: "COMP-CERT",
+    complianceBinarySecurityToken: "COMP-BST",
+    complianceApiSecret: "COMP-SECRET",
+    complianceRequestId: "comp-req-1",
+    productionCertificate: "PROD-CERT",
+    productionBinarySecurityToken: "PROD-BST",
+    productionApiSecret: "PROD-SECRET",
+    productionRequestId: "prod-req-1",
+    complianceTestReport: {
+      overallStatus: "passed" as const,
+      results: [],
+      finalInvoiceHash: "" as never,
+    },
+  })) as never;
+}
+
+async function bootApp(opts: { auditLog?: AuditLog } = {}) {
+  const cfg = freshConfig();
+  const cipher = createAesGcmCipher({ keyring: cfg.masterKeys, activeKid: cfg.activeKid });
+  const registry = createMemoryRegistry({ cipher });
+  const storage = createMemoryStorageAdapter();
+  const auditLog = opts.auditLog ?? createMemoryAuditLog();
+  const app = await buildApp({
+    config: cfg,
+    registry,
+    storage,
+    auditLog,
+    onboardingHooks: {
+      onboardFn: stubOnboard(),
+      getExpiry: () => new Date(Date.now() + 365 * 86_400_000),
+    },
+  });
+  return { app, cfg, registry, storage, auditLog };
+}
+
+const TENANT_BODY = {
+  tenantRef: "acme",
+  vatNumber: "301234567890003",
+  egsUuid: "00000000-0000-4000-8000-000000000001",
+  vatName: "Acme Trading Co.",
+  crn: "1010010101",
+  branchName: "Riyadh HQ",
+  branchIndustry: "Retail",
+  location: {
+    cityName: "Riyadh",
+    citySubdivision: "Olaya",
+    street: "King Fahd Rd",
+    plotIdentification: "1234",
+    building: "5678",
+    postalZone: "12345",
+  },
+  environment: "simulation" as const,
+};
+
+describe("zatca-server app", () => {
+  let app: Awaited<ReturnType<typeof bootApp>>["app"];
+
+  beforeEach(async () => {
+    ({ app } = await bootApp());
+  });
+  afterEach(async () => {
+    await app.close();
+  });
+
+  describe("ops", () => {
+    it("/healthz returns 200 without auth", async () => {
+      const res = await app.inject({ method: "GET", url: "/healthz" });
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ status: "ok" });
+    });
+
+    it("/readyz returns 200 when registry is reachable", async () => {
+      const res = await app.inject({ method: "GET", url: "/readyz" });
+      expect(res.statusCode).toBe(200);
+    });
+  });
+
+  describe("admin auth", () => {
+    it("401 without Authorization header", async () => {
+      const res = await app.inject({ method: "POST", url: "/v1/tenants", payload: TENANT_BODY });
+      expect(res.statusCode).toBe(401);
+      expect(res.json().error.name).toBe("ZatcaAuthError");
+    });
+
+    it("401 with an unknown admin key", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${"z".repeat(32)}` },
+        payload: TENANT_BODY,
+      });
+      expect(res.statusCode).toBe(401);
+    });
+
+    it("401 with a malformed Authorization scheme", async () => {
+      const res = await app.inject({
+        method: "GET",
+        url: "/v1/tenants",
+        headers: { authorization: `Basic ${ADMIN_KEY}` },
+      });
+      expect(res.statusCode).toBe(401);
+    });
+
+    it("succeeds with either configured admin key", async () => {
+      const a = await app.inject({
+        method: "GET",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(a.statusCode).toBe(200);
+      const b = await app.inject({
+        method: "GET",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${SECOND_ADMIN}` },
+      });
+      expect(b.statusCode).toBe(200);
+    });
+  });
+
+  describe("tenant CRUD", () => {
+    it("POST /v1/tenants creates, GET returns, PATCH updates, DELETE soft-deletes", async () => {
+      const created = await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: TENANT_BODY,
+      });
+      expect(created.statusCode).toBe(201);
+      expect(created.json().tenantRef).toBe("acme");
+      expect(created.json().state).toBe("created");
+
+      const got = await app.inject({
+        method: "GET",
+        url: "/v1/tenants/acme",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(got.statusCode).toBe(200);
+      expect(got.json().tenantRef).toBe("acme");
+
+      const patched = await app.inject({
+        method: "PATCH",
+        url: "/v1/tenants/acme",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { branchName: "New Branch" },
+      });
+      expect(patched.statusCode).toBe(200);
+      expect(patched.json().branchName).toBe("New Branch");
+
+      const deleted = await app.inject({
+        method: "DELETE",
+        url: "/v1/tenants/acme",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(deleted.statusCode).toBe(204);
+
+      const gone = await app.inject({
+        method: "GET",
+        url: "/v1/tenants/acme",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(gone.statusCode).toBe(404);
+    });
+
+    it("POST /v1/tenants rejects duplicate ref with 409", async () => {
+      const first = await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: TENANT_BODY,
+      });
+      expect(first.statusCode).toBe(201);
+      const dup = await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: TENANT_BODY,
+      });
+      expect(dup.statusCode).toBe(409);
+    });
+
+    it("validates request body — missing required fields → 400", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { vatNumber: "x" },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error.name).toBe("ZatcaValidationError");
+    });
+
+    it("LIST filters by environment + state", async () => {
+      await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: TENANT_BODY,
+      });
+      const sim = await app.inject({
+        method: "GET",
+        url: "/v1/tenants?environment=simulation",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(sim.json().tenants).toHaveLength(1);
+      const prod = await app.inject({
+        method: "GET",
+        url: "/v1/tenants?environment=production",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(prod.json().tenants).toHaveLength(0);
+    });
+  });
+
+  describe("onboarding", () => {
+    it("POST /v1/tenants/:ref/onboard transitions to production-ready", async () => {
+      await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: TENANT_BODY,
+      });
+      const res = await app.inject({
+        method: "POST",
+        url: "/v1/tenants/acme/onboard",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { otp: "123456", solutionName: "Test Suite", environment: "simulation" },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.json().state).toBe("production-ready");
+      expect(res.json().complianceTestStatus).toBe("passed");
+
+      const status = await app.inject({
+        method: "GET",
+        url: "/v1/tenants/acme/status",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(status.json().state).toBe("production-ready");
+    });
+
+    it("returns 404 for an unknown tenant", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/v1/tenants/missing/onboard",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { otp: "1", solutionName: "T" },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it("OTP never leaks into the audit log", async () => {
+      const auditLog = createMemoryAuditLog();
+      const { app: fresh } = await bootApp({ auditLog });
+      await fresh.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: TENANT_BODY,
+      });
+      await fresh.inject({
+        method: "POST",
+        url: "/v1/tenants/acme/onboard",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { otp: "OTP-SECRET-123", solutionName: "T", environment: "simulation" },
+      });
+      const rows = await auditLog.list();
+      expect(JSON.stringify(rows)).not.toContain("OTP-SECRET-123");
+      await fresh.close();
+    });
+  });
+
+  describe("api keys", () => {
+    async function setupTenant() {
+      await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: TENANT_BODY,
+      });
+    }
+
+    it("issues, lists, and revokes — plaintext is never re-exposed", async () => {
+      await setupTenant();
+      const issued = await app.inject({
+        method: "POST",
+        url: "/v1/tenants/acme/api-keys",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { label: "ops" },
+      });
+      expect(issued.statusCode).toBe(201);
+      const token: string = issued.json().token;
+      expect(token).toMatch(/^zts_live_acme_[A-Z2-7]{32}$/);
+      const tokenId: string = issued.json().tokenId;
+
+      const list = await app.inject({
+        method: "GET",
+        url: "/v1/tenants/acme/api-keys",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(list.statusCode).toBe(200);
+      expect(list.json().keys).toHaveLength(1);
+      expect(JSON.stringify(list.json())).not.toContain(token);
+
+      const revoked = await app.inject({
+        method: "DELETE",
+        url: `/v1/tenants/acme/api-keys/${tokenId}`,
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+      });
+      expect(revoked.statusCode).toBe(204);
+    });
+
+    it("404 when issuing for unknown tenant", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/v1/tenants/missing/api-keys",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { label: "ops" },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe("tenant bearer auth on invoice routes", () => {
+    async function setupAndOnboard(): Promise<{ token: string }> {
+      await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: TENANT_BODY,
+      });
+      await app.inject({
+        method: "POST",
+        url: "/v1/tenants/acme/onboard",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { otp: "1", solutionName: "T", environment: "simulation" },
+      });
+      const issued = await app.inject({
+        method: "POST",
+        url: "/v1/tenants/acme/api-keys",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: { label: "ops" },
+      });
+      return { token: issued.json().token };
+    }
+
+    it("401 without bearer", async () => {
+      const res = await app.inject({
+        method: "GET",
+        url: "/v1/tenants/acme/invoices/inv-1",
+      });
+      expect(res.statusCode).toBe(401);
+    });
+
+    it("401 with malformed bearer", async () => {
+      const res = await app.inject({
+        method: "GET",
+        url: "/v1/tenants/acme/invoices/inv-1",
+        headers: { authorization: "Bearer not-a-token" },
+      });
+      expect(res.statusCode).toBe(401);
+    });
+
+    it("403 when bearer is for a different tenant than the URL", async () => {
+      const { token } = await setupAndOnboard();
+      // Create a second tenant to scope the URL to.
+      await app.inject({
+        method: "POST",
+        url: "/v1/tenants",
+        headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        payload: {
+          ...TENANT_BODY,
+          tenantRef: "globex",
+          egsUuid: "00000000-0000-4000-8000-000000000002",
+        },
+      });
+      const res = await app.inject({
+        method: "GET",
+        url: "/v1/tenants/globex/invoices/inv-1",
+        headers: { authorization: `Bearer ${token}` },
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
+    it("404 for an unknown invoice id under a matched tenant", async () => {
+      const { token } = await setupAndOnboard();
+      const res = await app.inject({
+        method: "GET",
+        url: "/v1/tenants/acme/invoices/never-was",
+        headers: { authorization: `Bearer ${token}` },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+});
