@@ -48,6 +48,19 @@ const REDACT_PATHS = [
   "bearer",
   "masterKey",
   "master_key",
+  // HI-09 — `masterKeys` (plural) is the actual `ServerConfig` field
+  // name; pino's wildcard syntax catches the `.key` Buffer at any
+  // index of the array. `adminKeysRaw` is the raw comma-separated
+  // admin-key string. Both should never reach a log line — the
+  // route-facing config strips them — but the redact list is the
+  // last line of defense for "what if buildApp's input config gets
+  // logged."
+  "masterKeys",
+  "*.masterKeys",
+  "masterKeys[*].key",
+  "*.masterKeys[*].key",
+  "adminKeysRaw",
+  "*.adminKeysRaw",
   "password",
   "secret",
 ] as const;

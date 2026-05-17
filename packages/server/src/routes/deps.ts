@@ -11,7 +11,7 @@ import type { onboard, StorageAdapter } from "@dokhna-tech/zatca";
 
 import type { AuditLog } from "../audit/index.js";
 import type { AdminKeyVerifier, TenantBearerVerifier } from "../auth/index.js";
-import type { ServerConfig } from "../config.js";
+import type { SafeServerConfig } from "../config.js";
 import type { SecretCipher } from "../crypto/index.js";
 import type { IdempotencyStore } from "../middleware/index.js";
 import type { ServerMetrics } from "../observability/index.js";
@@ -62,7 +62,14 @@ export type WithUnitOfWork = <T>(fn: (uow: UnitOfWork) => Promise<T>) => Promise
  * `onboardingHooks` (test-injection seams).
  */
 export interface RouteDeps {
-  readonly config: ServerConfig;
+  /**
+   * Route-handler-facing config. HI-09: the raw master keys and the
+   * raw comma-separated admin-key string are stripped here so a
+   * stray `log.info({ config }, ...)` from a route can't leak them.
+   * The cipher + verifier on this same deps object are the only
+   * routes downstream of those raw bytes need.
+   */
+  readonly config: SafeServerConfig;
   readonly registry: {
     readonly tenants: TenantStore;
     readonly vault: CredentialVault;

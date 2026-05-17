@@ -64,6 +64,29 @@ export interface ServerConfig {
   readonly logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 }
 
+/**
+ * Route-handler-facing config. Strips the raw key material
+ * (`masterKeys`, `adminKeysRaw`, `activeKid`) so a stray
+ * `log.info({ config }, ...)` from a route can't dump master keys or
+ * the comma-separated admin key string into stdout. The boot code in
+ * `buildApp` consumes the raw fields up-front to construct the
+ * cipher and verifier; downstream route handlers only ever need the
+ * cipher/verifier, never the raw bytes.
+ *
+ * HI-09 from REVIEW.md.
+ */
+export type SafeServerConfig = Omit<ServerConfig, "masterKeys" | "activeKid" | "adminKeysRaw">;
+
+/**
+ * Strip the secret-bearing fields from a {@link ServerConfig}. Used
+ * by `buildApp` after it has consumed the raw key material; the
+ * returned shape is what every route handler sees as `deps.config`.
+ */
+export function toSafeServerConfig(config: ServerConfig): SafeServerConfig {
+  const { masterKeys: _m, activeKid: _a, adminKeysRaw: _r, ...safe } = config;
+  return safe;
+}
+
 const LevelSchema = z.enum(["fatal", "error", "warn", "info", "debug", "trace"]);
 
 function readKeyring(raw: string): ReadonlyArray<MasterKey> {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { loadConfig } from "./config.js";
+import { loadConfig, toSafeServerConfig } from "./config.js";
 import { ZatcaServerError } from "./errors.js";
 
 const VALID_KEY_B64 = Buffer.alloc(32, 1).toString("base64");
@@ -115,5 +115,39 @@ describe("loadConfig", () => {
     } catch (err) {
       expect(err).toBeInstanceOf(ZatcaServerError);
     }
+  });
+});
+
+describe("toSafeServerConfig (HI-09)", () => {
+  it("strips master keys, active kid, and the raw admin-key string", () => {
+    const cfg = loadConfig(env());
+    const safe = toSafeServerConfig(cfg);
+    expect(safe).not.toHaveProperty("masterKeys");
+    expect(safe).not.toHaveProperty("activeKid");
+    expect(safe).not.toHaveProperty("adminKeysRaw");
+  });
+
+  it("preserves every non-secret field unchanged", () => {
+    const cfg = loadConfig(env());
+    const safe = toSafeServerConfig(cfg);
+    expect(safe.host).toBe(cfg.host);
+    expect(safe.port).toBe(cfg.port);
+    expect(safe.timezone).toBe(cfg.timezone);
+    expect(safe.tenantBearerEnv).toBe(cfg.tenantBearerEnv);
+    expect(safe.onboardingTimeoutMs).toBe(cfg.onboardingTimeoutMs);
+    expect(safe.idempotencyWindowMs).toBe(cfg.idempotencyWindowMs);
+    expect(safe.instanceId).toBe(cfg.instanceId);
+    expect(safe.metricsEnabled).toBe(cfg.metricsEnabled);
+    expect(safe.logLevel).toBe(cfg.logLevel);
+  });
+
+  it("JSON.stringify of the safe config does not contain the master-key bytes", () => {
+    const cfg = loadConfig(env());
+    const safe = toSafeServerConfig(cfg);
+    const serialized = JSON.stringify(safe);
+    // The base64 admin key embeds 'aaaa...' (32 'a's) — its presence
+    // in the serialized blob would mean a stray log would leak.
+    expect(serialized).not.toContain(ADMIN_KEY);
+    expect(serialized).not.toContain(VALID_KEY_B64);
   });
 });

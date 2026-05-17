@@ -21,7 +21,7 @@ import fastify, { type FastifyInstance } from "fastify";
 
 import type { AuditLog } from "./audit/index.js";
 import { createAdminKeyVerifier, createTenantBearerVerifier } from "./auth/index.js";
-import type { ServerConfig } from "./config.js";
+import { type ServerConfig, toSafeServerConfig } from "./config.js";
 import { createAesGcmCipher, type SecretCipher } from "./crypto/index.js";
 import {
   createMemoryIdempotencyStore,
@@ -107,8 +107,13 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     });
   const withUnitOfWork = options.withUnitOfWork ?? passThroughUnitOfWork;
 
+  // HI-09: strip the raw master-key material and the raw admin-key
+  // string from the route-handler-facing config. The cipher +
+  // verifier built above are the only paths downstream code needs.
+  const safeConfig = toSafeServerConfig(config);
+
   const deps: RouteDeps = {
-    config,
+    config: safeConfig,
     registry: options.registry,
     storage: options.storage,
     auditLog: options.auditLog,
