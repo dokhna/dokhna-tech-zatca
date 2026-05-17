@@ -11,34 +11,68 @@
  * persist long-term — never gets a secret into the row by accident.
  */
 
+// Sensitive key matching is case-insensitive — operator-supplied
+// payloads frequently come from JSON that may use camelCase,
+// snake_case, or arbitrary mixed-case. Lowercase the SET and the
+// key-under-comparison before lookup so `APIKey`, `apiKEY`, and
+// `apikey` all match. (HI-02.)
 const SENSITIVE_KEYS = new Set<string>([
   // ZATCA secret material
-  "privateKey",
+  "privatekey",
   "private_key",
-  "apiSecret",
+  "apisecret",
   "api_secret",
-  "complianceApiSecret",
-  "productionApiSecret",
-  "binarySecurityToken",
+  "complianceapisecret",
+  "productionapisecret",
+  "binarysecuritytoken",
   "binary_security_token",
-  "complianceBinarySecurityToken",
-  "productionBinarySecurityToken",
+  "compliancebinarysecuritytoken",
+  "productionbinarysecuritytoken",
+  // Generic API key naming variants
+  "apikey",
+  "api_key",
   // OTP burned during onboarding
   "otp",
   // Caller-presented credentials
   "authorization",
-  "Authorization",
   "token",
   "bearer",
   // Cipher master keys (in case a misconfigured caller passes one)
-  "masterKey",
+  "masterkey",
   "master_key",
+  "masterkeys",
+  // PEM / cert material — not always strictly secret, but
+  // PII-adjacent in many compliance regimes; safer to redact than
+  // surface in long-retention audit storage.
+  "csr",
+  "csid",
+  "pem",
+  "pemcertificate",
+  "compliancecsidvalue",
+  "productioncsidvalue",
+  // Signed XML often embeds private key digests + invoice content
+  // that should not be reflected back into the audit payload.
+  "signature",
+  "signaturevalue",
+  "signedxml",
   // Generic
   "password",
   "secret",
 ]);
 
+// Regex fallback: catch *secret*, *token*, *password* variants the
+// explicit list misses. We deliberately do NOT match "key" alone
+// because it's too generic (object indexes are routinely named
+// "key") — but the explicit list covers the high-risk key names
+// (privateKey, apiKey, masterKey).
+const SENSITIVE_RE = /(secret|token|password)/i;
+
 const REDACTED = "[REDACTED]";
+
+function isSensitiveKey(key: string): boolean {
+  if (SENSITIVE_KEYS.has(key.toLowerCase())) return true;
+  return SENSITIVE_RE.test(key);
+}
 
 /**
  * Deep-clone the payload, replacing values under any sensitive key
@@ -56,6 +90,17 @@ function walk(value: unknown, seen: WeakMap<object, unknown>): unknown {
 
   if (seen.has(value as object)) {
     return seen.get(value as object);
+  }
+
+  // HI-01: Buffer / TypedArray secret values must never be walked
+  // into. Previously a Buffer holding a private key reached
+  // `Object.entries(value)` and was serialized as `{"0":137,"1":42,
+  // ...}` — bytes intact, fully recoverable from the JSON. The
+  // redactor's whole purpose is to make audit-log payloads safe to
+  // read; binary blobs need to be treated as opaque.
+  if (Buffer.isBuffer(value) || ArrayBuffer.isView(value) || value instanceof ArrayBuffer) {
+    const byteLength = (value as { byteLength?: number }).byteLength;
+    return typeof byteLength === "number" ? `[REDACTED:Buffer/${byteLength}]` : "[REDACTED:Buffer]";
   }
 
   if (Array.isArray(value)) {
@@ -77,7 +122,7 @@ function walk(value: unknown, seen: WeakMap<object, unknown>): unknown {
   const out: Record<string, unknown> = {};
   seen.set(value as object, out);
   for (const [key, child] of Object.entries(value)) {
-    if (SENSITIVE_KEYS.has(key)) {
+    if (isSensitiveKey(key)) {
       out[key] = REDACTED;
     } else {
       out[key] = walk(child, seen);
