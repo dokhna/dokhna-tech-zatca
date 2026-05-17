@@ -8,6 +8,8 @@
  */
 
 export type {
+  ComplianceProgressCallback,
+  ComplianceProgressEvent,
   ComplianceTestReport,
   ComplianceTestScenarioResult,
   RunComplianceTestsArgs,

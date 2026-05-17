@@ -35,7 +35,11 @@
 import type { HttpClientOptions, RetryOptions } from "../api/http-client.js";
 import { issueComplianceCertificate } from "../api/issue-compliance-cert.js";
 import { issueCSIDS } from "../api/issue-csids.js";
-import { type ComplianceTestReport, runComplianceTests } from "../compliance/run-tests.js";
+import {
+  type ComplianceProgressCallback,
+  type ComplianceTestReport,
+  runComplianceTests,
+} from "../compliance/run-tests.js";
 import {
   type CSRGenerationEgsInfo,
   generateCSR as defaultGenerateCSR,
@@ -82,6 +86,18 @@ export interface OnboardArgs {
     }) => Promise<string>;
     skipOpensslProbe?: boolean;
   };
+  /**
+   * Optional observation hook fired after each compliance scenario
+   * settles (passed or failed). Used by hosts that want to persist
+   * per-scenario progress so the operator can poll the lifecycle
+   * state even if the onboarding HTTP socket drops mid-run.
+   *
+   * The callback is observational: exceptions thrown inside it are
+   * swallowed by {@link runComplianceTests} and do NOT abort the
+   * onboarding flow. The callback may be async; the runner awaits
+   * it before issuing the next scenario.
+   */
+  onProgress?: ComplianceProgressCallback;
 }
 
 /**
@@ -286,6 +302,7 @@ export async function onboard(args: OnboardArgs): Promise<OnboardingResult> {
       apiSecret: complianceResult.apiSecret,
     },
     ...(args.httpClientOptions !== undefined ? { httpClientOptions: args.httpClientOptions } : {}),
+    ...(args.onProgress !== undefined ? { onProgress: args.onProgress } : {}),
   });
 
   if (complianceTestReport.overallStatus === "failed") {
