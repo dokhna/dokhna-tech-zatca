@@ -23,7 +23,7 @@
  * reject obvious typos).
  */
 
-import { timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 
 import { ZatcaAuthError, ZatcaServerError } from "../errors.js";
 
@@ -81,16 +81,24 @@ export function parseAdminKeys(raw: string): ReadonlyArray<AdminKeyEntry> {
 }
 
 /**
- * Compare two strings in constant time. Returns `false` for any length
- * mismatch (the comparison is still bound by the longer of the two so
- * timing differs only at the length-difference boundary, not the
- * content).
+ * Compare two strings in constant time, leaking neither content nor
+ * length (HI-03).
+ *
+ * Pre-fix the function returned early on length mismatch — an
+ * attacker who could measure response time could detect the
+ * configured key's length by trying candidates of different
+ * lengths. With MIN_KEY_LENGTH = 32 and admins free to set any
+ * length, that's 1-2 useful bits per probe.
+ *
+ * The fix hashes both sides with SHA-256 first. The digest length
+ * is a function of the algorithm, not the input, so
+ * `timingSafeEqual` always runs over identical-length buffers and
+ * the timing depends only on whether the digests match.
  */
 function constantTimeEquals(a: string, b: string): boolean {
-  const ab = Buffer.from(a, "utf8");
-  const bb = Buffer.from(b, "utf8");
-  if (ab.length !== bb.length) return false;
-  return timingSafeEqual(ab, bb);
+  const ah = createHash("sha256").update(a, "utf8").digest();
+  const bh = createHash("sha256").update(b, "utf8").digest();
+  return timingSafeEqual(ah, bh);
 }
 
 /**
