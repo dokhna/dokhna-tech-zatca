@@ -20,17 +20,31 @@
 import pino, { type Logger, type LoggerOptions } from "pino";
 
 const REDACT_PATHS = [
-  // Request-side
+  // Request-side — top-level
   "req.headers.authorization",
   "req.headers.Authorization",
   "req.headers.cookie",
+  "req.headers['x-api-key']",
+  "req.headers['x-zatca-otp']",
   "req.body.otp",
   "req.body.privateKey",
   "req.body.private_key",
   "req.body.apiSecret",
   "req.body.api_secret",
+  "req.body.complianceApiSecret",
+  "req.body.productionApiSecret",
   "req.body.binarySecurityToken",
   "req.body.binary_security_token",
+  // ME-03 — nested under any req.body sub-field (pino supports `*`)
+  "req.body.*.privateKey",
+  "req.body.*.apiSecret",
+  "req.body.*.binarySecurityToken",
+  "req.body.signing.privateKey",
+  "req.body.signing.certificate",
+  // Response-side — POST /api-keys returns the plaintext token ONCE.
+  // Fastify doesn't log response bodies by default, but if an
+  // operator turns on debug logging, this prevents the leak.
+  "res.body.token",
   // Generic top-level fields (objects passed through `log.info({ ... })`)
   "otp",
   "privateKey",
@@ -48,6 +62,16 @@ const REDACT_PATHS = [
   "bearer",
   "masterKey",
   "master_key",
+  // ME-03 — nested at any depth via the `*.path` wildcard
+  "*.privateKey",
+  "*.apiSecret",
+  "*.binarySecurityToken",
+  "*.productionApiSecret",
+  "*.complianceApiSecret",
+  "*.productionBinarySecurityToken",
+  "*.complianceBinarySecurityToken",
+  "*.otp",
+  "*.token",
   // HI-09 — `masterKeys` (plural) is the actual `ServerConfig` field
   // name; pino's wildcard syntax catches the `.key` Buffer at any
   // index of the array. `adminKeysRaw` is the raw comma-separated

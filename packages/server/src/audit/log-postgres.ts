@@ -10,7 +10,6 @@
 import { randomUUID } from "node:crypto";
 
 import type { PgQueryable } from "../tenants/registry-postgres.js";
-
 import type {
   AuditActor,
   AuditEntry,
@@ -19,6 +18,7 @@ import type {
   AuditLog,
   AuditResult,
 } from "./log.js";
+import { capAuditPayload } from "./redact.js";
 
 type AuditRow = {
   id: string;
@@ -72,6 +72,8 @@ export function createPostgresAuditLog(options: PostgresAuditLogOptions): AuditL
     async write(input: AuditEntryInput): Promise<AuditEntry> {
       const id = randomUUID();
       const at = clock();
+      // ME-25: cap payload size before it hits jsonb.
+      const cappedPayload = capAuditPayload(input.payload);
       await pool.query(
         `INSERT INTO zatca_server_audit_log (
            id, at, actor_type, actor, tenant_ref, action, target_id,
@@ -91,7 +93,7 @@ export function createPostgresAuditLog(options: PostgresAuditLogOptions): AuditL
           input.result,
           input.zatcaRequestId ?? null,
           input.requestId ?? null,
-          input.payload === undefined ? null : JSON.stringify(input.payload),
+          cappedPayload === undefined ? null : JSON.stringify(cappedPayload),
         ],
       );
       // Construct the returned record directly so callers don't pay
@@ -107,7 +109,7 @@ export function createPostgresAuditLog(options: PostgresAuditLogOptions): AuditL
       if (input.targetId !== undefined) out.targetId = input.targetId;
       if (input.zatcaRequestId !== undefined) out.zatcaRequestId = input.zatcaRequestId;
       if (input.requestId !== undefined) out.requestId = input.requestId;
-      if (input.payload !== undefined) out.payload = input.payload;
+      if (cappedPayload !== undefined) out.payload = cappedPayload;
       return out as unknown as AuditEntry;
     },
 

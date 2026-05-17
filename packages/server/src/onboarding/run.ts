@@ -142,6 +142,13 @@ export interface RunOnboardingArgs {
   readonly onboardFn?: typeof coreOnboard;
   readonly getExpiry?: (productionCertificate: string) => Date;
   /**
+   * Audit action recorded on the success + failure rows. Defaults
+   * to `tenant.onboarded` for first-time onboarding; the
+   * /credentials/rotate route passes `tenant.credentialsRotated`
+   * so audit-log filters by action stay accurate (ME-09).
+   */
+  readonly auditAction?: "tenant.onboarded" | "tenant.credentialsRotated";
+  /**
    * Optional transactional unit-of-work for the final
    * persistence batch (CR-01 + HI-05). When provided, `vault.put`,
    * `setProductionExpiry`, the `production-ready` state
@@ -340,7 +347,7 @@ export async function runOnboarding(args: RunOnboardingArgs): Promise<RunOnboard
       await tx.auditLog.write({
         actor: args.actor,
         tenantRef: args.tenantRef,
-        action: "tenant.onboarded",
+        action: args.auditAction ?? "tenant.onboarded",
         targetId: args.tenantRef,
         result: "ok",
         payload: redactSecrets({
@@ -374,7 +381,7 @@ export async function runOnboarding(args: RunOnboardingArgs): Promise<RunOnboard
       await args.auditLog.write({
         actor: args.actor,
         tenantRef: args.tenantRef,
-        action: "tenant.onboarded",
+        action: args.auditAction ?? "tenant.onboarded",
         targetId: args.tenantRef,
         result: "error",
         payload: redactSecrets({

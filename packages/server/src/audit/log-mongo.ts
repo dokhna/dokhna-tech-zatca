@@ -12,7 +12,6 @@ import { randomUUID } from "node:crypto";
 
 import type { Connection, Model } from "mongoose";
 import mongoose from "mongoose";
-
 import type {
   AuditActor,
   AuditEntry,
@@ -21,6 +20,7 @@ import type {
   AuditLog,
   AuditResult,
 } from "./log.js";
+import { capAuditPayload } from "./redact.js";
 
 interface AuditDoc {
   _id: string; // UUID
@@ -95,6 +95,8 @@ export function createMongoAuditLog(options: MongoAuditLogOptions): AuditLog {
     async write(input: AuditEntryInput): Promise<AuditEntry> {
       const id = randomUUID();
       const at = clock();
+      // ME-25: cap payload size before it hits the Mixed-type field.
+      const cappedPayload = capAuditPayload(input.payload);
       const doc: AuditDoc = {
         _id: id,
         at,
@@ -106,7 +108,7 @@ export function createMongoAuditLog(options: MongoAuditLogOptions): AuditLog {
         ...(input.targetId !== undefined ? { targetId: input.targetId } : {}),
         ...(input.zatcaRequestId !== undefined ? { zatcaRequestId: input.zatcaRequestId } : {}),
         ...(input.requestId !== undefined ? { requestId: input.requestId } : {}),
-        ...(input.payload !== undefined ? { payload: input.payload } : {}),
+        ...(cappedPayload !== undefined ? { payload: cappedPayload } : {}),
       };
       await AuditModel.create(doc);
       return docToEntry(doc);

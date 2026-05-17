@@ -16,6 +16,8 @@
 
 import { randomUUID } from "node:crypto";
 
+import { capAuditPayload } from "./redact.js";
+
 /**
  * What kind of caller initiated the mutation.
  *
@@ -121,6 +123,9 @@ export function createMemoryAuditLog(options: { now?: () => Date } = {}): AuditL
 
   return {
     async write(input: AuditEntryInput) {
+      // ME-25: cap payload size so a malicious admin can't DoS the
+      // audit table with a multi-MB blob.
+      const capped = capAuditPayload(input.payload);
       const entry: AuditEntry = {
         id: randomUUID(),
         at: clock(),
@@ -131,7 +136,7 @@ export function createMemoryAuditLog(options: { now?: () => Date } = {}): AuditL
         result: input.result,
         ...(input.zatcaRequestId !== undefined ? { zatcaRequestId: input.zatcaRequestId } : {}),
         ...(input.requestId !== undefined ? { requestId: input.requestId } : {}),
-        ...(input.payload !== undefined ? { payload: input.payload } : {}),
+        ...(capped !== undefined ? { payload: capped } : {}),
       };
       rows.push(entry);
       return entry;

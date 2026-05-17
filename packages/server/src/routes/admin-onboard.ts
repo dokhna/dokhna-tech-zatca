@@ -246,6 +246,12 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
           auditLog: deps.auditLog,
           actor,
           lockTtlMs: deps.config.onboardingTimeoutMs,
+          // ME-09: rotation produces ONE audit row labelled
+          // `tenant.credentialsRotated`. Previously, runOnboarding
+          // hard-coded `tenant.onboarded` and the rotate route
+          // appended a SECOND row — corrupting the compliance view
+          // when filtered by action.
+          auditAction: "tenant.credentialsRotated" as const,
           // Forward the transactional UoW so the success-path
           // batch (vault.put → setProductionExpiry → setState →
           // audit.write) commits atomically (CR-01 + HI-05).
@@ -258,13 +264,6 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
             : {}),
         };
         const result = await runOnboarding(runArgs);
-        await deps.auditLog.write({
-          actor,
-          tenantRef: req.params.ref,
-          action: "tenant.credentialsRotated",
-          targetId: req.params.ref,
-          result: "ok",
-        });
         const responseBody = {
           tenantRef: result.tenantRef,
           state: result.state,

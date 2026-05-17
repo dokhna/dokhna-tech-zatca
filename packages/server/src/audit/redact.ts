@@ -84,6 +84,43 @@ export function redactSecrets<T>(input: T): T {
   return walk(input, new WeakMap()) as T;
 }
 
+/**
+ * Maximum serialized size (UTF-8 bytes) for an audit-log payload.
+ * Set deliberately small — the audit table holds business events,
+ * not request dumps. Larger payloads are replaced with a stub
+ * recording the original size so an operator can investigate.
+ *
+ * ME-25 from REVIEW.md.
+ */
+export const MAX_AUDIT_PAYLOAD_BYTES = 16 * 1024;
+
+/**
+ * Cap the serialized size of an audit-log payload. Called by every
+ * `AuditLog.write` impl before the row hits durable storage so a
+ * caller cannot DoS the audit table by writing a 100MB blob into
+ * the payload field. A truncated payload is replaced with a small
+ * stub recording the original size; the original is dropped (the
+ * audit log is not a request archive).
+ *
+ * Returns the original payload reference when within the cap so the
+ * common case is allocation-free.
+ */
+export function capAuditPayload(
+  payload: Readonly<Record<string, unknown>> | undefined,
+  maxBytes: number = MAX_AUDIT_PAYLOAD_BYTES,
+): Readonly<Record<string, unknown>> | undefined {
+  if (payload === undefined) return undefined;
+  const serialized = JSON.stringify(payload);
+  const size = Buffer.byteLength(serialized, "utf8");
+  if (size <= maxBytes) return payload;
+  return {
+    _truncated: true,
+    originalBytes: size,
+    maxBytes,
+    note: "Audit payload exceeded the configured size cap and was dropped. See server log for context.",
+  };
+}
+
 function walk(value: unknown, seen: WeakMap<object, unknown>): unknown {
   if (value === null || value === undefined) return value;
   if (typeof value !== "object") return value;
