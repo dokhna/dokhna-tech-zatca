@@ -355,7 +355,14 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
           WHERE tenant_ref = $1
             AND deleted_at IS NULL
             AND (
-              state = $7
+              -- CR2-01 fix: the first branch can only match
+              -- expectedFrom values OTHER than 'onboarding'. When
+              -- a caller wants to re-acquire from 'onboarding' the
+              -- only acceptable path is the stale-claim branch
+              -- below — otherwise a second instance could steal a
+              -- fresh lock the moment the first instance promoted
+              -- the row into 'onboarding'.
+              (state = $7 AND $7 <> 'onboarding')
               OR (state = 'onboarding'
                   AND (claim_expires_at IS NULL
                        OR claim_expires_at <= $3))

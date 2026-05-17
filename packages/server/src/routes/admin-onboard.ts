@@ -168,6 +168,12 @@ async function acquireOnboardingSlot(
 ): Promise<(() => void) | null> {
   const release = deps.onboardingSemaphore.tryAcquire();
   if (release !== null) return release;
+  // WR2-06: surface throttled attempts on the onboarding counter so
+  // dashboards see the cap event. Without this, `outcome: "locked"`
+  // would never fire.
+  if (deps.metrics !== undefined) {
+    deps.metrics.onboardingTotal.inc({ outcome: "locked" });
+  }
   await reply
     .code(503)
     .header("retry-after", "30")
@@ -251,13 +257,21 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
             productionCertificateExpiresAt: result.productionCertificateExpiresAt,
             productionRequestId: result.productionRequestId,
           };
+          // WR2-02: capture content-type so replays return the same
+          // wire-shape as the live response (Fastify defaults
+          // `reply.send(string)` to text/plain otherwise).
           await commitIdempotency(deps, idem.cacheKey, idem.ttl, {
             statusCode: 200,
-            headers: {},
+            headers: { "content-type": "application/json; charset=utf-8" },
             body: JSON.stringify(responseBody),
           });
           return reply.send(responseBody);
         } catch (err) {
+          // WR2-06: failed-outcome metric. Without this, dashboards
+          // built on `outcome:"failed"` read zero forever.
+          if (deps.metrics !== undefined) {
+            deps.metrics.onboardingTotal.inc({ outcome: "failed" });
+          }
           await releaseIdempotency(deps, idem.cacheKey);
           throw err;
         }
@@ -330,18 +344,32 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
               : {}),
           };
           const result = await runOnboarding(runArgs);
+          // WR2-06: rotate path was missing the success-outcome
+          // counter increment entirely. Now mirrors the /onboard
+          // route so dashboards see the rotation cadence.
+          if (deps.metrics !== undefined) {
+            deps.metrics.onboardingTotal.inc({ outcome: "succeeded" });
+          }
           const responseBody = {
             tenantRef: result.tenantRef,
             state: result.state,
             productionCertificateExpiresAt: result.productionCertificateExpiresAt,
           };
+          // WR2-02: capture content-type so replays return the same
+          // wire-shape as the live response (Fastify defaults
+          // `reply.send(string)` to text/plain otherwise).
           await commitIdempotency(deps, idem.cacheKey, idem.ttl, {
             statusCode: 200,
-            headers: {},
+            headers: { "content-type": "application/json; charset=utf-8" },
             body: JSON.stringify(responseBody),
           });
           return reply.send(responseBody);
         } catch (err) {
+          // WR2-06: failed-outcome metric. Without this, dashboards
+          // built on `outcome:"failed"` read zero forever.
+          if (deps.metrics !== undefined) {
+            deps.metrics.onboardingTotal.inc({ outcome: "failed" });
+          }
           await releaseIdempotency(deps, idem.cacheKey);
           throw err;
         }

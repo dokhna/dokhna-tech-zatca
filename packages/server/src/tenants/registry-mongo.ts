@@ -410,11 +410,18 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
         // intervention, future refactor calling setState('onboarding',
         // {}) with no expiry) wedges forever because no CAS predicate
         // matches.
+        // CR2-01 fix: gate the first branch with `expectedFrom !==
+        // 'onboarding'` — otherwise a caller passing
+        // expectedFrom='onboarding' would match ANY onboarding row
+        // (including a fresh lock held by another instance) via
+        // the first branch and steal the slot.
+        const firstBranch =
+          opts.expectedFrom === "onboarding" ? [] : [{ state: opts.expectedFrom }];
         filter = {
           _id: tenantRef,
           deletedAt: { $exists: false },
           $or: [
-            { state: opts.expectedFrom },
+            ...firstBranch,
             {
               $and: [
                 { state: "onboarding" },

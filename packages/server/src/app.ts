@@ -175,6 +175,13 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     try {
       const tenants = await options.registry.tenants.list({ includeDeleted: false });
       metrics.activeTenants.set(tenants.length);
+      // WR2-05: reset before refresh — without this, the gauge's
+      // series for soft-deleted / revoked tenants linger in
+      // prom-client's registry at their last-set value forever.
+      // Over months of tenant churn that's a slow cardinality
+      // leak. `reset()` drops every label combination; the loop
+      // below re-emits one per currently-active tenant.
+      metrics.productionCertExpirySeconds.reset();
       const now = Date.now();
       for (const t of tenants) {
         const expiry = t.productionCertificateExpiresAt;
@@ -204,8 +211,28 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
 
   // Global error handler — turn any thrown value into a structured
   // response via the central error mapper.
-  server.setErrorHandler((err, _req, reply) => {
+  server.setErrorHandler((err, req, reply) => {
     const mapped = mapErrorToResponse(err);
+    // WR2-03: log every mapped error with `err.cause` so the
+    // operator-side diagnostic survives. ME-06's wrong-tenant-bearer
+    // case sets `cause: { reason, presentedTenantRef,
+    // expectedTenantRef }` so the operator can still tell wrong-
+    // tenant from invalid-key even though the wire-side response
+    // collapses them both to 401.
+    const cause = (err as { cause?: unknown })?.cause;
+    if (mapped.statusCode >= 500) {
+      req.log.error({ err, cause }, "request errored");
+    } else if (mapped.statusCode === 401 || mapped.statusCode === 403) {
+      req.log.warn(
+        {
+          err,
+          cause,
+          name: (err as Error).name,
+          msg: (err as Error).message,
+        },
+        "auth failure",
+      );
+    }
     for (const [k, v] of Object.entries(mapped.headers)) {
       reply.header(k, v);
     }

@@ -314,7 +314,12 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
         }),
       });
 
-      const responseHeaders: Record<string, string> = {};
+      // WR2-02: seed the captured headers with the correct
+      // content-type so idempotent replays don't degrade to
+      // text/plain (Fastify's default for `reply.send(string)`).
+      const responseHeaders: Record<string, string> = {
+        "content-type": "application/json; charset=utf-8",
+      };
       if (zatcaRequestId !== undefined) {
         reply.header("X-Zatca-Request-Id", zatcaRequestId);
         responseHeaders["X-Zatca-Request-Id"] = zatcaRequestId;

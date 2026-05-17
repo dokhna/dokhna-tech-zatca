@@ -212,7 +212,14 @@ export function createMemoryTenantStore(options: { now?: () => Date } = {}): Ten
         const lockNotHeld =
           existing.state === "onboarding" &&
           (existing.claimExpiresAt === undefined || existing.claimExpiresAt <= clock());
-        if (existing.state !== options.expectedFrom && !lockNotHeld) {
+        // CR2-01 fix: when the caller wants to re-acquire FROM
+        // 'onboarding', the only legitimate path is the stale-claim
+        // branch — matching `existing.state === 'onboarding'` alone
+        // would let any caller steal a fresh lock another instance
+        // just acquired.
+        const fromExactMatch =
+          existing.state === options.expectedFrom && options.expectedFrom !== "onboarding";
+        if (!fromExactMatch && !lockNotHeld) {
           throw new ZatcaRegistryError(
             `Cannot transition tenant '${tenantRef}' from '${existing.state}' (expected '${options.expectedFrom}').`,
             { code: "conflict" },
