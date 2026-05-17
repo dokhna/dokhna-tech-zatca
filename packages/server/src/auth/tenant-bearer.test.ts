@@ -61,7 +61,13 @@ describe("createTenantBearerVerifier", () => {
     }
   });
 
-  it("throws 403 (NOT 401) when token is valid but for a different tenant", async () => {
+  it("throws 401 (NOT 403) when token is valid but for a different tenant (ME-06)", async () => {
+    // ME-06: pre-fix returned 403 here, letting an attacker
+    // distinguish "valid token / wrong tenant" from "invalid token"
+    // and enumerate the tenant directory. Now BOTH paths return 401
+    // with the same wire-side message; the diagnostic detail
+    // (presented vs expected tenant) is on Error.cause for server
+    // logs only.
     const apiKeys = createMemoryApiKeyStore();
     const acmeKey = await apiKeys.issue("acme", "k");
     const verifier = createTenantBearerVerifier(apiKeys);
@@ -70,8 +76,14 @@ describe("createTenantBearerVerifier", () => {
       expect.fail("expected throw");
     } catch (err) {
       expect(err).toBeInstanceOf(ZatcaAuthError);
-      expect((err as ZatcaAuthError).statusHint).toBe(403);
-      expect((err as ZatcaAuthError).message).toMatch(/not authorized for tenant 'globex'/);
+      expect((err as ZatcaAuthError).statusHint).toBe(401);
+      expect((err as ZatcaAuthError).message).toBe("Invalid or revoked API key.");
+      const cause = (err as ZatcaAuthError).cause as
+        | { reason: string; presentedTenantRef: string; expectedTenantRef: string }
+        | undefined;
+      expect(cause?.reason).toBe("wrong_tenant_bearer");
+      expect(cause?.presentedTenantRef).toBe("acme");
+      expect(cause?.expectedTenantRef).toBe("globex");
     }
   });
 });

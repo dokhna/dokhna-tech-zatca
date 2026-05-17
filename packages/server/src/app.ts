@@ -162,6 +162,46 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     }
   });
 
+  // ME-13: periodic refresh of the registry-state gauges that don't
+  // have a natural per-request hook. `activeTenants` counts
+  // non-revoked rows; `productionCertExpirySeconds` sets a series
+  // per tenant for "time-until-cert-expiry" alerting. Runs every
+  // hour — slow enough to be cheap, fast enough to catch a
+  // rotation within an SLO window. The interval is cleared via the
+  // `closeHooks` registered on the Fastify instance so a clean
+  // shutdown stops it.
+  const REFRESH_INTERVAL_MS = 60 * 60 * 1000;
+  async function refreshRegistryGauges(): Promise<void> {
+    try {
+      const tenants = await options.registry.tenants.list({ includeDeleted: false });
+      metrics.activeTenants.set(tenants.length);
+      const now = Date.now();
+      for (const t of tenants) {
+        const expiry = t.productionCertificateExpiresAt;
+        if (expiry !== undefined) {
+          metrics.productionCertExpirySeconds.set(
+            { tenant: t.tenantRef },
+            Math.floor((expiry.getTime() - now) / 1000),
+          );
+        }
+      }
+    } catch (err) {
+      logger.warn({ err }, "registry gauge refresh failed");
+    }
+  }
+  // Fire once at boot so /metrics doesn't show 0 for the first
+  // hour after start, then on the interval.
+  void refreshRegistryGauges();
+  const refreshTimer = setInterval(() => {
+    void refreshRegistryGauges();
+  }, REFRESH_INTERVAL_MS);
+  // Don't let the timer keep the event loop alive (the HTTP server
+  // is what should hold it open).
+  refreshTimer.unref();
+  server.addHook("onClose", async () => {
+    clearInterval(refreshTimer);
+  });
+
   // Global error handler — turn any thrown value into a structured
   // response via the central error mapper.
   server.setErrorHandler((err, _req, reply) => {

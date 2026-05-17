@@ -51,13 +51,18 @@ export function createTenantBearerVerifier(apiKeys: ApiKeyStore): TenantBearerVe
         throw new ZatcaAuthError("Invalid or revoked API key.", 401);
       }
       if (resolved.tenantRef !== expectedTenantRef) {
-        // 403, not 401 — the token IS valid, just not for this
-        // tenant. Surfacing this distinction lets operators
-        // diagnose "wrong-tenant bearer" vs "unknown key" cleanly.
-        throw new ZatcaAuthError(
-          `API key is not authorized for tenant '${expectedTenantRef}'.`,
-          403,
-        );
+        // ME-06: previously 403; an attacker with any valid bearer
+        // could distinguish "valid token, wrong tenant" (403) from
+        // "invalid token" (401) — confirming the URL's tenant
+        // exists. Return 401 for BOTH so the wire-side response
+        // doesn't leak tenant existence. The Error.cause carries
+        // the diagnostic detail (presented vs expected ref) for
+        // operators reading server logs.
+        throw new ZatcaAuthError("Invalid or revoked API key.", 401, {
+          reason: "wrong_tenant_bearer",
+          presentedTenantRef: resolved.tenantRef,
+          expectedTenantRef,
+        });
       }
       return resolved;
     },

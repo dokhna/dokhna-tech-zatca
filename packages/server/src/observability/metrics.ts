@@ -19,11 +19,19 @@ import { Counter, collectDefaultMetrics, Gauge, Histogram, Registry } from "prom
  */
 export interface ServerMetrics {
   readonly registry: Registry;
-  readonly invoicesIssuedTotal: Counter<"tenant" | "kind" | "status">;
-  readonly invoicesCancelledTotal: Counter<"tenant" | "result">;
+  // ME-14: dropped the `tenant` label — at 10k tenants × 4 kinds ×
+  // 3 statuses the series count exploded Prometheus memory.
+  // Operators wanting per-tenant counts query the audit log
+  // (which is the compliance system of record anyway).
+  readonly invoicesIssuedTotal: Counter<"kind" | "status">;
+  readonly invoicesCancelledTotal: Counter<"result">;
   readonly onboardingTotal: Counter<"outcome">;
-  readonly zatcaApiLatencySeconds: Histogram<"endpoint" | "result">;
   readonly activeTenants: Gauge<never>;
+  // ME-14: `tenant` label kept on this gauge — its cardinality is
+  // bounded by the tenant population (no further multiplication by
+  // kind/status), and the per-tenant expiry view is operationally
+  // the most useful "what's about to break" signal. If 10k+ tenant
+  // deployments need to trim it, scrape with a label-allowlist.
   readonly productionCertExpirySeconds: Gauge<"tenant">;
   readonly httpRequestsTotal: Counter<"method" | "route" | "status">;
   readonly httpRequestDurationSeconds: Histogram<"method" | "route">;
@@ -43,15 +51,15 @@ export function createMetrics(
 
   const invoicesIssuedTotal = new Counter({
     name: "zatca_invoices_issued_total",
-    help: "Count of invoice issuance attempts grouped by tenant, kind, and status.",
-    labelNames: ["tenant", "kind", "status"] as const,
+    help: "Count of invoice issuance attempts grouped by kind + status. Per-tenant breakdown intentionally omitted — query the audit log for that (ME-14).",
+    labelNames: ["kind", "status"] as const,
     registers: [registry],
   });
 
   const invoicesCancelledTotal = new Counter({
     name: "zatca_invoices_cancelled_total",
-    help: "Count of invoice cancellation attempts grouped by tenant and outcome.",
-    labelNames: ["tenant", "result"] as const,
+    help: "Count of invoice cancellation attempts grouped by outcome (ok / error). Per-tenant breakdown via the audit log (ME-14).",
+    labelNames: ["result"] as const,
     registers: [registry],
   });
 
@@ -62,15 +70,12 @@ export function createMetrics(
     registers: [registry],
   });
 
-  const zatcaApiLatencySeconds = new Histogram({
-    name: "zatca_api_latency_seconds",
-    help: "Wall-clock latency of outbound ZATCA gateway calls.",
-    labelNames: ["endpoint", "result"] as const,
-    // Buckets sized for ZATCA's typical clearance/compliance latency
-    // (100ms – 30s range).
-    buckets: [0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 30],
-    registers: [registry],
-  });
+  // ME-13: previously declared `zatca_api_latency_seconds` here as
+  // a Histogram, but no instrumentation around the core ZATCA HTTP
+  // client ever observed it. A declared-but-unfed metric is worse
+  // than not exposing one — dashboards would show 0s forever and
+  // hide real latency issues. Re-add when the core API client gains
+  // a metrics hook.
 
   const activeTenants = new Gauge({
     name: "zatca_active_tenants",
@@ -105,7 +110,6 @@ export function createMetrics(
     invoicesIssuedTotal,
     invoicesCancelledTotal,
     onboardingTotal,
-    zatcaApiLatencySeconds,
     activeTenants,
     productionCertExpirySeconds,
     httpRequestsTotal,

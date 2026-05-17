@@ -27,6 +27,26 @@ import type { CipherEnvelope } from "../crypto/index.js";
  * Every field is a raw string straight from `core.onboard`'s result.
  * Treat each as **secret** — never log, never write to a non-encrypted
  * store, never include in an HTTP response body.
+ *
+ * **ME-10 — review checklist for future refactors:**
+ *
+ * No compile-time guard prevents a future caller from
+ * `JSON.stringify`-ing this object into a response body — TypeScript
+ * treats it as a plain shape. When touching code that handles
+ * `SignerMaterial`:
+ *
+ *   - Do NOT spread or destructure into a response object.
+ *   - Do NOT include in `reply.send(...)`.
+ *   - Do NOT pass to a logger without first running it through
+ *     `redactSecrets()`.
+ *   - The intended consumers are: (1) `core.issueInvoice` /
+ *     `core.cancelInvoice` / similar signing primitives, (2) the
+ *     onboarding pipeline (vault write), (3) tests under
+ *     `packages/server/src/`. Anything else is a bug.
+ *
+ * If you find yourself needing to expose a derived field from the
+ * vault, prefer a narrowly-typed projection (`{ environment,
+ * productionCertificateExpiresAt }`) that excludes the secret parts.
  */
 export interface SignerMaterial {
   readonly privateKey: string;

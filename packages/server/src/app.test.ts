@@ -772,7 +772,7 @@ describe("zatca-server app", () => {
       expect(res.statusCode).toBe(401);
     });
 
-    it("403 when bearer is for a different tenant than the URL", async () => {
+    it("401 when bearer is for a different tenant than the URL (ME-06)", async () => {
       const { token } = await setupAndOnboard();
       // Create a second tenant to scope the URL to.
       await app.inject({
@@ -790,7 +790,10 @@ describe("zatca-server app", () => {
         url: "/v1/tenants/globex/invoices/inv-1",
         headers: { authorization: `Bearer ${token}` },
       });
-      expect(res.statusCode).toBe(403);
+      // ME-06: was 403; now 401 so an attacker cannot distinguish
+      // "valid bearer / wrong tenant" from "invalid bearer" and
+      // enumerate the tenant directory.
+      expect(res.statusCode).toBe(401);
     });
 
     it("404 for an unknown invoice id under a matched tenant", async () => {

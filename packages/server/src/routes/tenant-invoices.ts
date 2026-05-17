@@ -295,11 +295,9 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
 
       if (deps.metrics !== undefined) {
         const kind = (body.input as { kind?: string }).kind ?? "unknown";
-        deps.metrics.invoicesIssuedTotal.inc({
-          tenant: tenant.tenantRef,
-          kind,
-          status,
-        });
+        // ME-14: dropped the `tenant` label — series count was
+        // O(tenants × kinds × statuses).
+        deps.metrics.invoicesIssuedTotal.inc({ kind, status });
       }
 
       await deps.auditLog.write({
@@ -405,10 +403,8 @@ export function registerTenantInvoiceRoutes(server: FastifyInstance, deps: Route
         throw err;
       } finally {
         if (deps.metrics !== undefined) {
-          deps.metrics.invoicesCancelledTotal.inc({
-            tenant: tenant.tenantRef,
-            result: cancelStatus,
-          });
+          // ME-14: dropped the `tenant` label.
+          deps.metrics.invoicesCancelledTotal.inc({ result: cancelStatus });
         }
         await deps.auditLog.write({
           actor,
