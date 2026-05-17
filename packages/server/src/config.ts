@@ -123,6 +123,18 @@ function readKeyring(raw: string): ReadonlyArray<MasterKey> {
       throw new ZatcaServerError(`Duplicate kid '${kid}' in master key ring.`);
     }
     seenKids.add(kid);
+    // ME-24: Buffer.from(..., "base64") silently truncates on
+    // garbage input (e.g. unicode or non-base64 punctuation) and
+    // returns a short buffer. The length check below would catch
+    // most cases but report a misleading "got 8 bytes" when the
+    // operator pasted a 44-char string of nonsense. Validate the
+    // alphabet first so the error names the real problem.
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(b64)) {
+      throw new ZatcaServerError(
+        `Master key for kid '${kid}' is not valid base64. Expected ` +
+          `44 chars of [A-Za-z0-9+/] with optional '=' padding (32 raw bytes).`,
+      );
+    }
     const key = Buffer.from(b64, "base64");
     if (key.length !== 32) {
       throw new ZatcaServerError(

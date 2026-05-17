@@ -548,7 +548,7 @@ export function createMongoCredentialVault(options: MongoCredentialVaultOptions)
         $set: doc,
         $setOnInsert: { createdAt: now },
       };
-      if (Object.keys(unset).length > 0) update["$unset"] = unset;
+      if (Object.keys(unset).length > 0) update.$unset = unset;
       await CredentialsModel.findOneAndUpdate({ _id: tenantRef }, update, {
         upsert: true,
         returnDocument: "after",
@@ -594,7 +594,9 @@ export function createMongoCredentialVault(options: MongoCredentialVaultOptions)
   };
 }
 
-const TOKEN_RE = /^zts_(live|test)_([a-z0-9]+)_([A-Z2-7]{32})$/;
+// ME-22: tenantRef segment matches the admin-side allow-list
+// `^[a-z0-9][a-z0-9-]{0,63}$` (admin-tenants.ts).
+const TOKEN_RE = /^zts_(live|test)_([a-z0-9-]+)_([A-Z2-7]{32})$/;
 
 function parseToken(
   token: string,

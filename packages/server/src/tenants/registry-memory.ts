@@ -358,8 +358,13 @@ export function createMemoryCredentialVault(options: { cipher: SecretCipher }): 
 /**
  * Token shape: `zts_<env>_<tenantRef>_<32 base32 chars>`. The 32-char
  * random tail gives ~160 bits of entropy.
+ *
+ * ME-22: tenantRef segment is `[a-z0-9-]+` to match the admin-side
+ * allow-list (`^[a-z0-9][a-z0-9-]{0,63}$` in admin-tenants.ts).
+ * Underscore is the field separator and so deliberately not in the
+ * ref-segment character class.
  */
-const TOKEN_RE = /^zts_(live|test)_([a-z0-9]+)_([A-Z2-7]{32})$/;
+const TOKEN_RE = /^zts_(live|test)_([a-z0-9-]+)_([A-Z2-7]{32})$/;
 
 function parseToken(
   token: string,

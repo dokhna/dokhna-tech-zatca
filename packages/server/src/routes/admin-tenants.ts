@@ -37,8 +37,23 @@ const LocationSchema = z.object({
   postalZone: z.string().min(1),
 });
 
+// ME-01: tenantRef appears verbatim in URL paths, the bearer-token
+// format `zts_<env>_<tenantRef>_<32 base32>`, and DB primary keys.
+// Without a character allow-list, an admin could create
+// `tenant/admin` or `tenant_with_underscore` and silently break URL
+// routing or bearer parsing for that tenant's lifetime. Allow lower-
+// case alphanumerics + hyphen (URL-/cookie-/log-safe; the generator's
+// base32 alphabet is a subset).
+const TENANT_REF_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
+
 const CreateTenantBody = z.object({
-  tenantRef: z.string().min(1).max(64).optional(),
+  tenantRef: z
+    .string()
+    .regex(
+      TENANT_REF_RE,
+      "tenantRef must start with [a-z0-9] and contain only [a-z0-9-] (max 64 chars)",
+    )
+    .optional(),
   vatNumber: z.string().min(1),
   egsUuid: z.string().min(1),
   vatName: z.string().min(1),
