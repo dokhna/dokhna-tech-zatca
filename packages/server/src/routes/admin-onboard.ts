@@ -156,6 +156,10 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
         auditLog: deps.auditLog,
         actor,
         lockTtlMs: deps.config.onboardingTimeoutMs,
+        // Forward the transactional UoW so the success-path
+        // batch (vault.put → setProductionExpiry → setState →
+        // audit.write) commits atomically (CR-01 + HI-05).
+        withUnitOfWork: deps.withUnitOfWork,
         ...(deps.onboardingHooks?.onboardFn !== undefined
           ? { onboardFn: deps.onboardingHooks.onboardFn }
           : {}),
@@ -216,6 +220,10 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
         auditLog: deps.auditLog,
         actor,
         lockTtlMs: deps.config.onboardingTimeoutMs,
+        // Forward the transactional UoW so the success-path
+        // batch (vault.put → setProductionExpiry → setState →
+        // audit.write) commits atomically (CR-01 + HI-05).
+        withUnitOfWork: deps.withUnitOfWork,
         ...(deps.onboardingHooks?.onboardFn !== undefined
           ? { onboardFn: deps.onboardingHooks.onboardFn }
           : {}),
@@ -310,18 +318,22 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
           `Tenant '${req.params.ref}' has an active onboarding claim that expires ${claimExpiresAt.toISOString()} — pass {"force":true} to release early.`,
         );
       }
-      const updated = await deps.registry.tenants.setState(req.params.ref, "failed", {
-        lastError: force
-          ? "Onboarding claim force-released by admin."
-          : "Onboarding claim manually released by admin.",
-      });
-      await deps.auditLog.write({
-        actor,
-        tenantRef: req.params.ref,
-        action: "tenant.unlocked",
-        targetId: req.params.ref,
-        result: "ok",
-        payload: { force },
+      // setState + audit atomic (CR-01).
+      const updated = await deps.withUnitOfWork(async (uow) => {
+        const u = await uow.tenants.setState(req.params.ref, "failed", {
+          lastError: force
+            ? "Onboarding claim force-released by admin."
+            : "Onboarding claim manually released by admin.",
+        });
+        await uow.auditLog.write({
+          actor,
+          tenantRef: req.params.ref,
+          action: "tenant.unlocked",
+          targetId: req.params.ref,
+          result: "ok",
+          payload: { force },
+        });
+        return u;
       });
       return reply.send({ tenantRef: updated.tenantRef, state: updated.state });
     },

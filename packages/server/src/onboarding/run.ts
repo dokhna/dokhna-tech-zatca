@@ -35,9 +35,72 @@ import {
 import type { AuditActor, AuditLog } from "../audit/index.js";
 import { redactSecrets } from "../audit/redact.js";
 import { ZatcaRegistryError, ZatcaServerError } from "../errors.js";
+import type { ApiKeyStore } from "../tenants/api-key-store.js";
 import type { CredentialVault } from "../tenants/credential-vault.js";
 import type { TenantStore } from "../tenants/store.js";
 import type { TenantRecord } from "../tenants/types.js";
+
+/**
+ * Optional transactional unit-of-work used to bundle the
+ * post-onboard persistence (vault.put → setProductionExpiry →
+ * setState('production-ready') → audit.write) into a single atomic
+ * commit (CR-01 + HI-05). The lock acquisition + the long-running
+ * ZATCA network call cannot live in the same transaction (the lock
+ * must commit early so other instances see it; the network call
+ * would hold the DB connection for minutes). So `runOnboarding`
+ * uses the UoW only for the final batch on the success path.
+ *
+ * When `withUnitOfWork` is undefined (in-memory tests, plain Mongo),
+ * the callback runs serially against the supplied registry/auditLog
+ * — same observable behaviour, no isolation. Both backends remain
+ * correct in their own threat models.
+ */
+export type RunOnboardingUnitOfWork = <T>(
+  fn: (uow: {
+    tenants: TenantStore;
+    vault: CredentialVault;
+    apiKeys: ApiKeyStore;
+    auditLog: AuditLog;
+  }) => Promise<T>,
+) => Promise<T>;
+
+/**
+ * Build a pass-through unit-of-work from the args' registry +
+ * auditLog. Used when the caller doesn't pass a real
+ * transactional impl — preserves the original serial-await
+ * behaviour without changing the call site of the success path.
+ *
+ * `apiKeys` is not part of `args.registry` (runOnboarding only
+ * needs tenants + vault) but the UoW type requires it. We synthesise
+ * a stub that throws if called — the onboarding flow never touches
+ * apiKeys, so the stub is unreachable in practice.
+ */
+function defaultPassThroughUnitOfWork(args: RunOnboardingArgs): RunOnboardingUnitOfWork {
+  const apiKeysStub: ApiKeyStore = {
+    issue: () => {
+      throw new ZatcaServerError("apiKeys store is not available inside runOnboarding's UoW.");
+    },
+    resolve: () => {
+      throw new ZatcaServerError("apiKeys store is not available inside runOnboarding's UoW.");
+    },
+    revoke: () => {
+      throw new ZatcaServerError("apiKeys store is not available inside runOnboarding's UoW.");
+    },
+    list: () => {
+      throw new ZatcaServerError("apiKeys store is not available inside runOnboarding's UoW.");
+    },
+    revokeAllForTenant: () => {
+      throw new ZatcaServerError("apiKeys store is not available inside runOnboarding's UoW.");
+    },
+  };
+  return async (fn) =>
+    fn({
+      tenants: args.registry.tenants,
+      vault: args.registry.vault,
+      apiKeys: apiKeysStub,
+      auditLog: args.auditLog,
+    });
+}
 
 /**
  * 3 minutes — matches the documented HTTP read timeout for the
@@ -78,6 +141,16 @@ export interface RunOnboardingArgs {
   readonly lockTtlMs?: number;
   readonly onboardFn?: typeof coreOnboard;
   readonly getExpiry?: (productionCertificate: string) => Date;
+  /**
+   * Optional transactional unit-of-work for the final
+   * persistence batch (CR-01 + HI-05). When provided, `vault.put`,
+   * `setProductionExpiry`, the `production-ready` state
+   * transition, and the success audit-write all run inside a
+   * single transaction — so a failure at any step rolls back the
+   * whole batch instead of leaving the vault populated with no
+   * audit row (or vice versa).
+   */
+  readonly withUnitOfWork?: RunOnboardingUnitOfWork;
 }
 
 /**
@@ -213,16 +286,11 @@ export async function runOnboarding(args: RunOnboardingArgs): Promise<RunOnboard
       throw new ZatcaServerError(`Compliance tests failed for tenant '${args.tenantRef}'.`);
     }
 
-    await args.registry.vault.put(args.tenantRef, {
-      privateKey: result.privateKey,
-      productionCertificate: result.productionCertificate,
-      productionBinarySecurityToken: result.productionBinarySecurityToken,
-      productionApiSecret: result.productionApiSecret,
-      complianceCertificate: result.complianceCertificate,
-      complianceBinarySecurityToken: result.complianceBinarySecurityToken,
-      complianceApiSecret: result.complianceApiSecret,
-    });
-
+    // Parse the production-cert expiry BEFORE entering the
+    // transactional batch. The parse can fail (and that's a
+    // user-visible internal-error case) — surfacing the error here
+    // means we never opened a transaction we'd then have to roll
+    // back.
     let productionExpiry: Date;
     try {
       productionExpiry = getExpiry(result.productionCertificate);
@@ -232,27 +300,48 @@ export async function runOnboarding(args: RunOnboardingArgs): Promise<RunOnboard
         cause,
       );
     }
-    await args.registry.tenants.setProductionExpiry(args.tenantRef, productionExpiry);
 
-    const finalRecord = await args.registry.tenants.setState(
-      args.tenantRef,
-      "production-ready",
-      {},
-    );
-
-    await args.auditLog.write({
-      actor: args.actor,
-      tenantRef: args.tenantRef,
-      action: "tenant.onboarded",
-      targetId: args.tenantRef,
-      result: "ok",
-      payload: redactSecrets({
-        environment: args.environment,
-        solutionName: args.solutionName,
-        complianceRequestId: result.complianceRequestId,
-        productionRequestId: result.productionRequestId,
-        productionCertificateExpiresAt: productionExpiry.toISOString(),
-      }),
+    // CR-01 + HI-05: bundle vault.put, setProductionExpiry, the
+    // production-ready state transition, AND the audit write into
+    // one transaction. Previously vault.put landed first, outside
+    // any tx — a setState failure after that left the vault holding
+    // valid material with the tenant still in state=onboarding,
+    // forcing the operator to burn a fresh OTP to recover.
+    //
+    // On backends without real transactions (in-memory tests, plain
+    // Mongo) the UoW is the pass-through default; the awaits run
+    // serially, no isolation. Order of writes inside the batch is
+    // chosen so the cheapest possible failure rolls back the most:
+    // setState last means an audit-log failure aborts the state
+    // promotion, keeping the lock-and-recover semantics consistent.
+    const uow = args.withUnitOfWork ?? defaultPassThroughUnitOfWork(args);
+    const finalRecord = await uow(async (tx) => {
+      await tx.vault.put(args.tenantRef, {
+        privateKey: result.privateKey,
+        productionCertificate: result.productionCertificate,
+        productionBinarySecurityToken: result.productionBinarySecurityToken,
+        productionApiSecret: result.productionApiSecret,
+        complianceCertificate: result.complianceCertificate,
+        complianceBinarySecurityToken: result.complianceBinarySecurityToken,
+        complianceApiSecret: result.complianceApiSecret,
+      });
+      await tx.tenants.setProductionExpiry(args.tenantRef, productionExpiry);
+      const promoted = await tx.tenants.setState(args.tenantRef, "production-ready", {});
+      await tx.auditLog.write({
+        actor: args.actor,
+        tenantRef: args.tenantRef,
+        action: "tenant.onboarded",
+        targetId: args.tenantRef,
+        result: "ok",
+        payload: redactSecrets({
+          environment: args.environment,
+          solutionName: args.solutionName,
+          complianceRequestId: result.complianceRequestId,
+          productionRequestId: result.productionRequestId,
+          productionCertificateExpiresAt: productionExpiry.toISOString(),
+        }),
+      });
+      return promoted;
     });
 
     return {

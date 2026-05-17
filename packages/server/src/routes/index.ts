@@ -17,7 +17,7 @@ import { registerTenantInvoiceRoutes } from "./tenant-invoices.js";
 export { adminApiKeyRoutesPlugin } from "./admin-api-keys.js";
 export { adminOnboardRoutesPlugin } from "./admin-onboard.js";
 export { adminTenantRoutesPlugin } from "./admin-tenants.js";
-export type { RouteDeps } from "./deps.js";
+export type { RouteDeps, UnitOfWork, WithUnitOfWork } from "./deps.js";
 export { opsRoutes } from "./ops.js";
 export { tenantInvoiceRoutesPlugin } from "./tenant-invoices.js";
 

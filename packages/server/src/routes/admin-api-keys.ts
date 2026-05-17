@@ -50,14 +50,18 @@ export function registerAdminApiKeyRoutes(server: FastifyInstance, deps: RouteDe
       if (tenant === null) {
         throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
       }
-      const issued = await deps.registry.apiKeys.issue(req.params.ref, body.label);
-      await deps.auditLog.write({
-        actor,
-        tenantRef: req.params.ref,
-        action: "apiKey.issued",
-        targetId: issued.tokenId,
-        result: "ok",
-        payload: { label: body.label },
+      // issue + audit atomic (CR-01).
+      const issued = await deps.withUnitOfWork(async (uow) => {
+        const i = await uow.apiKeys.issue(req.params.ref, body.label);
+        await uow.auditLog.write({
+          actor,
+          tenantRef: req.params.ref,
+          action: "apiKey.issued",
+          targetId: i.tokenId,
+          result: "ok",
+          payload: { label: body.label },
+        });
+        return i;
       });
       return reply.code(201).send({
         token: issued.token,
@@ -77,24 +81,26 @@ export function registerAdminApiKeyRoutes(server: FastifyInstance, deps: RouteDe
     "/v1/tenants/:ref/api-keys/:tokenId",
     async (req, reply) => {
       const actor = adminFor(req, deps);
-      // Tenant-scoped revoke (CR-04): pass the URL's tenantRef so the
-      // store can refuse to revoke a token that belongs to a different
-      // tenant. A `false` return means no row matched — either the
-      // token is unknown, already revoked, or scoped to another
-      // tenant. We surface that as 404 so cross-tenant revoke
-      // attempts cannot silently 204 against the wrong target.
-      const revoked = await deps.registry.apiKeys.revoke(req.params.ref, req.params.tokenId);
-      if (!revoked) {
-        throw new ZatcaRegistryError(
-          `Unknown api key '${req.params.tokenId}' for tenant '${req.params.ref}'.`,
-        );
-      }
-      await deps.auditLog.write({
-        actor,
-        tenantRef: req.params.ref,
-        action: "apiKey.revoked",
-        targetId: req.params.tokenId,
-        result: "ok",
+      // Tenant-scoped revoke (CR-04) + atomic audit (CR-01). The
+      // store's tenant-scoped revoke returns false for a mismatch;
+      // we throw before the audit write so a cross-tenant attempt
+      // gets a 404 with no audit row recording the wrong target.
+      // When the revoke succeeds, the audit write is in the same
+      // transaction so they commit/rollback together.
+      await deps.withUnitOfWork(async (uow) => {
+        const revoked = await uow.apiKeys.revoke(req.params.ref, req.params.tokenId);
+        if (!revoked) {
+          throw new ZatcaRegistryError(
+            `Unknown api key '${req.params.tokenId}' for tenant '${req.params.ref}'.`,
+          );
+        }
+        await uow.auditLog.write({
+          actor,
+          tenantRef: req.params.ref,
+          action: "apiKey.revoked",
+          targetId: req.params.tokenId,
+          result: "ok",
+        });
       });
       return reply.code(204).send();
     },

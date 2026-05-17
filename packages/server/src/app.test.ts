@@ -490,6 +490,152 @@ describe("zatca-server app", () => {
     });
   });
 
+  describe("transactional integrity (CR-01)", () => {
+    it("mutating routes invoke withUnitOfWork so mutation + audit share a tx", async () => {
+      // Count UoW invocations: every mutating route must enter the
+      // primitive at least once. The pass-through default doesn't
+      // give real DB isolation in tests, but it does prove that the
+      // wiring is in place — production Postgres will get real
+      // BEGIN/COMMIT from `createPostgresWithUnitOfWork`.
+      let uowInvocations = 0;
+      const cfg = freshConfig();
+      const cipher = createAesGcmCipher({ keyring: cfg.masterKeys, activeKid: cfg.activeKid });
+      const registry = createMemoryRegistry({ cipher });
+      const storage = createMemoryStorageAdapter();
+      const auditLog = createMemoryAuditLog();
+      const fresh = await buildApp({
+        config: cfg,
+        registry,
+        storage,
+        auditLog,
+        // Wrap the pass-through default with a counting decorator.
+        withUnitOfWork: async (fn) => {
+          uowInvocations += 1;
+          return fn({
+            tenants: registry.tenants,
+            vault: registry.vault,
+            apiKeys: registry.apiKeys,
+            auditLog,
+          });
+        },
+        onboardingHooks: {
+          onboardFn: stubOnboard(),
+          getExpiry: () => new Date(Date.now() + 365 * 86_400_000),
+        },
+      });
+      try {
+        // tenant.created — one UoW.
+        await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: TENANT_BODY,
+        });
+        expect(uowInvocations).toBeGreaterThanOrEqual(1);
+        const after1 = uowInvocations;
+        // tenant.patched — one more UoW.
+        await fresh.inject({
+          method: "PATCH",
+          url: "/v1/tenants/acme",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: { vatName: "Renamed" },
+        });
+        expect(uowInvocations).toBeGreaterThan(after1);
+        const after2 = uowInvocations;
+        // apiKey.issued — one more UoW.
+        await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants/acme/api-keys",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: { label: "ops" },
+        });
+        expect(uowInvocations).toBeGreaterThan(after2);
+        const after3 = uowInvocations;
+        // tenant.onboarded — at least one UoW (the success batch).
+        await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants/acme/onboard",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: { otp: "1", solutionName: "T", environment: "simulation" },
+        });
+        expect(uowInvocations).toBeGreaterThan(after3);
+      } finally {
+        await fresh.close();
+      }
+    });
+
+    it("audit-write failure rolls back the tenant.created mutation", async () => {
+      // A failing auditLog write inside the UoW must abort the
+      // mutation. In the pass-through implementation, our UoW
+      // decorator can simulate the rollback by re-deleting whatever
+      // was just created when the inner callback throws.
+      const cfg = freshConfig();
+      const cipher = createAesGcmCipher({ keyring: cfg.masterKeys, activeKid: cfg.activeKid });
+      const registry = createMemoryRegistry({ cipher });
+      const storage = createMemoryStorageAdapter();
+      const failingAudit: AuditLog = {
+        write: async () => {
+          throw new Error("audit infra down");
+        },
+        list: async () => [],
+      };
+      // For the test, simulate a real transactional UoW: when the
+      // callback throws, undo any tenant.create call by tracking the
+      // tenantRef and soft-deleting on rollback. This stands in for
+      // the Postgres BEGIN/ROLLBACK that production gets.
+      const fresh = await buildApp({
+        config: cfg,
+        registry,
+        storage,
+        auditLog: failingAudit,
+        withUnitOfWork: async (fn) => {
+          const before = (await registry.tenants.list({ includeDeleted: false })).map(
+            (t) => t.tenantRef,
+          );
+          try {
+            return await fn({
+              tenants: registry.tenants,
+              vault: registry.vault,
+              apiKeys: registry.apiKeys,
+              auditLog: failingAudit,
+            });
+          } catch (err) {
+            // Rollback simulation: hard-revert anything created
+            // inside the tx that wasn't present before.
+            const after = await registry.tenants.list({ includeDeleted: false });
+            for (const t of after) {
+              if (!before.includes(t.tenantRef)) {
+                await registry.tenants.softDelete(t.tenantRef);
+              }
+            }
+            throw err;
+          }
+        },
+      });
+      try {
+        const res = await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: TENANT_BODY,
+        });
+        // The audit-write blew up; the error mapper turns it into 500.
+        expect(res.statusCode).toBe(500);
+        // CRITICAL: the tenant must NOT be queryable after rollback.
+        // Pre-fix this assertion would have failed because mutation +
+        // audit were independent awaits.
+        const list = await fresh.inject({
+          method: "GET",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+        });
+        expect(list.json().tenants).toHaveLength(0);
+      } finally {
+        await fresh.close();
+      }
+    });
+  });
+
   describe("api keys", () => {
     async function setupTenant() {
       await app.inject({

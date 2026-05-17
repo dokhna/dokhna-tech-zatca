@@ -29,7 +29,7 @@ import {
   mapErrorToResponse,
 } from "./middleware/index.js";
 import { createLogger, createMetrics, type ServerMetrics } from "./observability/index.js";
-import { type RouteDeps, registerAllRoutes } from "./routes/index.js";
+import { type RouteDeps, registerAllRoutes, type WithUnitOfWork } from "./routes/index.js";
 import type { ApiKeyStore } from "./tenants/api-key-store.js";
 import type { CredentialVault } from "./tenants/credential-vault.js";
 import type { TenantStore } from "./tenants/store.js";
@@ -51,6 +51,14 @@ export interface BuildAppOptions {
   };
   readonly storage: StorageAdapter;
   readonly auditLog: AuditLog;
+  /**
+   * Transactional unit-of-work primitive. When omitted, defaults to
+   * a pass-through that runs the callback against the top-level
+   * `registry` + `auditLog` with no isolation. Postgres deployments
+   * SHOULD pass a real impl built around `withPgTransaction` so
+   * mutation + audit-write share a transaction (CR-01).
+   */
+  readonly withUnitOfWork?: WithUnitOfWork;
   readonly cipher?: SecretCipher;
   readonly idempotencyStore?: IdempotencyStore;
   readonly metrics?: ServerMetrics;
@@ -85,11 +93,26 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   const adminVerifier = createAdminKeyVerifier(config.adminKeysRaw);
   const tenantVerifier = createTenantBearerVerifier(options.registry.apiKeys);
 
+  // Default unit-of-work: pass-through. Provides the SAME stores +
+  // audit log to the callback as the top-level registry, so route
+  // handlers can use the primitive uniformly. Backends with real
+  // transactional support (Postgres' cli boot, future Mongo+replSet)
+  // override this via `BuildAppOptions.withUnitOfWork`.
+  const passThroughUnitOfWork: WithUnitOfWork = async (fn) =>
+    fn({
+      tenants: options.registry.tenants,
+      vault: options.registry.vault,
+      apiKeys: options.registry.apiKeys,
+      auditLog: options.auditLog,
+    });
+  const withUnitOfWork = options.withUnitOfWork ?? passThroughUnitOfWork;
+
   const deps: RouteDeps = {
     config,
     registry: options.registry,
     storage: options.storage,
     auditLog: options.auditLog,
+    withUnitOfWork,
     cipher,
     adminVerifier,
     tenantVerifier,

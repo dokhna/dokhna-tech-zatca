@@ -121,18 +121,24 @@ export function registerAdminTenantRoutes(server: FastifyInstance, deps: RouteDe
       ...(body.label !== undefined ? { label: body.label } : {}),
       ...(body.callbackUrl !== undefined ? { callbackUrl: body.callbackUrl } : {}),
     };
-    const created = await deps.registry.tenants.create(input);
-    await deps.auditLog.write({
-      actor,
-      tenantRef: created.tenantRef,
-      action: "tenant.created",
-      targetId: created.tenantRef,
-      result: "ok",
-      payload: redactSecrets({
-        environment: created.environment,
-        vatNumber: created.vatNumber,
-        egsUuid: created.egsUuid,
-      }),
+    // Mutation + audit-write share a transaction (CR-01). If the
+    // audit insert fails, the tenant row is rolled back — we never
+    // leave a tenant created without a matching audit entry.
+    const created = await deps.withUnitOfWork(async (uow) => {
+      const c = await uow.tenants.create(input);
+      await uow.auditLog.write({
+        actor,
+        tenantRef: c.tenantRef,
+        action: "tenant.created",
+        targetId: c.tenantRef,
+        result: "ok",
+        payload: redactSecrets({
+          environment: c.environment,
+          vatNumber: c.vatNumber,
+          egsUuid: c.egsUuid,
+        }),
+      });
+      return c;
     });
     return reply.code(201).send(created);
   });
@@ -176,14 +182,18 @@ export function registerAdminTenantRoutes(server: FastifyInstance, deps: RouteDe
         ...(body.label !== undefined ? { label: body.label } : {}),
         ...(body.callbackUrl !== undefined ? { callbackUrl: body.callbackUrl } : {}),
       };
-      const updated = await deps.registry.tenants.patch(req.params.ref, patch);
-      await deps.auditLog.write({
-        actor,
-        tenantRef: updated.tenantRef,
-        action: "tenant.patched",
-        targetId: updated.tenantRef,
-        result: "ok",
-        payload: redactSecrets(body as Readonly<Record<string, unknown>>),
+      // Mutation + audit-write atomic (CR-01).
+      const updated = await deps.withUnitOfWork(async (uow) => {
+        const u = await uow.tenants.patch(req.params.ref, patch);
+        await uow.auditLog.write({
+          actor,
+          tenantRef: u.tenantRef,
+          action: "tenant.patched",
+          targetId: u.tenantRef,
+          result: "ok",
+          payload: redactSecrets(body as Readonly<Record<string, unknown>>),
+        });
+        return u;
       });
       return reply.send(updated);
     },
@@ -191,14 +201,24 @@ export function registerAdminTenantRoutes(server: FastifyInstance, deps: RouteDe
 
   server.delete<{ Params: { ref: string } }>("/v1/tenants/:ref", async (req, reply) => {
     const actor = adminFor(req, deps);
-    await deps.registry.tenants.softDelete(req.params.ref);
-    await deps.registry.apiKeys.revokeAllForTenant(req.params.ref);
-    await deps.auditLog.write({
-      actor,
-      tenantRef: req.params.ref,
-      action: "tenant.softDeleted",
-      targetId: req.params.ref,
-      result: "ok",
+    // softDelete + revokeAllForTenant + audit-write share a single
+    // transaction (HI-04 + CR-01). The store contract at
+    // `store.ts:87-91` already says "Implementations SHOULD revoke
+    // any outstanding API keys for the tenant in the same
+    // transaction" — this is the HTTP-layer half of that promise.
+    // A partial success previously could leave api_keys live for a
+    // soft-deleted tenant (stale-credential resurrection on
+    // un-soft-delete) or a destructive op unrecorded.
+    await deps.withUnitOfWork(async (uow) => {
+      await uow.tenants.softDelete(req.params.ref);
+      await uow.apiKeys.revokeAllForTenant(req.params.ref);
+      await uow.auditLog.write({
+        actor,
+        tenantRef: req.params.ref,
+        action: "tenant.softDeleted",
+        targetId: req.params.ref,
+        result: "ok",
+      });
     });
     return reply.code(204).send();
   });

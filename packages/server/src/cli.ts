@@ -22,6 +22,7 @@ import { buildApp } from "./app.js";
 import type { AuditLog } from "./audit/index.js";
 import { loadConfig, type ServerConfig } from "./config.js";
 import { ZatcaServerError } from "./errors.js";
+import type { WithUnitOfWork } from "./routes/index.js";
 import type { ApiKeyStore } from "./tenants/api-key-store.js";
 import type { CredentialVault } from "./tenants/credential-vault.js";
 import type { TenantStore } from "./tenants/store.js";
@@ -36,6 +37,13 @@ interface BootedDeps {
     readonly apiKeys: ApiKeyStore;
   };
   readonly auditLog: AuditLog;
+  /**
+   * Transactional unit-of-work primitive. Postgres provides a real
+   * one wired around `withPgTransaction` (CR-01); memory + Mongo
+   * leave it undefined and let `buildApp` fall through to its
+   * pass-through default.
+   */
+  readonly withUnitOfWork?: WithUnitOfWork;
   /** Driver-specific cleanup (close pool / connection). */
   readonly shutdown: () => Promise<void>;
 }
@@ -132,7 +140,9 @@ async function bootPostgres(config: ServerConfig, env: NodeJS.ProcessEnv): Promi
     createPostgresStorageAdapter: (opts: { pool: typeof pool }) => StorageAdapter;
   };
   const storage = createPostgresStorageAdapter({ pool });
-  const { createPostgresRegistry } = await import("./tenants/registry-postgres.js");
+  const { createPostgresRegistry, createPostgresWithUnitOfWork } = await import(
+    "./tenants/registry-postgres.js"
+  );
   const { createPostgresAuditLog } = await import("./audit/log-postgres.js");
   const { createAesGcmCipher } = await import("./crypto/aes-gcm-cipher.js");
   const cipher = createAesGcmCipher({
@@ -145,10 +155,26 @@ async function bootPostgres(config: ServerConfig, env: NodeJS.ProcessEnv): Promi
     env: config.tenantBearerEnv,
   });
   const auditLog = createPostgresAuditLog({ pool: pool as never });
+  // Real transactional unit-of-work: each call opens BEGIN, builds
+  // tx-scoped stores + audit log on a checked-out client, COMMITs on
+  // resolve / ROLLBACKs on throw. Route handlers that mutate + audit
+  // use this so the two writes share a single transaction (CR-01).
+  const withUnitOfWork: WithUnitOfWork = createPostgresWithUnitOfWork<
+    TenantStore,
+    CredentialVault,
+    ApiKeyStore,
+    AuditLog
+  >({
+    pool: pool as never,
+    cipher,
+    env: config.tenantBearerEnv,
+    auditLogFactory: (opts) => createPostgresAuditLog(opts),
+  });
   return {
     storage,
     registry,
     auditLog,
+    withUnitOfWork,
     shutdown: async () => {
       await pool.end();
     },
@@ -173,6 +199,7 @@ async function main(): Promise<void> {
     registry: booted.registry,
     storage: booted.storage,
     auditLog: booted.auditLog,
+    ...(booted.withUnitOfWork !== undefined ? { withUnitOfWork: booted.withUnitOfWork } : {}),
   });
 
   await app.listen({ host: config.host, port: config.port });

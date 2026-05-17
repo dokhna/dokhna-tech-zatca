@@ -776,8 +776,9 @@ export function createPostgresRegistry(options: {
  * use it directly with `query`. Commits on resolve, rolls back on
  * throw.
  *
- * Intended for the HTTP layer (PR3) to bundle a mutation + audit
- * write into a single atomic transaction.
+ * Used by the HTTP layer (see `createPostgresWithUnitOfWork`) to
+ * bundle a mutation + audit write into a single atomic transaction
+ * (CR-01).
  */
 export async function withPgTransaction<T>(
   pool: { connect(): Promise<PgClient> },
@@ -806,4 +807,71 @@ export async function withPgTransaction<T>(
  */
 export interface PgClient extends PgQueryable {
   release(): void;
+}
+
+/**
+ * Build a transactional unit-of-work primitive (`WithUnitOfWork`)
+ * backed by a Postgres pool. The returned function checks out one
+ * client, opens a `BEGIN`, constructs tenant/vault/api-key stores
+ * and the audit log on top of the checked-out client, invokes the
+ * caller's callback, then `COMMIT`s — or `ROLLBACK`s if the
+ * callback throws.
+ *
+ * The audit-log factory is injected rather than imported here to
+ * keep this module independent of `../audit/log-postgres.js` (which
+ * imports `PgQueryable` from here; the symmetric import would be a
+ * cycle).
+ *
+ * Route handlers that mutate + audit MUST use this primitive on
+ * production Postgres so a network blip between awaits doesn't
+ * leave a tenant created/deleted/onboarded with no audit row
+ * (CR-01).
+ */
+export function createPostgresWithUnitOfWork<
+  TenantStoreT,
+  CredentialVaultT,
+  ApiKeyStoreT,
+  AuditLogT,
+>(deps: {
+  readonly pool: { connect(): Promise<PgClient> };
+  readonly cipher: SecretCipher;
+  readonly env?: "live" | "test";
+  readonly now?: () => Date;
+  readonly auditLogFactory: (opts: { pool: PgQueryable; now?: () => Date }) => AuditLogT;
+}): <T>(
+  fn: (uow: {
+    tenants: TenantStoreT;
+    vault: CredentialVaultT;
+    apiKeys: ApiKeyStoreT;
+    auditLog: AuditLogT;
+  }) => Promise<T>,
+) => Promise<T> {
+  return async <T>(
+    fn: (uow: {
+      tenants: TenantStoreT;
+      vault: CredentialVaultT;
+      apiKeys: ApiKeyStoreT;
+      auditLog: AuditLogT;
+    }) => Promise<T>,
+  ): Promise<T> => {
+    return withPgTransaction(deps.pool, async (tx) => {
+      const baseOptions = deps.now !== undefined ? { now: deps.now } : {};
+      const tenants = createPostgresTenantStore({
+        pool: tx,
+        ...baseOptions,
+      }) as unknown as TenantStoreT;
+      const vault = createPostgresCredentialVault({
+        pool: tx,
+        cipher: deps.cipher,
+        ...baseOptions,
+      }) as unknown as CredentialVaultT;
+      const apiKeys = createPostgresApiKeyStore({
+        pool: tx,
+        ...(deps.env !== undefined ? { env: deps.env } : {}),
+        ...baseOptions,
+      }) as unknown as ApiKeyStoreT;
+      const auditLog = deps.auditLogFactory({ pool: tx, ...baseOptions });
+      return fn({ tenants, vault, apiKeys, auditLog });
+    });
+  };
 }
