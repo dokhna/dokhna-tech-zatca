@@ -1,5 +1,7 @@
 # multi-vat-saas
 
+> 📦 **Looking for a turnkey deployment?** See [`examples/standalone-server`](../standalone-server) — `@dokhna-tech/zatca-server` ships as a Docker image with tenant registry, encrypted credential vault, and the full HTTP API already wired up. This example demonstrates the embed-the-SDK pattern for shops that want full control over their own server.
+
 Fastify server that demonstrates a multi-tenant SaaS topology: many Saudi VAT registrants on one runtime, isolated certificates, isolated counters, isolated hash chains, all sharing one Mongoose connection through `@dokhna-tech/zatca-storage-mongo`.
 
 ## Architecture

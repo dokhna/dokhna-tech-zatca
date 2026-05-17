@@ -1,0 +1,92 @@
+### Standalone-server request collection.
+###
+### Designed for the VS Code REST Client extension. Replace the
+### @adminKey + @tenantKey values once you've extracted them from the
+### server's responses.
+
+@host = http://localhost:3000
+@adminKey = YOUR_ADMIN_KEY_FROM_DOT_ENV
+@tenantKey = zts_live_acme_REPLACE_AFTER_ISSUE
+@tenantRef = acme
+
+### Liveness
+GET {{host}}/healthz
+
+### Readiness (DB ping)
+GET {{host}}/readyz
+
+### Register tenant
+POST {{host}}/v1/tenants
+Authorization: Bearer {{adminKey}}
+Content-Type: application/json
+
+{
+  "tenantRef": "{{tenantRef}}",
+  "vatNumber": "301234567890003",
+  "egsUuid": "00000000-0000-4000-8000-000000000001",
+  "vatName": "Acme Trading Co.",
+  "crn": "1010010101",
+  "branchName": "Riyadh HQ",
+  "branchIndustry": "Retail",
+  "location": {
+    "cityName": "Riyadh",
+    "citySubdivision": "Olaya",
+    "street": "King Fahd Rd",
+    "plotIdentification": "1234",
+    "building": "5678",
+    "postalZone": "12345"
+  },
+  "environment": "simulation"
+}
+
+### Onboard the tenant (blocks 30-90s)
+POST {{host}}/v1/tenants/{{tenantRef}}/onboard
+Authorization: Bearer {{adminKey}}
+Content-Type: application/json
+
+{
+  "otp": "REPLACE_WITH_FATOORA_OTP",
+  "solutionName": "My Solution v1.0",
+  "environment": "simulation"
+}
+
+### Inspect tenant status + per-scenario progress
+GET {{host}}/v1/tenants/{{tenantRef}}/status
+Authorization: Bearer {{adminKey}}
+
+### Issue a tenant API key (token shown ONCE)
+POST {{host}}/v1/tenants/{{tenantRef}}/api-keys
+Authorization: Bearer {{adminKey}}
+Content-Type: application/json
+
+{ "label": "pos-1" }
+
+### Issue a simplified tax invoice (uses tenant bearer)
+POST {{host}}/v1/tenants/{{tenantRef}}/invoices
+Authorization: Bearer {{tenantKey}}
+Content-Type: application/json
+Idempotency-Key: invoice-2026-05-17-001
+
+{
+  "input": {
+    "kind": "simplified-tax-invoice",
+    "issueDate": "2026-05-17",
+    "issueTime": "12:00:00",
+    "buyerName": "Walk-in customer",
+    "lineItems": [
+      { "id": "1", "name": "Latte 250ml", "quantity": 1, "taxExclusivePrice": 12, "vatPercent": 15 }
+    ]
+  },
+  "submit": true
+}
+
+### Load a persisted invoice
+GET {{host}}/v1/tenants/{{tenantRef}}/invoices/REPLACE_WITH_INVOICE_ID
+Authorization: Bearer {{tenantKey}}
+
+### List tenants (admin view, no secrets)
+GET {{host}}/v1/tenants?environment=simulation
+Authorization: Bearer {{adminKey}}
+
+### Prometheus metrics
+GET {{host}}/metrics
