@@ -27,6 +27,18 @@ const OnboardBody = z.object({
   environment: z.enum(["sandbox", "simulation"]).default("simulation"),
 });
 
+/**
+ * Body for POST /unlock. `force=true` lets the operator release a
+ * tenant that's wedged in state=`onboarding` with NULL or future
+ * `claimExpiresAt` (CR-02 + HI-06). The route audits the force flag
+ * so the audit trail captures explicit operator intervention.
+ */
+const UnlockBody = z
+  .object({
+    force: z.boolean().optional(),
+  })
+  .optional();
+
 function adminFor(req: FastifyRequest, deps: RouteDeps): AuditActor {
   const match = deps.adminVerifier.verifyHeader(req.headers.authorization);
   return { type: "admin", label: match.label };
@@ -147,37 +159,68 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
     });
   });
 
-  // POST /v1/tenants/:ref/unlock — release a stale claim. Only fires
-  // when the existing claim has expired. The store's CAS in setState
-  // honours expired claims automatically, but this route gives the
-  // operator an explicit "force-unstuck" affordance.
-  server.post<{ Params: { ref: string } }>("/v1/tenants/:ref/unlock", async (req, reply) => {
-    const actor = adminFor(req, deps);
-    const record = await deps.registry.tenants.get(req.params.ref);
-    if (record === null) {
-      throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
-    }
-    if (
-      record.state !== "onboarding" ||
-      record.claimExpiresAt === undefined ||
-      record.claimExpiresAt > new Date()
-    ) {
-      throw new ZatcaValidationError(
-        `Tenant '${req.params.ref}' is not in a stale-onboarding state — refusing to unlock.`,
-      );
-    }
-    const updated = await deps.registry.tenants.setState(req.params.ref, "failed", {
-      lastError: "Onboarding claim manually released by admin.",
-    });
-    await deps.auditLog.write({
-      actor,
-      tenantRef: req.params.ref,
-      action: "tenant.unlocked",
-      targetId: req.params.ref,
-      result: "ok",
-    });
-    return reply.send({ tenantRef: updated.tenantRef, state: updated.state });
-  });
+  // POST /v1/tenants/:ref/unlock — release a stale onboarding claim.
+  //
+  // Default behaviour (no body / `{force:false}`): refuse unless the
+  // tenant is in state=`onboarding` AND the claim is no longer
+  // recoverable by the regular CAS — that means either an expired
+  // claim (`claimExpiresAt <= now`) OR a NULL/missing claim (the
+  // CR-02 wedged state). The original code required claimExpiresAt
+  // to be defined AND in the past, which left the NULL-expiry case
+  // un-recoverable via the API (HI-06).
+  //
+  // Force behaviour (`{force:true}`): release the claim even if the
+  // expiry is still in the future. Intended for the rare case where
+  // an admin knows the holder has died (host OOM, network partition)
+  // and waiting out the TTL is too expensive. The audit row records
+  // `force=true` so the operator's explicit intervention is logged.
+  server.post<{ Params: { ref: string }; Body: unknown }>(
+    "/v1/tenants/:ref/unlock",
+    async (req, reply) => {
+      const actor = adminFor(req, deps);
+      // Body is optional — POSTs without a body are accepted as
+      // `{force:false}` to keep the original API contract.
+      const parsed = UnlockBody.safeParse(req.body ?? {});
+      if (!parsed.success) {
+        throw new ZatcaValidationError(
+          `Invalid request body: ${parsed.error.issues.map((i) => `${i.path.join(".")} ${i.message}`).join("; ")}`,
+        );
+      }
+      const force = parsed.data?.force === true;
+      const record = await deps.registry.tenants.get(req.params.ref);
+      if (record === null) {
+        throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
+      }
+      if (record.state !== "onboarding") {
+        throw new ZatcaValidationError(
+          `Tenant '${req.params.ref}' is not in a stale-onboarding state — refusing to unlock.`,
+        );
+      }
+      // Recoverable-without-force = expired claim OR null/missing
+      // claim. Force overrides both checks.
+      const claimExpiresAt = record.claimExpiresAt;
+      const recoverable = claimExpiresAt === undefined || claimExpiresAt <= new Date();
+      if (!recoverable && !force) {
+        throw new ZatcaValidationError(
+          `Tenant '${req.params.ref}' has an active onboarding claim that expires ${claimExpiresAt.toISOString()} — pass {"force":true} to release early.`,
+        );
+      }
+      const updated = await deps.registry.tenants.setState(req.params.ref, "failed", {
+        lastError: force
+          ? "Onboarding claim force-released by admin."
+          : "Onboarding claim manually released by admin.",
+      });
+      await deps.auditLog.write({
+        actor,
+        tenantRef: req.params.ref,
+        action: "tenant.unlocked",
+        targetId: req.params.ref,
+        result: "ok",
+        payload: { force },
+      });
+      return reply.send({ tenantRef: updated.tenantRef, state: updated.state });
+    },
+  );
 }
 
 export const adminOnboardRoutesPlugin: FastifyPluginAsync<RouteDeps> = async (server, deps) => {

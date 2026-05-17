@@ -174,6 +174,33 @@ describe("createMemoryTenantStore", () => {
       const result = await store.setState("a", "failed", { lastError: "OTP expired" });
       expect(result.onboardingProgress.lastError).toBe("OTP expired");
     });
+
+    it("treats a NULL claimExpiresAt while state=onboarding as a stale claim (CR-02)", async () => {
+      const store = createMemoryTenantStore();
+      await store.create(input({ tenantRef: "a" }));
+      // Acquire the lock normally, but then strip the expiry to
+      // simulate the wedged state (crash mid-setState, DBA intervention,
+      // future refactor that calls setState('onboarding', {})).
+      await store.setState("a", "onboarding", {
+        expectedFrom: "created",
+        claimedBy: "instance-1",
+        claimExpiresAt: new Date(Date.now() + 60_000),
+      });
+      // Force the wedged state by transitioning back to onboarding
+      // with no claimExpiresAt — directly exercises the recovery path.
+      await store.setState("a", "onboarding", { claimedBy: "instance-1" });
+      const wedged = await store.get("a");
+      expect(wedged?.state).toBe("onboarding");
+      expect(wedged?.claimExpiresAt).toBeUndefined();
+      // A fresh acquire from any of the legal starting states must
+      // succeed because the lock is not held.
+      const reclaimed = await store.setState("a", "onboarding", {
+        expectedFrom: "created",
+        claimedBy: "instance-2",
+        claimExpiresAt: new Date(Date.now() + 60_000),
+      });
+      expect(reclaimed.claimedBy).toBe("instance-2");
+    });
   });
 
   describe("recordOnboardingProgress", () => {

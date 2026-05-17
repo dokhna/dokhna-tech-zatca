@@ -401,16 +401,29 @@ export function createMongoTenantStore(options: MongoTenantStoreOptions): Tenant
 
       let filter: Record<string, unknown>;
       if (opts.expectedFrom !== undefined) {
-        // CAS: state matches expectedFrom OR an expired claim that we
-        // can reclaim.
+        // CAS: state matches expectedFrom OR a stale claim that we can
+        // reclaim. A NULL/missing claimExpiresAt is treated as
+        // "lock not held" (CR-02) — without this branch a tenant whose
+        // claimExpiresAt never got persisted (crash mid-setState, DBA
+        // intervention, future refactor calling setState('onboarding',
+        // {}) with no expiry) wedges forever because no CAS predicate
+        // matches.
         filter = {
           _id: tenantRef,
           deletedAt: { $exists: false },
           $or: [
             { state: opts.expectedFrom },
             {
-              state: "onboarding",
-              claimExpiresAt: { $lte: now, $ne: null },
+              $and: [
+                { state: "onboarding" },
+                {
+                  $or: [
+                    { claimExpiresAt: { $lte: now } },
+                    { claimExpiresAt: null },
+                    { claimExpiresAt: { $exists: false } },
+                  ],
+                },
+              ],
             },
           ],
         };

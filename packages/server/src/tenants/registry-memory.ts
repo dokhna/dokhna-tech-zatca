@@ -201,10 +201,16 @@ export function createMemoryTenantStore(options: { now?: () => Date } = {}): Ten
     async setState(tenantRef: string, next: TenantState, options: SetStateOptions = {}) {
       const existing = requireRecord(tenantRef);
       if (options.expectedFrom !== undefined) {
-        // Honor an expired claim as if the slot were free.
-        const claimExpired =
-          existing.claimExpiresAt !== undefined && existing.claimExpiresAt <= clock();
-        if (existing.state !== options.expectedFrom && !claimExpired) {
+        // Honor a stale claim as if the slot were free. A stale claim
+        // is either expired (claimExpiresAt <= now) OR
+        // NULL/undefined while the row is in state='onboarding' — the
+        // latter covers the CR-02 wedged case where the expiry never
+        // got persisted. Without the NULL branch a wedged tenant
+        // needed direct DB intervention to recover.
+        const lockNotHeld =
+          existing.state === "onboarding" &&
+          (existing.claimExpiresAt === undefined || existing.claimExpiresAt <= clock());
+        if (existing.state !== options.expectedFrom && !lockNotHeld) {
           throw new ZatcaRegistryError(
             `Cannot transition tenant '${tenantRef}' from '${existing.state}' (expected '${options.expectedFrom}').`,
           );

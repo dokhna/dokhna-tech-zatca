@@ -335,8 +335,12 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
       let result: Awaited<ReturnType<typeof pool.query<TenantRow>>>;
       if (opts.expectedFrom !== undefined) {
         // CAS: only transition if state matches OR if the row is in
-        // 'onboarding' with an expired claim. Reclaiming an expired
-        // lock subsumes the explicit expectedFrom check.
+        // 'onboarding' with a stale claim. A NULL claim_expires_at is
+        // treated as "lock not held" (CR-02) — without this clause a
+        // tenant whose claim_expires_at never got persisted (crash
+        // mid-setState, DBA intervention, future refactor that calls
+        // setState('onboarding', {}) with no expiry) wedges forever
+        // because no CAS predicate matches.
         const query = `
           UPDATE zatca_server_tenants
           SET state = $2,
@@ -349,8 +353,8 @@ export function createPostgresTenantStore(options: PostgresTenantStoreOptions): 
             AND (
               state = $7
               OR (state = 'onboarding'
-                  AND claim_expires_at IS NOT NULL
-                  AND claim_expires_at <= $3)
+                  AND (claim_expires_at IS NULL
+                       OR claim_expires_at <= $3))
             )
           RETURNING ${TENANT_COLUMNS}`;
         result = await pool.query<TenantRow>(query, [

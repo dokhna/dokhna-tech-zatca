@@ -153,13 +153,16 @@ export async function runOnboarding(args: RunOnboardingArgs): Promise<RunOnboard
 
   // Acquire the lock. `setState` clears any prior progress lastError
   // implicitly when no `lastError` option is passed. The expectedFrom
-  // CAS only covers ONE state, so try the two valid starting points
-  // sequentially. In-memory single-threaded JS guarantees no
-  // interleave between the two attempts; DB-backed impls in PR2 use
-  // an atomic UPDATE with an `IN (...)` predicate.
+  // CAS only covers ONE state, so try the valid starting points
+  // sequentially. We include "onboarding" so a wedged tenant (state
+  // = 'onboarding' with NULL/expired claimExpiresAt — CR-02) can be
+  // re-claimed via the CAS's "stale claim" branch instead of needing
+  // direct DB intervention. In-memory single-threaded JS guarantees
+  // no interleave between attempts; DB-backed impls use atomic
+  // UPDATEs with predicate matching.
   const lockExpires = new Date(Date.now() + lockTtlMs);
   let acquired = false;
-  for (const from of ["created", "failed", "production-ready"] as const) {
+  for (const from of ["created", "failed", "production-ready", "onboarding"] as const) {
     try {
       await args.registry.tenants.setState(args.tenantRef, "onboarding", {
         expectedFrom: from,

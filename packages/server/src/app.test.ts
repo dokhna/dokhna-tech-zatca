@@ -308,6 +308,99 @@ describe("zatca-server app", () => {
       expect(JSON.stringify(rows)).not.toContain("OTP-SECRET-123");
       await fresh.close();
     });
+
+    it("/unlock recovers a tenant wedged in state=onboarding with NULL claimExpiresAt (CR-02 + HI-06)", async () => {
+      const { app: fresh, registry } = await bootApp();
+      try {
+        await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: TENANT_BODY,
+        });
+        // Force the wedged state directly through the registry: a
+        // realistic scenario is a crash mid-setState where the
+        // expiry never persisted, but the cleanest way to test is to
+        // call setState directly.
+        await registry.tenants.setState("acme", "onboarding", { claimedBy: "instance-1" });
+        const wedged = await registry.tenants.get("acme");
+        expect(wedged?.state).toBe("onboarding");
+        expect(wedged?.claimExpiresAt).toBeUndefined();
+        // /unlock without `force` should still succeed (recoverable
+        // because the lock is effectively not held).
+        const unlocked = await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants/acme/unlock",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: {},
+        });
+        expect(unlocked.statusCode).toBe(200);
+        expect(unlocked.json().state).toBe("failed");
+      } finally {
+        await fresh.close();
+      }
+    });
+
+    it("/unlock with {force:true} releases an active claim that has a future expiry (HI-06)", async () => {
+      const { app: fresh, registry } = await bootApp();
+      try {
+        await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: TENANT_BODY,
+        });
+        await registry.tenants.setState("acme", "onboarding", {
+          claimedBy: "instance-1",
+          claimExpiresAt: new Date(Date.now() + 600_000),
+        });
+        // Without force: refuse (active claim).
+        const refused = await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants/acme/unlock",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: {},
+        });
+        expect(refused.statusCode).toBe(400);
+        // With force=true: succeeds.
+        const forced = await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants/acme/unlock",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: { force: true },
+        });
+        expect(forced.statusCode).toBe(200);
+        expect(forced.json().state).toBe("failed");
+      } finally {
+        await fresh.close();
+      }
+    });
+
+    it("re-onboard from a wedged state=onboarding/NULL-expiry succeeds (CR-02)", async () => {
+      const { app: fresh, registry } = await bootApp();
+      try {
+        await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: TENANT_BODY,
+        });
+        // Wedge: state=onboarding, NULL claimExpiresAt.
+        await registry.tenants.setState("acme", "onboarding", { claimedBy: "instance-1" });
+        // runOnboarding's expectedFrom loop now includes 'onboarding'
+        // so the wedged tenant can recover without /unlock.
+        const res = await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants/acme/onboard",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: { otp: "123456", solutionName: "Test", environment: "simulation" },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().state).toBe("production-ready");
+      } finally {
+        await fresh.close();
+      }
+    });
   });
 
   describe("api keys", () => {
