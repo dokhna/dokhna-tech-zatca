@@ -1,6 +1,6 @@
 {
   "name": "@dokhna-tech/zatca-storage-postgres",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "description": "PostgreSQL storage adapter for @dokhna-tech/zatca (raw pg client).",
   "license": "BUSL-1.1",
   "repository": {

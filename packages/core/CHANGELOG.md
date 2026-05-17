@@ -1,5 +1,19 @@
 # @dokhna-tech/zatca
 
+## 3.0.0
+
+### Minor Changes
+
+- Add optional `onProgress` callback to `onboard()` and `runComplianceTests()`.
+
+  The callback fires after each compliance scenario settles (passed or failed) with `{ scenarioName, invoiceKind, passed, errors, completedCount, totalCount }`. Exceptions thrown inside the callback are swallowed — the hook is observational and never aborts the run. The runner awaits async callbacks sequentially so per-scenario state can be persisted to a tenant store before the next scenario fires.
+
+  This is the integration seam that `@dokhna-tech/zatca-server` uses to surface real onboarding progress via `GET /tenants/:ref/status` even when the originating HTTP socket has dropped.
+
+  New exports from the public API: `ComplianceProgressCallback`, `ComplianceProgressEvent`.
+
+  No behaviour change for callers that omit `onProgress`. The change itself is purely additive; the surrounding 3.0.0 major version reflects the lockstep release of the new `@dokhna-tech/zatca-server` package and the resulting fixed-group propagation, not a breaking change in this package.
+
 ## 2.0.4
 
 ### Patch Changes
