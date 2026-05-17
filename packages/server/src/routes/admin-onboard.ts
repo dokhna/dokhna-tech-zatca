@@ -12,14 +12,83 @@
  */
 
 import { ZatcaValidationError } from "@dokhna-tech/zatca";
-import type { FastifyInstance, FastifyPluginAsync, FastifyRequest } from "fastify";
+import type { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 
 import type { AuditActor } from "../audit/log.js";
 import { ZatcaRegistryError } from "../errors.js";
+import {
+  buildIdempotencyCacheKey,
+  type CachedResponse,
+  DEFAULT_IDEMPOTENCY_TTL_MS,
+} from "../middleware/idempotency.js";
 import { runOnboarding } from "../onboarding/run.js";
 
 import type { RouteDeps } from "./deps.js";
+
+/**
+ * Pull an `Idempotency-Key` header value from a request. The header
+ * is optional — return `undefined` when absent or empty. A non-string
+ * value (Fastify normalises to string but `string[]` is possible for
+ * repeated headers) is rejected as a validation error so a malformed
+ * client cannot accidentally bypass replay protection.
+ */
+function readIdempotencyKey(req: FastifyRequest): string | undefined {
+  const raw = req.headers["idempotency-key"];
+  if (raw === undefined) return undefined;
+  if (Array.isArray(raw)) {
+    throw new ZatcaValidationError("Idempotency-Key header must not be repeated.");
+  }
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return undefined;
+  if (trimmed.length > 200) {
+    throw new ZatcaValidationError("Idempotency-Key header is too long (max 200 chars).");
+  }
+  return trimmed;
+}
+
+/**
+ * Replay a cached idempotent response, if one exists. Returns `true`
+ * when a cached response was sent (caller should stop processing),
+ * `false` otherwise. The cache key is namespaced by tenantRef + route
+ * + a sha256 of the presented header, so a key replayed against a
+ * different tenant or different route does NOT hit the cache.
+ */
+async function tryReplayIdempotent(
+  deps: RouteDeps,
+  reply: FastifyReply,
+  key: string,
+  tenantRef: string,
+  route: string,
+): Promise<boolean> {
+  const cacheKey = buildIdempotencyCacheKey({ tenantRef, route, presentedKey: key });
+  const cached = await deps.idempotencyStore.get(cacheKey);
+  if (cached === null) return false;
+  for (const [k, v] of Object.entries(cached.headers)) reply.header(k, v);
+  reply.header("x-idempotent-replay", "true");
+  await reply.code(cached.statusCode).send(cached.body);
+  return true;
+}
+
+/**
+ * Persist an idempotent response for replay. The TTL is configurable
+ * via `config.idempotencyWindowMs` (default 24h) and falls back to
+ * `DEFAULT_IDEMPOTENCY_TTL_MS` if the config is somehow zero.
+ */
+async function storeIdempotent(
+  deps: RouteDeps,
+  key: string,
+  tenantRef: string,
+  route: string,
+  response: CachedResponse,
+): Promise<void> {
+  const cacheKey = buildIdempotencyCacheKey({ tenantRef, route, presentedKey: key });
+  const ttl =
+    deps.config.idempotencyWindowMs > 0
+      ? deps.config.idempotencyWindowMs
+      : DEFAULT_IDEMPOTENCY_TTL_MS;
+  await deps.idempotencyStore.set(cacheKey, response, ttl);
+}
 
 const OnboardBody = z.object({
   otp: z.string().min(1).max(20),
@@ -61,6 +130,17 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
     async (req, reply) => {
       const actor = adminFor(req, deps);
       const body = parseBody(OnboardBody, req.body);
+      // Idempotency (CR-03): if the caller presents an
+      // `Idempotency-Key` header and we've seen the same key within
+      // the configured window, replay the cached response rather than
+      // burn a fresh OTP. The header is optional — its absence
+      // bypasses the cache entirely.
+      const route = "/v1/tenants/:ref/onboard";
+      const idemKey = readIdempotencyKey(req);
+      if (idemKey !== undefined) {
+        const replayed = await tryReplayIdempotent(deps, reply, idemKey, req.params.ref, route);
+        if (replayed) return reply;
+      }
       const tenant = await deps.registry.tenants.get(req.params.ref);
       if (tenant === null) {
         throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
@@ -87,24 +167,41 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
       if (deps.metrics !== undefined) {
         deps.metrics.onboardingTotal.inc({ outcome: "succeeded" });
       }
-      return reply.send({
+      const responseBody = {
         tenantRef: result.tenantRef,
         state: result.state,
         complianceTestStatus: result.complianceTestStatus,
         productionCertificateExpiresAt: result.productionCertificateExpiresAt,
         productionRequestId: result.productionRequestId,
-      });
+      };
+      if (idemKey !== undefined) {
+        await storeIdempotent(deps, idemKey, req.params.ref, route, {
+          statusCode: 200,
+          headers: {},
+          body: JSON.stringify(responseBody),
+        });
+      }
+      return reply.send(responseBody);
     },
   );
 
   // POST /v1/tenants/:ref/credentials/rotate — same flow as /onboard,
   // but the route name makes the operator intent explicit and the
   // audit row carries a different action.
-  server.post<{ Params: { ref: string }; Body: unknown }>(
+  server.post<{ Params: { ref: string }; Body: unknown; Headers: { "idempotency-key"?: string } }>(
     "/v1/tenants/:ref/credentials/rotate",
     async (req, reply) => {
       const actor = adminFor(req, deps);
       const body = parseBody(OnboardBody, req.body);
+      // Idempotency (CR-03): rotation burns an OTP just like
+      // onboarding, so a client TCP retry without idempotency
+      // protection would burn a second OTP. The header is optional.
+      const route = "/v1/tenants/:ref/credentials/rotate";
+      const idemKey = readIdempotencyKey(req);
+      if (idemKey !== undefined) {
+        const replayed = await tryReplayIdempotent(deps, reply, idemKey, req.params.ref, route);
+        if (replayed) return reply;
+      }
       const tenant = await deps.registry.tenants.get(req.params.ref);
       if (tenant === null) {
         throw new ZatcaRegistryError(`Unknown tenant '${req.params.ref}'.`);
@@ -134,11 +231,19 @@ export function registerAdminOnboardRoutes(server: FastifyInstance, deps: RouteD
         targetId: req.params.ref,
         result: "ok",
       });
-      return reply.send({
+      const responseBody = {
         tenantRef: result.tenantRef,
         state: result.state,
         productionCertificateExpiresAt: result.productionCertificateExpiresAt,
-      });
+      };
+      if (idemKey !== undefined) {
+        await storeIdempotent(deps, idemKey, req.params.ref, route, {
+          statusCode: 200,
+          headers: {},
+          body: JSON.stringify(responseBody),
+        });
+      }
+      return reply.send(responseBody);
     },
   );
 

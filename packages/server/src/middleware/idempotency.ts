@@ -97,3 +97,12 @@ export function buildIdempotencyCacheKey(input: {
   const hash = createHash("sha256").update(input.presentedKey).digest("base64url").slice(0, 32);
   return `idem:${tenant}:${input.route}:${hash}`;
 }
+
+/**
+ * Default TTL for idempotency cache entries — 24 hours. Matches the
+ * window over which a retry of a side-effectful operation
+ * (onboarding, invoice issuance) is plausibly the SAME logical
+ * request. Beyond this window, an `Idempotency-Key` that happens
+ * to repeat is treated as a fresh request.
+ */
+export const DEFAULT_IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;

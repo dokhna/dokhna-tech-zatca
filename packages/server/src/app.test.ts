@@ -401,6 +401,93 @@ describe("zatca-server app", () => {
         await fresh.close();
       }
     });
+
+    it("Idempotency-Key replays the cached response without burning a second OTP (CR-03)", async () => {
+      // Count how many times the underlying onboard helper runs. With
+      // a matching Idempotency-Key the second call must NOT invoke it.
+      let onboardCallCount = 0;
+      const countingOnboard = (async () => {
+        onboardCallCount += 1;
+        return {
+          privateKey: "PRIV",
+          csr: "CSR",
+          complianceCertificate: "COMP-CERT",
+          complianceBinarySecurityToken: "COMP-BST",
+          complianceApiSecret: "COMP-SECRET",
+          complianceRequestId: "comp-req-1",
+          productionCertificate: "PROD-CERT",
+          productionBinarySecurityToken: "PROD-BST",
+          productionApiSecret: "PROD-SECRET",
+          productionRequestId: "prod-req-1",
+          complianceTestReport: {
+            overallStatus: "passed" as const,
+            results: [],
+            finalInvoiceHash: "" as never,
+          },
+        };
+      }) as never;
+      const cfg = freshConfig();
+      const cipher = createAesGcmCipher({ keyring: cfg.masterKeys, activeKid: cfg.activeKid });
+      const registry = createMemoryRegistry({ cipher });
+      const storage = createMemoryStorageAdapter();
+      const auditLog = createMemoryAuditLog();
+      const fresh = await buildApp({
+        config: cfg,
+        registry,
+        storage,
+        auditLog,
+        onboardingHooks: {
+          onboardFn: countingOnboard,
+          getExpiry: () => new Date(Date.now() + 365 * 86_400_000),
+        },
+      });
+      try {
+        await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: TENANT_BODY,
+        });
+        const headers = {
+          authorization: `Bearer ${ADMIN_KEY}`,
+          "idempotency-key": "client-attempt-1",
+        };
+        const first = await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants/acme/onboard",
+          headers,
+          payload: { otp: "OTP-1", solutionName: "T", environment: "simulation" },
+        });
+        expect(first.statusCode).toBe(200);
+        expect(onboardCallCount).toBe(1);
+        // Same Idempotency-Key — replay path. The route MUST NOT
+        // invoke the onboarding helper a second time. The replay sets
+        // an `x-idempotent-replay` header for client observability.
+        const second = await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants/acme/onboard",
+          headers,
+          payload: { otp: "OTP-2-DIFFERENT", solutionName: "X", environment: "simulation" },
+        });
+        expect(second.statusCode).toBe(200);
+        expect(onboardCallCount).toBe(1);
+        expect(second.headers["x-idempotent-replay"]).toBe("true");
+        // A request without an Idempotency-Key bypasses the cache.
+        // The route will still fail (tenant is already production-
+        // ready) but it must reach runOnboarding before failing — so
+        // the count goes up. We test the cache-bypass at the
+        // observability layer: no x-idempotent-replay header.
+        const third = await fresh.inject({
+          method: "POST",
+          url: "/v1/tenants/acme/onboard",
+          headers: { authorization: `Bearer ${ADMIN_KEY}` },
+          payload: { otp: "OTP-3", solutionName: "T", environment: "simulation" },
+        });
+        expect(third.headers["x-idempotent-replay"]).toBeUndefined();
+      } finally {
+        await fresh.close();
+      }
+    });
   });
 
   describe("api keys", () => {
