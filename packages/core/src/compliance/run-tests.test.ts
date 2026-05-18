@@ -232,3 +232,121 @@ describe("runComplianceTests — failure paths", () => {
     expect(report.results[0]?.invoiceNumber).toBe("EXT-0001");
   });
 });
+
+describe("runComplianceTests — onProgress callback", () => {
+  function passingHandler() {
+    return http.post(COMPLIANCE_URL, () =>
+      HttpResponse.json({
+        validationResults: {
+          errorMessages: [],
+          warningMessages: [],
+          infoMessages: [],
+          status: "PASS",
+        },
+      }),
+    );
+  }
+
+  it("fires once per scenario in submission order with the right shape", async () => {
+    server.use(passingHandler());
+    const events: Array<{ scenarioName: string; passed: boolean; completedCount: number }> = [];
+    await runComplianceTests({
+      ...commonArgs(),
+      onProgress: (event) => {
+        events.push({
+          scenarioName: event.scenarioName,
+          passed: event.passed,
+          completedCount: event.completedCount,
+        });
+      },
+    });
+    expect(events).toHaveLength(6);
+    expect(events.map((e) => e.scenarioName)).toEqual([
+      "simplified-tax-invoice",
+      "standard-tax-invoice",
+      "simplified-credit-note",
+      "standard-credit-note",
+      "simplified-debit-note",
+      "standard-debit-note",
+    ]);
+    expect(events.map((e) => e.completedCount)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(events.every((e) => e.passed)).toBe(true);
+  });
+
+  it("fires with passed=false when ZATCA returns errorMessages", async () => {
+    let callCount = 0;
+    server.use(
+      http.post(COMPLIANCE_URL, () => {
+        callCount += 1;
+        if (callCount === 3) {
+          return HttpResponse.json({
+            validationResults: {
+              errorMessages: [
+                {
+                  code: "BR-KSA-31",
+                  message: "Hash mismatch",
+                  category: "ERROR-INVOICE",
+                  status: "ERROR",
+                },
+              ],
+              warningMessages: [],
+              infoMessages: [],
+              status: "ERROR",
+            },
+          });
+        }
+        return HttpResponse.json({
+          validationResults: {
+            errorMessages: [],
+            warningMessages: [],
+            infoMessages: [],
+            status: "PASS",
+          },
+        });
+      }),
+    );
+    const events: Array<{ scenarioName: string; passed: boolean }> = [];
+    await runComplianceTests({
+      ...commonArgs(),
+      onProgress: (e) => {
+        events.push({ scenarioName: e.scenarioName, passed: e.passed });
+      },
+    });
+    const failed = events.filter((e) => !e.passed);
+    expect(failed).toHaveLength(1);
+    expect(failed[0]?.scenarioName).toBe("simplified-credit-note");
+  });
+
+  it("swallows thrown callback exceptions and still completes the run", async () => {
+    server.use(passingHandler());
+    let fired = 0;
+    const report = await runComplianceTests({
+      ...commonArgs(),
+      onProgress: () => {
+        fired += 1;
+        throw new Error("callback always throws");
+      },
+    });
+    expect(fired).toBe(6);
+    expect(report.overallStatus).toBe("passed");
+  });
+
+  it("awaits async callbacks sequentially", async () => {
+    server.use(passingHandler());
+    const observed: number[] = [];
+    let inFlight = 0;
+    await runComplianceTests({
+      ...commonArgs(),
+      onProgress: async (e) => {
+        inFlight += 1;
+        // If two callbacks ever overlap, inFlight will be >1 here.
+        observed.push(inFlight);
+        await new Promise((resolve) => setTimeout(resolve, 1));
+        inFlight -= 1;
+        // Mark progress so the assertion is meaningful.
+        void e;
+      },
+    });
+    expect(observed).toEqual([1, 1, 1, 1, 1, 1]);
+  });
+});

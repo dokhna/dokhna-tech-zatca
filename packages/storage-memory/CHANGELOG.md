@@ -1,5 +1,16 @@
 # @dokhna-tech/zatca-storage-memory
 
+## 3.0.0
+
+### Patch Changes
+
+- Lockstep version bump alongside the 3.0.0 release of the package family. No source change — the adapter API is unchanged.
+
+  The explicit patch declaration keeps the changeset narrative honest (this package has no functional change); the actual 3.0.0 version comes from the fixed-group resolution driven by the new `@dokhna-tech/zatca-server` package launching at major.
+
+- Updated dependencies
+  - @dokhna-tech/zatca@3.0.0
+
 ## 2.0.4
 
 ### Patch Changes

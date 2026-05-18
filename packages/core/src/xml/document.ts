@@ -43,6 +43,28 @@ export interface XMLParserOptions {
 }
 
 /**
+ * Forbidden tag names that would polute Object.prototype if used
+ * as an assignment target. core's own UBL builders only ever pass
+ * schema-bound literals, so this never triggers in normal operation;
+ * the guard exists so a downstream consumer (or a future malicious
+ * input parsed back into a path) can't poison the global prototype.
+ *
+ * Addresses CodeQL `js/prototype-polluting-assignment` (alerts 1-6).
+ */
+const FORBIDDEN_PATH_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
+
+function isForbiddenSegment(segment: string | undefined): boolean {
+  return segment !== undefined && FORBIDDEN_PATH_SEGMENTS.has(segment);
+}
+
+function pathHasForbiddenSegment(path: string): boolean {
+  for (const segment of path.split("/")) {
+    if (isForbiddenSegment(segment)) return true;
+  }
+  return false;
+}
+
+/**
  * Shallow subset predicate — returns `true` iff every key of
  * `partial` is present on `item` with a strictly equal value.
  *
@@ -205,6 +227,12 @@ export class XMLDocument {
     if (!this.xml_object) {
       return false;
     }
+    // Defence against prototype-pollution: refuse paths that
+    // reference Object.prototype keys. core's own callers never
+    // produce these; the guard is for downstream consumers.
+    if (path_query !== undefined && pathHasForbiddenSegment(path_query)) {
+      return false;
+    }
     const { xml_object, parent_xml_object, last_tag } = this.getElement(
       this.xml_object,
       path_query ?? "",
@@ -254,9 +282,13 @@ export class XMLDocument {
     if (!this.xml_object) {
       return false;
     }
+    // Defence against prototype-pollution.
+    if (pathHasForbiddenSegment(path_query)) {
+      return false;
+    }
     const path_tags = path_query.split("/");
     const [tag] = path_tags.splice(-1, 1);
-    if (tag === undefined) {
+    if (tag === undefined || isForbiddenSegment(tag)) {
       return false;
     }
     const new_path_query = path_tags.join("/");

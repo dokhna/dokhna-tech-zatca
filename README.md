@@ -107,18 +107,24 @@ To get the certificate + key in the first place, run [`onboard()`](https://githu
 | Package | What it is |
 |---------|------------|
 | [`@dokhna-tech/zatca`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/core) | Core: XML build, signing, QR, ZATCA API client, onboarding |
+| [`@dokhna-tech/zatca-server`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/server) | Standalone multi-tenant ZATCA service (Docker image + HTTP API + encrypted credential vault + audit log) |
 | [`@dokhna-tech/zatca-storage-memory`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-memory) | In-memory adapter (testing/dev) |
 | [`@dokhna-tech/zatca-storage-mongo`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-mongo) | MongoDB adapter (Mongoose peer-dep) |
 | [`@dokhna-tech/zatca-storage-postgres`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-postgres) | PostgreSQL adapter (pg peer-dep) |
 
+### Looking for a turnkey deployment?
+
+Don't want to embed the SDK? `@dokhna-tech/zatca-server` ships as a Docker image you point at MongoDB or PostgreSQL and an HTTP API your back-office calls. Tenant onboarding, encrypted credential vault, audit log, and `/metrics` exposition are wired up. See [`examples/standalone-server/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/standalone-server) for a docker-compose + curl walkthrough.
+
 ## Examples
 
-Three runnable example projects under [`examples/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples):
+Four runnable example projects under [`examples/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples):
 
 | Example | Demonstrates |
 |---------|--------------|
+| [`standalone-server/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/standalone-server) | **Recommended** — boot `@dokhna-tech/zatca-server` via docker-compose (Mongo or Postgres) and onboard + issue via curl. |
 | [`single-vat-express/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/single-vat-express) | Express server, one VAT, in-memory storage, full onboarding + issuance flow. |
-| [`multi-vat-saas/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/multi-vat-saas) | Fastify server, multiple tenants, per-tenant scoping, MongoDB. |
+| [`multi-vat-saas/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/multi-vat-saas) | Fastify server, multiple tenants, per-tenant scoping, MongoDB. Use when you want to embed the SDK in your own server instead of running the standalone image. |
 | [`byo-storage-prisma/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/byo-storage-prisma) | Custom `StorageAdapter` against Prisma + SQLite. |
 
 From the repo root:
@@ -131,6 +137,9 @@ pnpm --filter @dokhna-tech-examples/single-vat-express start
 ## Documentation
 
 - [Getting started](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/getting-started.md) — 15-minute path to a signed invoice.
+- [Standalone server](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/standalone-server.md) — turnkey Docker deployment, when to choose it.
+- [Standalone server — HTTP API reference](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/standalone-server-api.md) — every route, body schema, error envelope.
+- [Standalone server — operations](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/standalone-server-operations.md) — env vars, vault rotation, audit, metrics, multi-replica caveats.
 - [Single VAT deployment](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/single-vat.md) — Express wire-up.
 - [Multi-VAT SaaS](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/multi-vat-saas.md) — per-tenant scoping, certificate isolation.
 - [Storage adapters](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/storage-adapters.md) — interface contract + custom adapter.

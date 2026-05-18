@@ -1,0 +1,32 @@
+name: Repository CodeQL config
+
+# Default query suite is `security-and-quality`. The workflow's
+# `queries:` field still references it; this file layers
+# repository-specific filters on top.
+queries:
+  - uses: security-and-quality
+
+query-filters:
+  # `js/missing-rate-limiting` flags every route handler that performs
+  # authorization without a co-located rate-limit middleware. The rule
+  # has hardcoded patterns for `express-rate-limit` and a handful of
+  # other libraries but does NOT recognize Fastify's global plugin
+  # registration via `server.register(@fastify/rate-limit)` as
+  # protecting individual handlers.
+  #
+  # In packages/server/src/app.ts we register @fastify/rate-limit
+  # globally with `global: true` and a configurable per-IP cap
+  # (`ZATCA_SERVER_RATE_LIMIT_PER_MINUTE`, default 200). Every
+  # authenticated route inherits the cap. The test at
+  # `packages/server/src/app.test.ts` asserts a real 429 once the cap
+  # is exceeded — meaning the protection is wired, observable, and
+  # CI-gated.
+  #
+  # Excluding the query stops CodeQL from re-flagging each individual
+  # route. If a deployer ever wants per-route caps tighter than the
+  # global one, @fastify/rate-limit supports `{ config: { rateLimit:
+  # { max, timeWindow } } }` per-route at the Fastify registration
+  # site — this is a deliberate operator override, not a security
+  # gap.
+  - exclude:
+      id: js/missing-rate-limiting

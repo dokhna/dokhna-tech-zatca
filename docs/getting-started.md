@@ -18,7 +18,7 @@ Peer requirements:
 
 ## 2. The 15-minute path
 
-There are two flows. Pick the one that matches where you are.
+There are three flows. Pick the one that matches where you are.
 
 ### Flow A: I already have ZATCA-issued credentials
 
@@ -79,6 +79,26 @@ const result = await onboard({
 See [security.md](./security.md) for the full storage / rotation guidance.
 
 > Heads-up: the ZATCA sandbox / simulation hostnames and the auth scheme used for cancel/status calls were inferred from a known-working production helper but have not yet been verified against a fresh live gateway in this branch. If your first invoice round-trip hits a 404 or a 401, see [troubleshooting.md](./troubleshooting.md#urls-and-auth-scheme-drift-caveat).
+
+### Flow C: I want a turnkey HTTP service, not an embedded SDK
+
+Run `@dokhna-tech/zatca-server` as a Docker image. Your back-office calls its HTTP API (`POST /v1/tenants/:ref/onboard`, `POST /v1/tenants/:ref/invoices`, etc.) instead of embedding the SDK. Tenant onboarding, an encrypted credential vault, an append-only audit log, and Prometheus `/metrics` are wired up.
+
+Three required env vars and a single `docker run`:
+
+```bash
+ADMIN_KEY="ops:$(openssl rand -base64 48 | tr -d '=' | head -c 48)"
+MASTER_KEY="v1:$(openssl rand -base64 32)"
+
+docker run --rm -p 3000:3000 \
+  -e ZATCA_SERVER_ADMIN_KEYS="$ADMIN_KEY" \
+  -e ZATCA_SERVER_MASTER_KEYS="$MASTER_KEY" \
+  -e ZATCA_SERVER_ACTIVE_KID="v1" \
+  -e STORAGE_DRIVER="memory" \
+  ghcr.io/dokhna/zatca-server:latest
+```
+
+See [standalone-server.md](./standalone-server.md) for the orientation, [standalone-server-api.md](./standalone-server-api.md) for the HTTP reference, [standalone-server-operations.md](./standalone-server-operations.md) for env vars and ops, and [`examples/standalone-server/`](../examples/standalone-server/) for a docker-compose walkthrough with Mongo or Postgres.
 
 ## 3. Issue your first invoice
 
@@ -152,6 +172,7 @@ You now have a signed Phase 2 invoice. Submitting it to ZATCA is one more call â
 
 ## 4. Where next
 
+- Turnkey HTTP service (Docker image, no SDK to embed): [standalone-server.md](./standalone-server.md), [HTTP API reference](./standalone-server-api.md), [operations](./standalone-server-operations.md).
 - One VAT registration, one process: [single-vat.md](./single-vat.md).
 - SaaS handling multiple tenants on one runtime: [multi-vat-saas.md](./multi-vat-saas.md).
 - Custom database adapter: [storage-adapters.md](./storage-adapters.md).

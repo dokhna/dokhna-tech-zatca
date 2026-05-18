@@ -78,7 +78,38 @@ export interface RunComplianceTestsArgs {
   };
   /** Optional issue-date overrides applied to every scenario. */
   dateOverrides?: ScenarioDateOverrides;
+  /**
+   * Optional observation hook fired after each scenario settles
+   * (passed OR failed). The callback is *observational* — exceptions
+   * thrown inside it are swallowed and do not abort the run. Use this
+   * to persist per-scenario progress so a long-running compliance
+   * pass survives an HTTP client disconnect (the server consumes this
+   * to drive `GET /tenants/:ref/status`). The callback may be async;
+   * the runner awaits it before issuing the next scenario.
+   */
+  onProgress?: ComplianceProgressCallback;
 }
+
+/**
+ * Event payload supplied to {@link ComplianceProgressCallback}.
+ *
+ * Holds enough information for the caller to persist per-scenario
+ * state without re-deriving anything from the full report.
+ */
+export interface ComplianceProgressEvent {
+  readonly scenarioName: string;
+  readonly invoiceKind: InvoiceKind;
+  readonly passed: boolean;
+  readonly errors: ReadonlyArray<string>;
+  readonly completedCount: number;
+  readonly totalCount: 6;
+}
+
+/**
+ * Optional progress callback fired after each compliance scenario.
+ * May be sync or async. Exceptions are swallowed by the runner.
+ */
+export type ComplianceProgressCallback = (event: ComplianceProgressEvent) => void | Promise<void>;
 
 /** One row of the compliance test report. */
 export interface ComplianceTestScenarioResult {
@@ -192,6 +223,27 @@ export async function runComplianceTests(
   const results: ComplianceTestScenarioResult[] = [];
   let lastInvoiceHash: InvoiceHash | null = null;
 
+  // Fire the optional onProgress callback against the most recent
+  // scenario result. Exceptions are swallowed — the callback is
+  // observational and must never abort the run.
+  const fireLatestProgress = async (): Promise<void> => {
+    if (args.onProgress === undefined) return;
+    const last = results[results.length - 1];
+    if (last === undefined) return;
+    try {
+      await args.onProgress({
+        scenarioName: last.scenarioName,
+        invoiceKind: last.invoiceKind,
+        passed: last.passed,
+        errors: last.errors,
+        completedCount: results.length,
+        totalCount: 6,
+      });
+    } catch {
+      // Observational hook — never abort the run on a caller bug.
+    }
+  };
+
   // Scenario 1 — simplified tax invoice
   {
     const scenarioName = "simplified-tax-invoice";
@@ -234,6 +286,8 @@ export async function runComplianceTests(
       });
     }
   }
+
+  await fireLatestProgress();
 
   // Scenario 2 — standard tax invoice
   {
@@ -278,6 +332,8 @@ export async function runComplianceTests(
     }
   }
 
+  await fireLatestProgress();
+
   // Scenario 3 — simplified credit note
   {
     const scenarioName = "simplified-credit-note";
@@ -320,6 +376,8 @@ export async function runComplianceTests(
       });
     }
   }
+
+  await fireLatestProgress();
 
   // Scenario 4 — standard credit note
   {
@@ -364,6 +422,8 @@ export async function runComplianceTests(
     }
   }
 
+  await fireLatestProgress();
+
   // Scenario 5 — simplified debit note
   {
     const scenarioName = "simplified-debit-note";
@@ -407,6 +467,8 @@ export async function runComplianceTests(
     }
   }
 
+  await fireLatestProgress();
+
   // Scenario 6 — standard debit note
   {
     const scenarioName = "standard-debit-note";
@@ -449,6 +511,8 @@ export async function runComplianceTests(
       });
     }
   }
+
+  await fireLatestProgress();
 
   const overallStatus = results.every((r) => r.passed) ? "passed" : "failed";
   return {

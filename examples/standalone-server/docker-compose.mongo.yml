@@ -1,0 +1,59 @@
+# Standalone-server stack with MongoDB.
+#
+# Boots a 1-node replica set (required by the audit log's multi-doc
+# transactions) plus the server. The `mongo` service self-initiates
+# `rs0` on first start.
+#
+# Usage:
+#   cp .env.example .env
+#   # Fill in ZATCA_SERVER_ADMIN_KEYS + ZATCA_SERVER_MASTER_KEYS
+#   docker compose -f docker-compose.mongo.yml up --build
+#
+# Then follow the README's curl walkthrough.
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: zatca-server-mongo
+    command:
+      - "--replSet"
+      - "rs0"
+      - "--bind_ip_all"
+    ports:
+      - "27017:27017"
+    volumes:
+      - zatca-server-mongo-data:/data/db
+    healthcheck:
+      test: |
+        echo 'try { rs.status() } catch (err) {
+          rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "mongo:27017" }] })
+        }' | mongosh --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 10s
+
+  zatca-server:
+    build:
+      context: ../..
+      dockerfile: packages/server/Dockerfile
+    image: dokhna/zatca-server:dev
+    container_name: zatca-server
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      STORAGE_DRIVER: mongo
+      MONGO_URI: mongodb://mongo:27017/zatca?replicaSet=rs0
+      ZATCA_SERVER_HOST: 0.0.0.0
+      ZATCA_SERVER_PORT: "3000"
+      ZATCA_SERVER_ADMIN_KEYS: ${ZATCA_SERVER_ADMIN_KEYS}
+      ZATCA_SERVER_MASTER_KEYS: ${ZATCA_SERVER_MASTER_KEYS}
+      ZATCA_SERVER_ACTIVE_KID: ${ZATCA_SERVER_ACTIVE_KID:-v1}
+      ZATCA_SERVER_TENANT_BEARER_ENV: ${ZATCA_SERVER_TENANT_BEARER_ENV:-live}
+      ZATCA_SERVER_LOG_LEVEL: ${ZATCA_SERVER_LOG_LEVEL:-info}
+      ZATCA_SERVER_TZ: ${ZATCA_SERVER_TZ:-Asia/Riyadh}
+    ports:
+      - "${ZATCA_SERVER_PORT:-3000}:3000"
+
+volumes:
+  zatca-server-mongo-data:
