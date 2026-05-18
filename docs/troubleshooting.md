@@ -45,10 +45,36 @@ Causes and fixes:
   Then attach the layer to the function. The layer's `bin/` is on `PATH` by default.
 - **`node:alpine` Docker base image** — install via `RUN apk add --no-cache openssl`.
 - **Vercel / Netlify functions** — most modern function platforms have OpenSSL preinstalled. If yours does not, you need a different platform for the onboarding step. You can keep the rest of the integration (issuing + submitting invoices) anywhere; onboarding is one-shot per EGS.
+- **Local development (macOS)** — the system `/usr/bin/openssl` is LibreSSL, which works (it exposes `secp256k1`). If you installed OpenSSL via Homebrew (`brew install openssl@3`), it lands at `/opt/homebrew/opt/openssl@3/bin/openssl` (Apple Silicon) or `/usr/local/opt/openssl@3/bin/openssl` (Intel) and is **not on `PATH` by default**. Either add it to `PATH` in your shell rc, or rely on the system LibreSSL.
+- **Local development (Linux)** — install via the system package manager:
+  - Debian/Ubuntu: `sudo apt-get install -y openssl`
+  - Fedora/RHEL: `sudo dnf install -y openssl`
+  - Arch: `sudo pacman -S openssl`
 
-### Tests/local dev: skipping the OpenSSL probe
+### Verifying your local OpenSSL install
 
-The probe can be skipped with `args.crypto.skipOpensslProbe: true` (test-only). Do not use this in production — if OpenSSL is missing, key + CSR generation will fail with a less helpful error.
+The `ensureOpenssl()` probe only checks that the binary exists and runs — it does **not** verify that the build supports the curves and hashes ZATCA requires. On unusual builds (FIPS-mode, some minimal/embedded images) onboarding will pass the probe and then fail at key generation with `openssl ecparam exited with code 1: …unknown curve…`.
+
+Before running the example apps or the suite against a real sandbox, paste this into a terminal:
+
+```bash
+# 1. Binary present and reports a version
+openssl version
+
+# 2. secp256k1 curve is available (required for ZATCA EC keys)
+openssl ecparam -list_curves | grep -i secp256k1
+
+# 3. SHA-256 is available (required for the CSR signature)
+openssl dgst -sha256 < /dev/null
+
+# 4. End-to-end smoke test — should print a PEM EC private key
+openssl ecparam -name secp256k1 -genkey -noout
+```
+
+- If **step 2** prints nothing, your OpenSSL build does not expose `secp256k1` — most likely a FIPS-mode build, since `secp256k1` is not on the FIPS-approved curve list. Install a non-FIPS OpenSSL alongside, or run onboarding from a container that has one (e.g. a Debian-based `node:20` image).
+- If **step 4** prints `unknown curve: secp256k1` despite step 2 listing it, the binary is broken — reinstall the package.
+
+The probe itself can be skipped with `args.crypto.skipOpensslProbe: true` (test-only). Do not use this in production — if OpenSSL is missing or lacks `secp256k1`, key + CSR generation will fail with a less helpful error.
 
 ### `Cannot find module '@dokhna-tech/zatca'`
 
