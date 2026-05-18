@@ -1,5 +1,11 @@
 # @dokhna-tech/zatca-storage-mongo
 
+## 4.0.0
+
+### Patch Changes
+
+- @dokhna-tech/zatca@4.0.0
+
 ## 3.0.0
 
 ### Patch Changes
