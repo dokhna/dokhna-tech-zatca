@@ -137,6 +137,9 @@ pnpm --filter @dokhna-tech-examples/single-vat-express start
 ## Documentation
 
 - [Getting started](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/getting-started.md) — 15-minute path to a signed invoice.
+- [Standalone server](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/standalone-server.md) — turnkey Docker deployment, when to choose it.
+- [Standalone server — HTTP API reference](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/standalone-server-api.md) — every route, body schema, error envelope.
+- [Standalone server — operations](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/standalone-server-operations.md) — env vars, vault rotation, audit, metrics, multi-replica caveats.
 - [Single VAT deployment](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/single-vat.md) — Express wire-up.
 - [Multi-VAT SaaS](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/multi-vat-saas.md) — per-tenant scoping, certificate isolation.
 - [Storage adapters](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/storage-adapters.md) — interface contract + custom adapter.
