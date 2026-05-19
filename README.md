@@ -6,8 +6,6 @@
 
 A TypeScript-first ZATCA Phase 2 e-invoicing library for Saudi Arabia. Build, sign, hash, generate QR codes, and submit invoices to the ZATCA Fatoora system. Supports single-VAT and multi-VAT (multi-tenant SaaS) deployments with a bring-your-own storage adapter pattern.
 
-> **Status: v2.0.4 — lockstep-versioned across all four packages.** See [`CHANGELOG.md`](https://github.com/dokhna/dokhna-tech-zatca/blob/main/CHANGELOG.md) for release notes.
-
 ## Table of contents
 
 - [Why this library exists](#why-this-library-exists)
@@ -92,7 +90,13 @@ const issued = await issueSimplifiedTaxInvoice({
     issueTime: "12:00:00",
     buyerName: "Walk-in customer",
     lineItems: [
-      { id: "1", name: "Coffee 250ml", quantity: 2, taxExclusivePrice: 10, vatPercent: 15 },
+      {
+        id: "1",
+        name: "Coffee 250ml",
+        quantity: 2,
+        taxExclusivePrice: 10,
+        vatPercent: 15,
+      },
     ],
   },
 });
@@ -104,13 +108,13 @@ To get the certificate + key in the first place, run [`onboard()`](https://githu
 
 ## Packages
 
-| Package | What it is |
-|---------|------------|
-| [`@dokhna-tech/zatca`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/core) | Core: XML build, signing, QR, ZATCA API client, onboarding |
-| [`@dokhna-tech/zatca-server`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/server) | Standalone multi-tenant ZATCA service (Docker image + HTTP API + encrypted credential vault + audit log) |
-| [`@dokhna-tech/zatca-storage-memory`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-memory) | In-memory adapter (testing/dev) |
-| [`@dokhna-tech/zatca-storage-mongo`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-mongo) | MongoDB adapter (Mongoose peer-dep) |
-| [`@dokhna-tech/zatca-storage-postgres`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-postgres) | PostgreSQL adapter (pg peer-dep) |
+| Package                                                                                                                  | What it is                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| [`@dokhna-tech/zatca`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/core)                              | Core: XML build, signing, QR, ZATCA API client, onboarding                                               |
+| [`@dokhna-tech/zatca-server`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/server)                     | Standalone multi-tenant ZATCA service (Docker image + HTTP API + encrypted credential vault + audit log) |
+| [`@dokhna-tech/zatca-storage-memory`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-memory)     | In-memory adapter (testing/dev)                                                                          |
+| [`@dokhna-tech/zatca-storage-mongo`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-mongo)       | MongoDB adapter (Mongoose peer-dep)                                                                      |
+| [`@dokhna-tech/zatca-storage-postgres`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/packages/storage-postgres) | PostgreSQL adapter (pg peer-dep)                                                                         |
 
 ### Looking for a turnkey deployment?
 
@@ -120,12 +124,12 @@ Don't want to embed the SDK? `@dokhna-tech/zatca-server` ships as a Docker image
 
 Four runnable example projects under [`examples/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples):
 
-| Example | Demonstrates |
-|---------|--------------|
-| [`standalone-server/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/standalone-server) | **Recommended** — boot `@dokhna-tech/zatca-server` via docker-compose (Mongo or Postgres) and onboard + issue via curl. |
-| [`single-vat-express/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/single-vat-express) | Express server, one VAT, in-memory storage, full onboarding + issuance flow. |
-| [`multi-vat-saas/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/multi-vat-saas) | Fastify server, multiple tenants, per-tenant scoping, MongoDB. Use when you want to embed the SDK in your own server instead of running the standalone image. |
-| [`byo-storage-prisma/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/byo-storage-prisma) | Custom `StorageAdapter` against Prisma + SQLite. |
+| Example                                                                                                    | Demonstrates                                                                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`standalone-server/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/standalone-server)   | **Recommended** — boot `@dokhna-tech/zatca-server` via docker-compose (Mongo or Postgres) and onboard + issue via curl.                                       |
+| [`single-vat-express/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/single-vat-express) | Express server, one VAT, in-memory storage, full onboarding + issuance flow.                                                                                  |
+| [`multi-vat-saas/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/multi-vat-saas)         | Fastify server, multiple tenants, per-tenant scoping, MongoDB. Use when you want to embed the SDK in your own server instead of running the standalone image. |
+| [`byo-storage-prisma/`](https://github.com/dokhna/dokhna-tech-zatca/tree/main/examples/byo-storage-prisma) | Custom `StorageAdapter` against Prisma + SQLite.                                                                                                              |
 
 From the repo root:
 
