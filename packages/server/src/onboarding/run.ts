@@ -128,7 +128,7 @@ export interface RunOnboardingArgs {
   readonly tenantRef: string;
   readonly otp: string;
   readonly solutionName: string;
-  readonly environment: Exclude<ZatcaEnvironment, "production">;
+  readonly environment: ZatcaEnvironment;
   readonly instanceId: string;
   readonly registry: {
     readonly tenants: TenantStore;

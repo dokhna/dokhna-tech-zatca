@@ -26,7 +26,7 @@ Skip to **issuing your first invoice** below.
 
 ### Flow B: I am onboarding a brand-new EGS (Electronic Generation Solution)
 
-You need a fresh OTP from the **Fatoora portal** (`fatoora.zatca.gov.sa`) and a `simulation` or `sandbox` environment. `onboard()` will fail fast if you pass `environment: "production"` because the embedded compliance test pack only runs against simulation gateways.
+You need a fresh OTP from the **Fatoora portal** (`fatoora.zatca.gov.sa`) for your target environment. `onboard()` accepts `sandbox`, `simulation`, and `production` — rehearse on `simulation`, then pass `environment: "production"` (with a production-portal OTP) to issue the live CSID. The embedded compliance test pack runs on every environment as part of CSID issuance.
 
 ```ts
 import {

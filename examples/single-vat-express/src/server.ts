@@ -42,7 +42,7 @@ interface OnboardRequestBody {
   readonly vatNumber: string;
   readonly crn: string;
   readonly egsUuid?: string;
-  readonly environment?: "sandbox" | "simulation";
+  readonly environment?: "sandbox" | "simulation" | "production";
   readonly solutionName?: string;
 }
 

@@ -82,7 +82,7 @@ The recommended SaaS pattern is to run `onboard()` from a tenant-admin worker (o
 2. Fetches the cached, decrypted bundle.
 3. Calls `issueSimplifiedTaxInvoice` (or peer).
 
-`onboard()` itself fails fast against `environment: "production"` — only simulation / sandbox is supported, because the six embedded compliance test invoices must round-trip a non-prod gateway. See [onboarding.md](./onboarding.md).
+`onboard()` supports `sandbox`, `simulation`, and `production`. Rehearse on `simulation`, then onboard each tenant on `production` (with a production Fatoora-portal OTP) to issue the live CSID — the six embedded compliance scenarios run on the core gateway as part of production CSID issuance. See [onboarding.md](./onboarding.md).
 
 ## Headers, observability, and trust
 
