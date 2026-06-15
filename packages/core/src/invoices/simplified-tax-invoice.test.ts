@@ -77,3 +77,40 @@ describe("SimplifiedTaxInvoiceBuilder.build", () => {
     expect(b.isCreditOrDebitNote()).toBe(false);
   });
 });
+
+/** Minimal TLV decoder — returns the UTF-8 value of a given tag. */
+function readQrTag(qrBase64: string, tag: number): string {
+  const buf = new Uint8Array(Buffer.from(qrBase64, "base64"));
+  let i = 0;
+  while (i < buf.byteLength) {
+    const t = buf[i];
+    const len = buf[i + 1];
+    if (t === undefined || len === undefined) break;
+    if (t === tag) return Buffer.from(buf.slice(i + 2, i + 2 + len)).toString("utf8");
+    i += 2 + len;
+  }
+  throw new Error(`QR tag ${tag} not found`);
+}
+
+describe("SimplifiedTaxInvoiceBuilder — IssueTime UTC normalization", () => {
+  it("appends the UTC Z to a bare issueTime and keeps XML, QR tag 3, and SigningTime in agreement", () => {
+    // Caller supplies a bare wall-clock time (no Z).
+    const b = new SimplifiedTaxInvoiceBuilder({ ...makeInput(), issueTime: "14:30:45" });
+    const out = b.build(readTestKeys());
+
+    // XML carries the Z (UBL 2.1 timezone requirement).
+    expect(out.invoiceXml).toContain("<cbc:IssueTime>14:30:45Z</cbc:IssueTime>");
+    // QR tag 3 is the combined UTC timestamp.
+    expect(readQrTag(out.qrCode, 3)).toBe("2024-01-15T14:30:45Z");
+    // XAdES SigningTime matches the QR timestamp (no host-TZ drift).
+    expect(out.signedXml).toContain("<xades:SigningTime>2024-01-15T14:30:45Z</xades:SigningTime>");
+  });
+
+  it("is idempotent — an issueTime already ending in Z is not doubled", () => {
+    const b = new SimplifiedTaxInvoiceBuilder({ ...makeInput(), issueTime: "14:30:45Z" });
+    const out = b.build(readTestKeys());
+    expect(out.invoiceXml).toContain("<cbc:IssueTime>14:30:45Z</cbc:IssueTime>");
+    expect(out.invoiceXml).not.toContain("14:30:45ZZ");
+    expect(readQrTag(out.qrCode, 3)).toBe("2024-01-15T14:30:45Z");
+  });
+});

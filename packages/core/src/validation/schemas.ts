@@ -187,9 +187,15 @@ const issueDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
   message: "Invalid issueDate: expected YYYY-MM-DD.",
 });
 
-const issueTimeSchema = z.string().regex(/^\d{2}:\d{2}:\d{2}$/, {
-  message: "Invalid issueTime: expected HH:mm:ss.",
-});
+// Accept a bare wall-clock time (`HH:mm:ss`) or one already carrying the
+// UTC `Z`, and normalize to `HH:mm:ssZ`. The trailing `Z` is required so the
+// XML `<cbc:IssueTime>` matches the QR timestamp and the XAdES SigningTime.
+const issueTimeSchema = z
+  .string()
+  .regex(/^\d{2}:\d{2}:\d{2}Z?$/, {
+    message: "Invalid issueTime: expected HH:mm:ss or HH:mm:ssZ.",
+  })
+  .transform((t) => (t.endsWith("Z") ? t : `${t}Z`));
 
 /**
  * Builder for the shared invoice-common base. Returns a *new* schema

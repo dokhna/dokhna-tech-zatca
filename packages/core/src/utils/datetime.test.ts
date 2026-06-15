@@ -11,6 +11,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  ensureZatcaTimeZ,
   extractZatcaDateTime,
   formatSignTimestamp,
   formatZatcaDate,
@@ -81,6 +82,16 @@ describe("extractZatcaDateTime", () => {
       issue_date: "2024-01-15",
       issue_time: "14:30:45Z",
     });
+  });
+});
+
+describe("ensureZatcaTimeZ", () => {
+  it("appends Z to a bare HH:mm:ss", () => {
+    expect(ensureZatcaTimeZ("14:30:45")).toBe("14:30:45Z");
+  });
+
+  it("is idempotent when Z is already present", () => {
+    expect(ensureZatcaTimeZ("14:30:45Z")).toBe("14:30:45Z");
   });
 });
 
