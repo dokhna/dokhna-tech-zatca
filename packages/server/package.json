@@ -1,6 +1,6 @@
 {
   "name": "@dokhna-tech/zatca-server",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Standalone multi-tenant ZATCA Phase 2 server. Tenant registry, encrypted credential vault, onboarding orchestration, and ZATCA operations exposed over HTTP.",
   "license": "BUSL-1.1",
   "repository": {

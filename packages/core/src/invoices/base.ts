@@ -49,6 +49,7 @@ import type {
   ZATCAInvoiceLineItem,
   ZatcaInvoiceType,
 } from "../types/invoice.js";
+import { ensureZatcaTimeZ } from "../utils/datetime.js";
 import type { XMLObject } from "../xml/document.js";
 import { XMLDocument } from "../xml/document.js";
 import { toFixedNoRounding } from "./fixed-no-rounding.js";
@@ -123,7 +124,11 @@ export abstract class BaseInvoiceBuilder<TInput extends Phase2InvoiceInput> {
   protected readonly input: TInput;
 
   constructor(input: TInput) {
-    this.input = input;
+    // Normalize the wall-clock IssueTime to carry the UTC `Z` so the XML
+    // `<cbc:IssueTime>`, the QR timestamp, and the XAdES SigningTime all
+    // agree (UBL 2.1 requires the timezone; without it ZATCA warns and the
+    // sign timestamp drifts on non-UTC hosts).
+    this.input = { ...input, issueTime: ensureZatcaTimeZ(input.issueTime) };
   }
 
   /** Fills the UBL template for this variant. */

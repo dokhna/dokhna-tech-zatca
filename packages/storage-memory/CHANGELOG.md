@@ -1,5 +1,12 @@
 # @dokhna-tech/zatca-storage-memory
 
+## 4.0.1
+
+### Patch Changes
+
+- Updated dependencies [a7c056f]
+  - @dokhna-tech/zatca@4.0.1
+
 ## 4.0.0
 
 ### Patch Changes

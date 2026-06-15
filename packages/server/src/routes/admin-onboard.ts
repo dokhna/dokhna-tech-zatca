@@ -115,7 +115,7 @@ async function releaseIdempotency(deps: RouteDeps, cacheKey: string | undefined)
 const OnboardBody = z.object({
   otp: z.string().min(1).max(20),
   solutionName: z.string().min(1).max(120),
-  environment: z.enum(["sandbox", "simulation"]).default("simulation"),
+  environment: z.enum(["sandbox", "simulation", "production"]).default("simulation"),
 });
 
 /**

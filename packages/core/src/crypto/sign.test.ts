@@ -150,6 +150,21 @@ describe("generateSignedXMLString", () => {
     expect(result.signed_invoice_string).toContain("<xades:SigningTime>");
   });
 
+  it("anchors SigningTime to the invoice IssueDate/IssueTime as UTC (no host-TZ drift)", () => {
+    if (!material) return;
+    const result = generateSignedXMLString({
+      invoice_xml: new XMLDocument(MINIMAL_INVOICE_TEMPLATE),
+      certificate_string: material.certPem,
+      private_key_string: material.keyPem,
+    });
+    // IssueDate 2024-01-15 + IssueTime 14:30:45Z must yield this exact
+    // SigningTime regardless of the host machine's TZ. Before the fix, a
+    // `Z`-less IssueTime was parsed as local time and drifted by the offset.
+    expect(result.signed_invoice_string).toContain(
+      "<xades:SigningTime>2024-01-15T14:30:45Z</xades:SigningTime>",
+    );
+  });
+
   it("produces an identical hash for identical input across runs", () => {
     if (!material) return;
     const a = generateSignedXMLString({

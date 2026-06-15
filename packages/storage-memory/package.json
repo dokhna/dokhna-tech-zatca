@@ -1,6 +1,6 @@
 {
   "name": "@dokhna-tech/zatca-storage-memory",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "In-memory storage adapter for @dokhna-tech/zatca (testing/dev).",
   "license": "BUSL-1.1",
   "repository": {

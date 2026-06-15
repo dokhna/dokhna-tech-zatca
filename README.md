@@ -147,7 +147,7 @@ pnpm --filter @dokhna-tech-examples/single-vat-express start
 - [Single VAT deployment](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/single-vat.md) — Express wire-up.
 - [Multi-VAT SaaS](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/multi-vat-saas.md) — per-tenant scoping, certificate isolation.
 - [Storage adapters](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/storage-adapters.md) — interface contract + custom adapter.
-- [Onboarding](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/onboarding.md) — CSR, OTP, compliance certs, production CSID.
+- [Onboarding](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/onboarding.md) — CSR, OTP, compliance certs, production CSID. `onboard()` supports `sandbox`, `simulation`, and `production`; use `simulation` to rehearse and `production` (with a production Fatoora-portal OTP) to issue the live CSID. The six compliance scenarios run on every environment as part of CSID issuance.
 - [Compliance tests](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/compliance-tests.md) — `runComplianceTests` + interpreting results.
 - [Migration from an existing helper](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/migration-from-existing-helper.md) — function-by-function table.
 - [Troubleshooting](https://github.com/dokhna/dokhna-tech-zatca/blob/main/docs/troubleshooting.md) — ZATCA error codes + Lambda OpenSSL recipe.

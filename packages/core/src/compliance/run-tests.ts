@@ -52,7 +52,13 @@ import {
  */
 export interface RunComplianceTestsArgs {
   egsInfo: EGSUnitInfo;
-  environment: "sandbox" | "simulation";
+  /**
+   * Target gateway. ZATCA runs the same compliance scenarios on every
+   * environment — including `production`, where they are a required
+   * step of production CSID issuance (verified against the live core
+   * gateway).
+   */
+  environment: "sandbox" | "simulation" | "production";
   /**
    * Signing keypair used by the Phase 2 issuers. Typically the
    * compliance certificate (binary security token decoded) plus the

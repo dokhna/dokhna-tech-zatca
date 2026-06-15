@@ -15,8 +15,8 @@
  *   - Compliance test failure (one scenario returns errorMessages):
  *     onboarding throws ZatcaOnboardingError and the CSID endpoint
  *     is never called.
- *   - Production environment is rejected (compliance tests cannot
- *     run there).
+ *   - Production environment runs the full flow against the core
+ *     gateway using the production CSR template.
  */
 
 import { HttpResponse, http } from "msw";
@@ -197,13 +197,45 @@ describe("onboard — failure paths", () => {
     expect(csidsCalls).toBe(0);
   });
 
-  it("throws ZatcaOnboardingError when environment='production' is supplied", async () => {
+  it("runs the full flow against the production gateway with the production CSR template", async () => {
+    const PROD = "production" as const;
+    const prodCertUrl = `${ZATCA_ENDPOINTS[PROD].base}${ZATCA_ENDPOINTS[PROD].complianceCertificate}`;
+    const prodComplianceUrl = `${ZATCA_ENDPOINTS[PROD].base}${ZATCA_ENDPOINTS[PROD].compliance}`;
+    const prodCsidsUrl = `${ZATCA_ENDPOINTS[PROD].base}${ZATCA_ENDPOINTS[PROD].csids}`;
+    let csidsCalls = 0;
+    let csrProductionFlag: boolean | undefined;
     server.use(
-      http.post(COMPLIANCE_CERT_URL, () => HttpResponse.json(complianceCertResponseBody())),
+      http.post(prodCertUrl, () => HttpResponse.json(complianceCertResponseBody())),
+      http.post(prodComplianceUrl, () => HttpResponse.json(passingComplianceResponse())),
+      http.post(prodCsidsUrl, () => {
+        csidsCalls += 1;
+        return HttpResponse.json({
+          binarySecurityToken: Buffer.from("PROD-CERT-BODY").toString("base64"),
+          secret: "PROD-SECRET",
+          requestID: "REQ-PROD-PROD-001",
+          dispositionMessage: "Production CSID issued",
+        });
+      }),
     );
-    await expect(() => onboard(makeArgs({ environment: "production" }))).rejects.toBeInstanceOf(
-      ZatcaOnboardingError,
-    );
+
+    const args = makeArgs({ environment: "production" });
+    // Spy on the CSR generator to confirm the production template is selected.
+    args.crypto = {
+      ...args.crypto,
+      generateCSR: (params) => {
+        csrProductionFlag = params.production;
+        return Promise.resolve(
+          "-----BEGIN CERTIFICATE REQUEST-----\nMIIB...stub\n-----END CERTIFICATE REQUEST-----\n",
+        );
+      },
+    };
+
+    const result = await onboard(args);
+
+    expect(csrProductionFlag).toBe(true);
+    expect(result.productionRequestId).toBe("REQ-PROD-PROD-001");
+    expect(result.complianceTestReport.overallStatus).toBe("passed");
+    expect(csidsCalls).toBe(1);
   });
 
   it("throws ZatcaOnboardingError when otp is missing", async () => {

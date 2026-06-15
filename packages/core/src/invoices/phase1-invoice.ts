@@ -15,6 +15,7 @@
 import { generatePhase1QR } from "../qr/phase1.js";
 import type { Base64 } from "../types/branded.js";
 import type { Phase1InvoiceInput } from "../types/invoice.js";
+import { ensureZatcaTimeZ } from "../utils/datetime.js";
 import { XMLDocument } from "../xml/document.js";
 
 /**
@@ -60,7 +61,8 @@ export class Phase1InvoiceBuilder {
   private readonly input: Phase1InvoiceInput;
 
   constructor(input: Phase1InvoiceInput) {
-    this.input = input;
+    // Ensure IssueTime carries the UTC `Z` so the XML matches the QR timestamp.
+    this.input = { ...input, issueTime: ensureZatcaTimeZ(input.issueTime) };
   }
 
   build(): BuiltPhase1Invoice {

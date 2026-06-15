@@ -41,7 +41,7 @@ const result = await onboard({
     },
   },
   otp: "123456", // burns on use
-  environment: "simulation", // sandbox | simulation; NOT production
+  environment: "simulation", // "sandbox" | "simulation" | "production"
   solutionName: "MyBilling SaaS v1.0",
 });
 ```
@@ -64,9 +64,47 @@ interface OnboardingResult {
 }
 ```
 
-## Why `environment: "production"` is rejected
+## Choosing an environment
 
-`onboard()` runs the six compliance test invoices as step 4. Those scenarios MUST round-trip a non-production gateway (sandbox or simulation). Issuing a production CSID against the live gateway would burn the OTP without exercising the compliance scenarios, then leave the EGS in a stuck state. Fail-fast keeps you out of that trap. If you have an exotic flow that already passed compliance, you can drive `issueComplianceCertificate` and `issueCSIDS` directly — see the API reference.
+`onboard()` accepts `sandbox`, `simulation`, or `production`. The same six-step flow runs against all three — only the gateway and the CSR certificate profile change:
+
+| `environment` | Gateway (`core`/`simulation`/`developer-portal`) | CSR profile | OTP source | Use it for |
+|---|---|---|---|---|
+| `sandbox` | developer-portal | `PREZATCA-Code-Signing` | fixed dev OTP (`123456`) | local dev against the sandbox |
+| `simulation` | simulation | `PREZATCA-Code-Signing` | simulation Fatoora portal | pre-production rehearsal with real CSIDs + strict validation |
+| `production` | core | `ZATCA-Code-Signing` | **production** Fatoora portal | go-live: issue the production CSID your live invoices are signed with |
+
+The compliance scenarios are a **required step of CSID issuance on every environment, including production** — ZATCA validates the six sample documents on the core gateway before issuing the production CSID. (Verified end-to-end against the live core gateway: all six scenarios pass and a production CSID is returned.)
+
+## Going live (production)
+
+To onboard a real EGS for live invoicing, generate an OTP in the **production** Fatoora portal and call `onboard()` with `environment: "production"`:
+
+```ts
+const result = await onboard({
+  egsInfo,                       // OnboardingEgsInfo — must match the VAT's ZATCA registration
+  otp: "601436",                 // 6-digit OTP from the PRODUCTION Fatoora portal — single-use, ~1h TTL
+  environment: "production",
+  solutionName: "MyBilling SaaS v1.0",
+});
+// Persist result.privateKey, result.productionCertificate,
+// result.productionApiSecret, result.productionBinarySecurityToken
+// (all SECRET) — these sign and authenticate your live invoices.
+```
+
+What happens under the hood (identical to the numbered steps above, but against the `core` gateway with the `ZATCA-Code-Signing` CSR profile):
+
+1. Generate the secp256k1 keypair + production CSR.
+2. `issueComplianceCertificate` — exchange CSR + production OTP for the compliance certificate (**this is the call that consumes the OTP**).
+3. `runComplianceTests` — submit the six compliance scenarios to the core gateway.
+4. `issueCSIDS` — exchange the passing compliance credentials for the **production CSID**.
+
+Operational notes:
+
+- The OTP is **single-use** and short-lived. Generate the key + CSR first (cheap, offline); only step 2 touches the OTP, so a misconfiguration fails before burning it.
+- Each successful `onboard()` registers a **new EGS unit** (fresh `uuid`) with ZATCA. Use one EGS per physical/logical billing endpoint.
+- `egsInfo` must reflect the VAT's real ZATCA registration (legal name, CRN, address). Mismatches surface as ZATCA validation warnings/errors on the compliance documents.
+- After onboarding, set `ZATCA_ENVIRONMENT=production` for the reporting/clearance calls that submit your live invoices.
 
 ## What you must persist
 

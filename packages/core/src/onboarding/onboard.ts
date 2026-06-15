@@ -191,14 +191,18 @@ function withComplianceCertificate(
  * Runs the full ZATCA onboarding pipeline.
  *
  * @param args - EGS info, 6-digit Fatoora-portal OTP, target
- *               environment (sandbox / simulation only), and the
- *               solution-provider name embedded in the CSR.
+ *               environment (`sandbox`, `simulation`, or
+ *               `production`), and the solution-provider name embedded
+ *               in the CSR. For `production`, supply the OTP generated
+ *               in the production Fatoora portal; the CSR is issued
+ *               against the `ZATCA-Code-Signing` profile and the
+ *               compliance scenarios run on the live core gateway as
+ *               part of production CSID issuance.
  * @returns The full bundle of artifacts the caller must persist —
  *          private key, certificates, API secrets, request ids, and
  *          the compliance-test report.
- * @throws {ZatcaOnboardingError} when OpenSSL is missing, when
- *         `environment` is `"production"`, when the compliance tests
- *         fail, or when any required field is empty.
+ * @throws {ZatcaOnboardingError} when OpenSSL is missing, when the
+ *         compliance tests fail, or when any required field is empty.
  * @throws {ZatcaApiError} when ZATCA returns a non-2xx response.
  *
  * @example
@@ -206,7 +210,7 @@ function withComplianceCertificate(
  * const result = await onboard({
  *   egsInfo, // OnboardingEgsInfo
  *   otp: "123456",
- *   environment: "simulation",
+ *   environment: "production", // or "simulation" / "sandbox"
  *   solutionName: "MyBilling SaaS v1.0",
  * });
  * await encryptedSecretsStore.put(scopeKey, {
@@ -222,15 +226,6 @@ export async function onboard(args: OnboardArgs): Promise<OnboardingResult> {
   }
   if (!args.solutionName) {
     throw new ZatcaOnboardingError("onboard requires a solutionName (BSN).");
-  }
-  // The onboarding flow embeds a six-scenario compliance test pack —
-  // ZATCA only accepts those against sandbox / simulation. Fail
-  // fast so callers don't burn an OTP issuing a compliance
-  // certificate they cannot then exercise.
-  if (args.environment === "production") {
-    throw new ZatcaOnboardingError(
-      "onboard cannot run against environment='production' — compliance tests require sandbox or simulation.",
-    );
   }
 
   // Step 1 — probe OpenSSL (skippable in unit tests).
@@ -255,12 +250,12 @@ export async function onboard(args: OnboardArgs): Promise<OnboardingResult> {
   }
 
   // Step 3 — generate the CSR bound to the private key. The CSR
-  // template differs between the production gateway and the
-  // sandbox/simulation gateways; we already short-circuited
-  // production above, so `production` is always false here. The
-  // boolean is kept explicit to match the CSR helper's contract.
+  // template differs between the production gateway
+  // (`ZATCA-Code-Signing`) and the sandbox/simulation gateways
+  // (`PREZATCA-Code-Signing`), so the flag tracks the target
+  // environment.
   const generateCsr = args.crypto?.generateCSR ?? defaultGenerateCSR;
-  const production = false;
+  const production = args.environment === "production";
   let csr: string;
   try {
     csr = await generateCsr({

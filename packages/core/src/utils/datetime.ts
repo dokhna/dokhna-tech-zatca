@@ -53,6 +53,22 @@ export function formatZatcaTime(input: Date | string): string {
 }
 
 /**
+ * Idempotently ensures a ZATCA wall-clock `IssueTime` string carries the
+ * mandatory UTC `Z` designator.
+ *
+ * Unlike {@link formatZatcaTime}, this does NOT parse the value through a
+ * `Date` — it operates purely on the already-formatted `HH:mm:ss` string a
+ * caller supplies, so a bare time (no `Z`) is accepted and a time that
+ * already ends in `Z` is returned unchanged (no double `Z`). The `Z` must
+ * reach the XML `<cbc:IssueTime>` so it matches the QR timestamp and the
+ * XAdES `SigningTime`; otherwise ZATCA warns on the missing timezone and
+ * the signing timestamp can drift on non-UTC hosts.
+ */
+export function ensureZatcaTimeZ(time: string): string {
+  return time.endsWith("Z") ? time : `${time}Z`;
+}
+
+/**
  * ZATCA combined timestamp format: `YYYY-MM-DDTHH:mm:ss` (UTC-naive).
  *
  * Used inside the XML for fields where ZATCA's hash oracle compares
